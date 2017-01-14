@@ -6,12 +6,11 @@ import battlecode.common.*;
 public strictfp class RobotPlayer {
     static RobotController rc;
     static Random rand;
-
+    static int otherID;
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
      * If this method returns, the robot dies!
     **/
-    @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
 
         // This is the RobotController object. You use it to perform actions from this robot,
@@ -38,6 +37,8 @@ public strictfp class RobotPlayer {
             case SCOUT:
             	runScout();
             	break;
+            case TANK:
+            	runTank();
             default:
             	break;
         }
@@ -124,15 +125,17 @@ public strictfp class RobotPlayer {
 
         int strategy = -1;
         // add some communications in here
-        if(rc.getTeam() == Team.A)
-        	strategy = 2;
-        else
-        	strategy = 1;
+        //if(rc.getTeam() == Team.A)
+        //	strategy = 2;
+        //else
+        otherID = rc.readBroadcast(5);
+        strategy = otherID%2;
+        rc.broadcast(5, otherID+1);
         
-        if(strategy == 1) {
+        if(strategy == 0) {
         	gardenerBaseStrategy();
         }
-        else if(strategy == 2) {
+        else if(strategy == 1) {
         	gardenerBlockStrategy();
         }
 	}
@@ -224,6 +227,7 @@ public strictfp class RobotPlayer {
 	
 	static void gardenerBaseStrategy() throws GameActionException {
         MapLocation myLocation;
+        boolean hasMadeLumberjack = false;
         int treesPlanted = 0;
         // The code you want your robot to perform every round should be in this loop
         while (true) {
@@ -247,14 +251,15 @@ public strictfp class RobotPlayer {
                 	}
                 }
                 else {
-                	if(rand.nextDouble() < 0.7) {
-                		if(rc.canBuildRobot(RobotType.SOLDIER, dir)) {
+                	if(rand.nextDouble() < 0.7 && hasMadeLumberjack) {
+                		if(rc.canBuildRobot(RobotType.SOLDIER, dir) && rand.nextDouble() < 0.4) {
                 			rc.buildRobot(RobotType.SOLDIER, dir);
                 		}
                 	}
                 	else {
                 		if(rc.canBuildRobot(RobotType.LUMBERJACK, dir)) {
                 			rc.buildRobot(RobotType.LUMBERJACK, dir);
+                			hasMadeLumberjack = true;
                 		}
                 	}
                 }
@@ -384,7 +389,7 @@ public strictfp class RobotPlayer {
                 
                 // See if there are any nearby enemy robots
                 
-                MapLocation[] broadcasters = rc.senseBroadcastingRobotLocations();
+                //MapLocation[] broadcasters = rc.senseBroadcastingRobotLocations();
 
 
                 // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
@@ -426,13 +431,21 @@ public strictfp class RobotPlayer {
             	nearbyTrees = targetTrees; // temporary, eventually just replace instances
             	if(nearbyTrees.length > 0) {
                 	TreeInfo closestTree = nearbyTrees[0];
-                	float closestDist = closestTree.getLocation().distanceTo(myLocation);
+                	/*float closestDist = closestTree.getLocation().distanceTo(myLocation);
             		for(int i = 1; i < nearbyTrees.length; i ++) {
             			if(nearbyTrees[i].getLocation().distanceTo(myLocation) < closestDist) {
             				closestDist = nearbyTrees[i].getLocation().distanceTo(myLocation);
             				closestTree = nearbyTrees[i];
             			}
+            		}*/
+
+            		for(int i = 1; i < nearbyTrees.length; i ++) {
+            			if(nearbyTrees[i].getHealth() < closestTree.getHealth()) {
+            				closestTree = nearbyTrees[i];
+            			}
             		}
+            		
+            		
             		if(rc.canChop(closestTree.getID())) {
             			rc.chop(closestTree.getID());
             		}
@@ -498,52 +511,13 @@ public strictfp class RobotPlayer {
 
 
     static void runScout() throws GameActionException {
-        System.out.println("I'm a scout!");
-        while(rc.getRoundNum() < 300)
-        	Clock.yield();
-        Team enemy = rc.getTeam().opponent();
-        
-        MapLocation myLocation;
-        int reportingID = 0;
-    	while(rc.readBroadcast(reportingID) != 0)
-    		reportingID ++;
-    	rc.broadcast(reportingID, 1);
-    	System.out.println("I found my reporting ID: " + reportingID);
+    	runSoldier();
+    }
+    
 
-        // The code you want your robot to perform every round should be in this loop
-        while (true) {
-        	
-            // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
-            try {
-            	// literally do nothing xd
-            	
-            	myLocation = rc.getLocation();
-                // See if there are any enemy robots within striking range (distance 1 from lumberjack's radius)
-                /* else {
-                    // No close robots, so search for robots within sight radius
-                    robots = rc.senseNearbyRobots(-1,enemy);
 
-                    // If there is a robot, move towards it
-                    if(robots.length > 0) {
-                        MapLocation myLocation = rc.getLocation();
-                        MapLocation enemyLocation = robots[0].getLocation();
-                        Direction toEnemy = myLocation.directionTo(enemyLocation);
-
-                        tryMove(toEnemy);
-                    } else {
-                        // Move Randomly
-                        tryMove(randomDirection());
-                    }
-                }*/
-
-                // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
-                Clock.yield();
-
-            } catch (Exception e) {
-                System.out.println("Lumberjack Exception");
-                e.printStackTrace();
-            }
-        }
+    static void runTank() throws GameActionException {
+    	runSoldier();
     }
     
     
@@ -585,7 +559,7 @@ public strictfp class RobotPlayer {
         }
 
         // Now try a bunch of similar angles
-        boolean moved = false;
+        //boolean moved = false;
         int currentCheck = 1;
 
         while(currentCheck<=checksPerSide) {
