@@ -34,13 +34,12 @@ public strictfp class RobotPlayer {
     
     static void runArchon() throws GameActionException {
     	// determine bounds
-    	if(rc.readBroadcast(0) == 0 && rc.readBroadcast(1) == 0) {
-    		System.out.println("Bounds have not been located, locating them...");
+    	if(rc.readBroadcast(0) == 0) {
+    		System.out.println("Approx center has not been located, locating it...");
     		float[] center = locateApproxCenter();
-    		System.out.println("X: " + center[0]);
-    		System.out.println("Y: " + center[1]);
+    		System.out.println("roughly @ (" + center[0] + "," + center[1] + ")");
+    		rc.broadcast(0, pack(center[0], center[1]));
     	}
-    	rc.resign();
     }
     
     /*
@@ -49,7 +48,7 @@ public strictfp class RobotPlayer {
      */
     static float[] locateApproxCenter() throws GameActionException {
     	MapLocation[] initArchonLocsA = rc.getInitialArchonLocations(Team.A);
-    	MapLocation[] initArchonLocsB = rc.getInitialArchonLocations(Team.A);
+    	MapLocation[] initArchonLocsB = rc.getInitialArchonLocations(Team.B);
     	MapLocation[] initArchonLocs = new MapLocation[2 * initArchonLocsA.length];
     	int t = 0;
     	for(MapLocation ml : initArchonLocsA)
@@ -74,7 +73,16 @@ public strictfp class RobotPlayer {
     	// pass
     }
     
+    public static int pack(float x, float y) {
+		return (int)((((int)(x*100))/100.0*10000000) + (int)(((int)(y*100))/100.0*100));
+	}
     
+	public static float[] unpack(int p) {
+		float[] ret = new float[2];
+		ret[0] = ((p / 100000) / 100.0f);
+		ret[1] = ((p % 100000) / 100.0f);
+		return ret;
+	}
 
     /**
      * Returns a random Direction
