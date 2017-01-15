@@ -122,7 +122,8 @@ public strictfp class RobotPlayer {
 
 	static void runGardener() throws GameActionException {
         System.out.println("I'm a gardener!");
-
+        System.out.println(rc.getID());
+        System.exit(0);
         int strategy = -1;
         // add some communications in here
         //if(rc.getTeam() == Team.A)
