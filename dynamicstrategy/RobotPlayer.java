@@ -33,13 +33,33 @@ public strictfp class RobotPlayer {
 	}
     
     static void runArchon() throws GameActionException {
-    	// determine bounds
+    	// T=1
+    	// determine center
     	if(rc.readBroadcast(0) == 0) {
     		System.out.println("Approx center has not been located, locating it...");
     		float[] center = locateApproxCenter();
     		System.out.println("roughly @ (" + center[0] + "," + center[1] + ")");
     		rc.broadcast(0, pack(center[0], center[1]));
     	}
+    	// determine alpha
+    	int preID = rc.readBroadcast(500) + 1;
+    	rc.broadcast(500, preID);
+    	float[] center = unpack(rc.readBroadcast(0));
+    	float myDist = rc.getLocation().distanceSquaredTo(new MapLocation(center[0],center[1]))*100;
+    	System.out.println("My dist to center: " + myDist);
+    	rc.broadcast(500+preID, (int)(myDist));
+    	Clock.yield();
+    	// T=2
+    	int rank = 0;
+    	int numArchons = rc.readBroadcast(500);
+        for(int i = 0; i < numArchons; i ++) {
+    		if((int)(myDist) > rc.readBroadcast(501+i))
+    			rank ++;
+    	}
+    	System.out.println("Self-identified as rank #" + rank);
+    	boolean isAlpha = (rank == 0);
+    	System.out.println("I am the Alpha");
+    	Clock.yield();
     }
     
     /*
@@ -72,6 +92,9 @@ public strictfp class RobotPlayer {
     static void runScout() {
     	// pass
     }
+    
+    // ====================== HELPER =======================
+    
     
     public static int pack(float x, float y) {
 		return (int)((((int)(x*100))/100.0*10000000) + (int)(((int)(y*100))/100.0*100));
