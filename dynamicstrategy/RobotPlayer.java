@@ -58,8 +58,10 @@ public strictfp class RobotPlayer {
     	}
     	System.out.println("Self-identified as rank #" + rank);
     	boolean isAlpha = (rank == 0);
-    	if(isAlpha)
+    	if(isAlpha) {
     		System.out.println("I am the Alpha");
+    		rc.broadcast(1, pack(rc.getLocation().x,rc.getLocation().y));
+    	}
     	Clock.yield();
     }
     
