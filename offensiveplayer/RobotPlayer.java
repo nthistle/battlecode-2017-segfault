@@ -156,11 +156,11 @@ public strictfp class RobotPlayer {
     	MapLocation[] initArchonLocsB = rc.getInitialArchonLocations(Team.B);
     	if(rc.getTeam()==Team.A) {
     		for (int k=0; k<initArchonLocsB.length; k++) {
-    			rc.broadcast(k, pack(initArchonLocsB[k].x, initArchonLocsB[k].y));
+    			rc.broadcast(k+4, pack(initArchonLocsB[k].x, initArchonLocsB[k].y));
     		}
     	} else {
     		for (int k=0; k<initArchonLocsA.length; k++) {
-    			rc.broadcast(k, pack(initArchonLocsA[k].x, initArchonLocsA[k].y));
+    			rc.broadcast(k+4, pack(initArchonLocsA[k].x, initArchonLocsA[k].y));
     		}
     	}
     	MapLocation[] initArchonLocs = new MapLocation[2 * initArchonLocsA.length];
@@ -187,7 +187,7 @@ public strictfp class RobotPlayer {
 	    		for (Direction k : getBestDirections(rc.getLocation())) {
 	    			if(rc.canBuildRobot(RobotType.SCOUT, k)) {
 	    				rc.broadcast(100, 1);
-	    				rc.broadcast(150, 0);
+	    				rc.broadcast(150, 1);
 	    				rc.buildRobot(RobotType.SCOUT, k);
 	    				break;
 	    			}
@@ -219,12 +219,23 @@ public strictfp class RobotPlayer {
     
     static void pathScout() throws GameActionException {
     	System.out.println("PathScout");
+    	System.out.println(rc.getLocation());
     	float[] enemylocation = unpack(rc.readBroadcast(4));
     	MapLocation el = new MapLocation(enemylocation[0], enemylocation[1]);
     	// runs until it hits the enemy archon
     	while(rc.getLocation().distanceTo(el) > 1) {
-    		Direction[] possibleMoves = getBestDirections(rc.getLocation(), el, 45f);
-    		// continue writing here
+    		Direction[] possibleMoves = getBestDirections(rc.getLocation(), el, 30f);
+			MapLocation dankloc = rc.getLocation();
+    		for (Direction k: possibleMoves) {
+    			dankloc = rc.getLocation().add(k, 2.5f);
+    			if(!rc.isLocationOccupiedByTree(dankloc)) {
+    				if(rc.canMove(dankloc)) {
+    					rc.move(k);
+    					break;
+    				}
+    			}
+    		}
+			Clock.yield();
     	}
     }
     
@@ -310,16 +321,15 @@ public strictfp class RobotPlayer {
     	float initialtheta = theta;
     	Direction[] dirs = new Direction [(int)(360.0f/theta)];
     	Direction bestdir = myLoc.directionTo(otherLoc);
-    	for (int j=0; j<dirs.length; j++) {
-    		dirs[j] = bestdir;
+    	dirs[0] = bestdir;
+    	for (int j=1; j<dirs.length; j++) {
     		bestdir = bestdir.rotateLeftDegrees(theta);
+    		dirs[j] = bestdir;
     		if (theta>0f) {
     			theta = theta*-1f;
-    			System.out.println(theta)
     		} else {
     			theta = theta*-1f + initialtheta;
     		}
-			System.out.println(theta)
     	}
     	return dirs;
 	}
