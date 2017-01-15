@@ -36,85 +36,34 @@ public strictfp class RobotPlayer {
     	// determine bounds
     	if(rc.readBroadcast(0) == 0 && rc.readBroadcast(1) == 0) {
     		System.out.println("Bounds have not been located, locating them...");
-    		float[] bounds = locateBounds();
-    		System.out.println("MaxX: " + bounds[0]);
-    		System.out.println("MinX: " + bounds[1]);
-    		System.out.println("MaxY: " + bounds[2]);
-    		System.out.println("MinY: " + bounds[3]);
+    		float[] center = locateApproxCenter();
+    		System.out.println("X: " + center[0]);
+    		System.out.println("Y: " + center[1]);
     	}
+    	rc.resign();
     }
     
     /*
-     * Returns bounds in following format:
-     * float[] {maxX, minX, maxY, minY}
+     * Returns approximate center in following format:
+     * float[] {x, y}
      */
-    static float[] locateBounds() throws GameActionException {
+    static float[] locateApproxCenter() throws GameActionException {
     	MapLocation[] initArchonLocsA = rc.getInitialArchonLocations(Team.A);
     	MapLocation[] initArchonLocsB = rc.getInitialArchonLocations(Team.A);
     	MapLocation[] initArchonLocs = new MapLocation[2 * initArchonLocsA.length];
-    	float maxX, maxY, minX, minY
-    	float upperXBound, lowerXBound, upperYBound, lowerYBound, upper, lower, mid;
-    	maxX = initArchonLocs[0].x;
-    	minX = initArchonLocs[0].x;
-    	maxY = initArchonLocs[0].y;
-    	minY = initArchonLocs[0].y;
+    	int t = 0;
+    	for(MapLocation ml : initArchonLocsA)
+    		initArchonLocs[t++] = ml;
+    	for(MapLocation ml : initArchonLocsB)
+    		initArchonLocs[t++] = ml;
+    	float netX = 0.0f;
+    	float netY = 0.0f;
     	for(MapLocation ml : initArchonLocs) {
-    		if(ml.x > maxX)	maxX = ml.x;
-    		if(ml.x < minX) minX = ml.x;
-    		if(ml.y > maxY) maxY = ml.y;
-    		if(ml.y < minY) minY = ml.y;
+    		netX += ml.x;
+    		netY += ml.y;
     	}
     	
-    	float midX = (maxX+minX)/2.0f;
-    	float midY = (maxY+minY)/2.0f;
-    	// (midX, midY) guaranteed to be on map
-    	
-    	upper = maxX + 200f;
-    	lower = maxX;
-    	for(int i = 0; i < 8; i ++) {
-    		mid = (upper+lower)/2.0f;
-    		if(rc.onTheMap(new MapLocation(mid, midY)))
-    			lower = mid;
-    		else
-    			upper = mid;
-    	}
-    	upperXBound = (upper+lower)/2.0f;
-    	
-    	upper = minX;
-    	lower = minX - 200f;
-    	for(int i = 0; i < 8; i ++) {
-    		mid = (upper+lower)/2.0f;
-    		if(rc.onTheMap(new MapLocation(mid, midY)))
-    			upper = mid;
-    		else
-    			lower = mid;
-    	}
-    	lowerXBound = (upper+lower)/2.0f;
-    	
-    	
-    	upper = maxY + 200f;
-    	lower = maxY;
-    	for(int i = 0; i < 8; i ++) {
-    		mid = (upper+lower)/2.0f;
-    		if(rc.onTheMap(new MapLocation(midX, mid)))
-    			lower = mid;
-    		else
-    			upper = mid;
-    	}
-    	upperYBound = (upper+lower)/2.0f;
-    	
-    	upper = minY;
-    	lower = minY - 200f;
-    	for(int i = 0; i < 8; i ++) {
-    		mid = (upper+lower)/2.0f;
-    		if(rc.onTheMap(new MapLocation(midX, mid)))
-    			upper = mid;
-    		else
-    			lower = mid;
-    	}
-    	lowerYBound = (upper+lower)/2.0f;
-    	
-    	return new float[] {upperXBound, lowerXBound, upperYBound, lowerYBound};
+    	return new float[] {netX/initArchonLocs.length, netY/initArchonLocs.length};
     }
     
     static void runGardener() {
