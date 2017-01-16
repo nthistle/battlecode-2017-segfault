@@ -64,20 +64,64 @@ public strictfp class RobotPlayer {
     		System.out.println("I am the Alpha, broadcasting my coords");
     		rc.broadcast(1, pack(rc.getLocation().x,rc.getLocation().y));
     	}
-    	
-    	Clock.yield();
-    	if(isAlpha) {
-    		Direction dir = randomDirection();
-    		for(int i = 0; i < 10 && !rc.canBuildRobot(RobotType.GARDENER, dir); i++) {
-    			dir = randomDirection();
-    		}
-    		if(rc.canBuildRobot(RobotType.GARDENER, dir)) {
-    			rc.buildRobot(RobotType.GARDENER, dir);
-    		}
-    		Clock.yield();
-    		while(true)
-    			Clock.yield();
+    	// all archons assess their surroundings
+    	TreeInfo[] nearbyTrees  = rc.senseNearbyTrees();
+    	float[] treeMassByDirection = new float[16];
+    	// tree mass by direction represents roughly area of a tree in a given direction,
+    	// giving additional weight to closer trees (think inverse of a moment of inertia)
+    	Direction dir;
+    	MapLocation myLocation = rc.getLocation();
+    	float inDeg, dist;
+    	int realDir;
+    	for(TreeInfo ti : nearbyTrees) {
+    		dir = myLocation.directionTo(ti.getLocation());
+    		inDeg = dir.getAngleDegrees() + 11.25f;
+    		while(inDeg < 360f) inDeg += 360f;
+    		while(inDeg > 360f) inDeg -= 360f;
+    		realDir = (int)(inDeg/22.5f);
+    		dist = myLocation.distanceTo(ti.getLocation());
+    		treeMassByDirection[realDir] += (ti.radius * ti.radius) * (10.0f-dist)*(10.0f-dist);
     	}
+    	for(int i = 0; i < 16; i ++) {
+    		dir = new Direction(i*(float)Math.PI/8.0f);
+    		for(dist = 2.49f; dist < 10.0f; dist += 2.49f) {
+    			if(!rc.onTheMap(myLocation.add(dir,dist))) {
+    				// boundary in this direction, pretend it's a huge tree
+    				treeMassByDirection[i] += 35 * (10.0f-dist)*(10.0f-dist);
+    			}
+    		}
+    	}
+    	for(int i = 0; i < 16; i ++) {
+    		System.out.println("In direction " + i + ", " + treeMassByDirection[i]);
+    	}
+    	float[] smoothedTreeMassByDirection = new float[16];
+    	for(int i = 0; i < 16; i ++) {
+    		smoothedTreeMassByDirection[i] += 4.0f * treeMassByDirection[i];
+    		smoothedTreeMassByDirection[i] += 2.0f * treeMassByDirection[(15+i)%16];
+    		smoothedTreeMassByDirection[i] += 2.0f * treeMassByDirection[(17+i)%16];
+    		smoothedTreeMassByDirection[i] += 1.0f * treeMassByDirection[(14+i)%16];
+    		smoothedTreeMassByDirection[i] += 1.0f * treeMassByDirection[(18+i)%16];
+    		smoothedTreeMassByDirection[i] += 0.5f * treeMassByDirection[(13+i)%16];
+    		smoothedTreeMassByDirection[i] += 0.5f * treeMassByDirection[(19+i)%16];
+    		smoothedTreeMassByDirection[i] += 0.25f * treeMassByDirection[(12+i)%16];
+    		smoothedTreeMassByDirection[i] += 0.25f * treeMassByDirection[(20+i)%16];
+    		smoothedTreeMassByDirection[i] += 0.125f * treeMassByDirection[(11+i)%16];
+    		smoothedTreeMassByDirection[i] += 0.125f * treeMassByDirection[(21+i)%16];
+    		smoothedTreeMassByDirection[i] += 0.0625f * treeMassByDirection[(10+i)%16];
+    		smoothedTreeMassByDirection[i] += 0.0625f * treeMassByDirection[(22+i)%16];
+    		smoothedTreeMassByDirection[i] += 0.03125f * treeMassByDirection[(9+i)%16];
+    		smoothedTreeMassByDirection[i] += 0.03125f * treeMassByDirection[(23+i)%16];
+    	}
+    	
+    	int bestDirection = 0;
+    	for(int i = 1; i < 16; i ++) {
+    		if(smoothedTreeMassByDirection[i] < smoothedTreeMassByDirection[bestDirection]) {
+    			bestDirection = i;
+    		}
+    	}
+    	
+    	System.out.println("Determined best direction for spawning stuff in is " + bestDirection);
+    	
     }
     
     /*
