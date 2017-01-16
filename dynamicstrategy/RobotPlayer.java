@@ -119,8 +119,23 @@ public strictfp class RobotPlayer {
     			bestDirection = i;
     		}
     	}
+    	int secondBestDirection = 0;
+    	for(int i = 1; i < 16; i ++) {
+    		if(i == bestDirection) continue;
+    		if(smoothedTreeMassByDirection[i] < smoothedTreeMassByDirection[secondBestDirection]) {
+    			secondBestDirection = i;
+    		}
+    	}
     	
-    	System.out.println("Determined best direction for spawning stuff in is " + bestDirection);
+    	if(isAlpha) {
+    		Direction buildDir = findBuildDirection(bestDirection*(float)Math.PI/8.0f,RobotType.GARDENER);
+    		if(buildDir != null) {
+    			rc.buildRobot(RobotType.GARDENER, buildDir);
+    		}
+    		else
+    			System.out.println("BIG PROBLEM!!! EDGE CASE!!! DIRECTION IS BADDDDD");
+    	}
+    	
     	
     }
     
@@ -261,6 +276,28 @@ public strictfp class RobotPlayer {
 		ret[0] = ((p / 10000) / 10.0f);
 		ret[1] = ((p % 10000) / 10.0f);
 		return ret;
+	}
+	
+	
+	public static boolean canAfford(RobotType rt) {
+		return rc.getTeamBullets() > rt.bulletCost;
+	}
+	
+	
+	// checks canBuild in up to pi/8 in either direction (increments of pi/64)
+	public static Direction findBuildDirection(float angle, RobotType rt) {
+		Direction dir = new Direction(angle);
+		if(rc.canBuildRobot(rt, new Direction(angle)))
+			return new Direction(angle); // cue "that was easy"
+		for(int i = 1; i <= 8; i ++) {
+			dir = new Direction(angle + (i*(float)Math.PI/64.0f));
+			if(rc.canBuildRobot(rt,dir))
+				return dir;
+			dir = new Direction(angle - (i*(float)Math.PI/64.0f));
+			if(rc.canBuildRobot(rt,dir))
+				return dir;
+		}
+		return null; // ruh roh
 	}
 
     /**
