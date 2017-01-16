@@ -135,7 +135,7 @@ public strictfp class RobotPlayer {
     		else
     			System.out.println("BIG PROBLEM!!! EDGE CASE!!! DIRECTION IS BADDDDD");
     	}
-    	
+    	Clock.yield();
     	
     }
     
