@@ -131,12 +131,45 @@ public strictfp class RobotPlayer {
     		Direction buildDir = findBuildDirection(bestDirection*(float)Math.PI/8.0f,RobotType.GARDENER);
     		if(buildDir != null) {
     			rc.buildRobot(RobotType.GARDENER, buildDir);
+    			rc.broadcast(400+rank, 1);
     		}
     		else
     			System.out.println("BIG PROBLEM!!! EDGE CASE!!! DIRECTION IS BADDDDD");
     	}
-    	Clock.yield();
     	
+    	Clock.yield();
+    	// T=3
+    	// gardener starts building a scout
+    	
+    	Clock.yield();
+    	// T=4+
+    	
+    	// now we have non-alpha ones build gardeners
+    	if(!isAlpha) {
+    		Direction buildDir = findBuildDirection(bestDirection*(float)Math.PI/8.0f,RobotType.GARDENER);
+    		if(buildDir != null) {
+    			rc.buildRobot(RobotType.GARDENER, buildDir);
+    		}
+    		else
+    			System.out.println("BIG PROBLEM!!! EDGE CASE!!! DIRECTION IS BADDDDD");
+    	}
+    	
+    	Clock.yield();
+    	for(int t = 0; true; t++) {
+    		if(t%50 == rank) {
+    			if(rand.nextDouble() < 25.0f/t) { // lower chance to spawn new ones as time goes on
+    				float tdir = rand.nextFloat()*2.0f*(float)Math.PI;
+    				for(float j = 0.0f; j < 2.0f*(float)Math.PI; j+=(float)Math.PI/16.0) {
+    					if(rc.canBuildRobot(RobotType.GARDENER, new Direction(tdir + j))) {
+    						rc.buildRobot(RobotType.GARDENER, new Direction(tdir+j));
+    						break;
+    					}
+    				}
+    			}
+    		}
+    		Clock.yield();
+    		// other than occasionally spawn gardeners, do nothing
+    	}
     }
     
     /*
