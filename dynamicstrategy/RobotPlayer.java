@@ -6,7 +6,7 @@ import battlecode.common.*;
 public strictfp class RobotPlayer {
     static RobotController rc;
     static Random rand;
-    static int otherID;
+    static int myID;
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
      * If this method returns, the robot dies!
@@ -172,6 +172,8 @@ public strictfp class RobotPlayer {
     	}
     }
     
+    
+    
     /*
      * Returns approximate center in following format:
      * float[] {x, y}
@@ -196,6 +198,10 @@ public strictfp class RobotPlayer {
     }
     
     static void runGardener() throws GameActionException {
+    	myID = rc.readBroadcast(101);
+    	rc.broadcast(101, myID + 1);
+    	System.out.println("Gardener #" + myID + " spawned");
+    	
     	while(true) {
     		Direction dir = randomDirection();
     		for(int i = 0; i < 10 && !rc.canBuildRobot(RobotType.SCOUT, dir); i++) {
@@ -211,7 +217,110 @@ public strictfp class RobotPlayer {
     }
     
     static void runScout() throws GameActionException {
-    	//circleScout(); // todo: only if "alpha"/initial scout
+    	myID = rc.readBroadcast(102);
+    	rc.broadcast(102, myID+1);
+    	System.out.println("Scout #" + myID + " spawned");
+    	
+    	Team enemy = rc.getTeam().opponent();
+    	
+    	MapLocation myLocation = rc.getLocation();
+    	
+    	if(myID == 0) {
+    		// Mission: harass enemy archon, finding path while on way
+    		// TODO: add path finding logic here
+    		float cdist;
+    		do {
+    			MapLocation[] initArchLocs = rc.getInitialArchonLocations(enemy);
+	    		MapLocation closest = initArchLocs[0];
+	    		cdist = myLocation.distanceTo(closest);
+	    		for(int i = 1; i < initArchLocs.length; i ++) {
+	    			if(initArchLocs[i].distanceTo(myLocation) < cdist) {
+	    				cdist = initArchLocs[i].distanceTo(myLocation);
+	    				closest = initArchLocs[i];
+	    			}
+	    		}
+	    		Direction dir = myLocation.directionTo(closest);
+	    		if(rc.canMove(dir)) 
+	    			rc.move(dir);
+	    		else if(rc.canMove(dir.rotateRightDegrees(68.3f)))
+	    			rc.move(dir.rotateRightDegrees(68.3f));
+	    		else if(rc.canMove(dir.rotateLeftDegrees(68.3f)))
+	    			rc.move(dir.rotateLeftDegrees(68.3f));
+	    		Clock.yield();
+    		} while(cdist > 8.5f);
+    		// now within 6.0 of starting enemy archon location
+    		
+    		RobotInfo[] nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);;
+    		Direction mdir = randomDirection();
+    		while(true) {
+    			
+    			myLocation = rc.getLocation();
+    			
+    			// priorities for scout harassment:
+    			// closest enemy gardener
+    			// closest enemy archon
+    			
+    			if(nearbyRobots.length > 0) {
+    				RobotInfo closestGardener = null;
+    				RobotInfo closestArchon = null;
+    				for(RobotInfo ri : nearbyRobots) {
+    					if(ri.getType() == RobotType.GARDENER) {
+    						if(closestGardener == null)
+    							closestGardener = ri;
+    						else if(ri.getLocation().distanceTo(myLocation) < closestGardener.getLocation().distanceTo(myLocation)) {
+    							closestGardener = ri;
+    					} else if(ri.getType() == RobotType.ARCHON) {
+    						if(closestArchon == null)
+    							closestArchon = ri;
+    						else if(ri.getLocation().distanceTo(myLocation) < closestArchon.getLocation().distanceTo(myLocation)) {
+    							closestArchon = ri;
+    					}
+    				}
+    				if(closestGardener != null) {
+    					// attack closestGardener
+    					float distTo = closestGardener.getLocation().distanceTo(myLocation);
+    					Direction towardsTarget = myLocation.directionTo(closestGardener.getLocation());
+    					if(distTo < 3.0f) { // 2 is used up by radius
+    						if(rc.canFireSingleShot()) {
+    							rc.fireSingleShot(towardsTarget);
+    						}
+    					} else {
+    						// move closer
+    						if(distTo < 4.5f) { // 2.0f (radius) + 2.5f (stride dist) 
+    							if(rc.canMove(towardsTarget, distTo-2.5f)) {
+    								rc.move(towardsTarget, distTo-2.5f);
+    							}
+    						} else {
+    							if(rc.canMove(towardsTarget)) {
+    								rc.move(towardsTar);
+    							}
+    						}
+    					}
+    				}
+    				else {
+    					// attack closestArchon
+    				}
+    			}
+    			else {
+    				// wander around until this is no longer the case
+    				while(nearbyRobots.length == 0) { 
+    					if(rc.canMove(mdir)) {
+    						rc.move(mdir);
+    					}
+    					else {
+    						for(int i = 0; !rc.canMove(mdir) && i < 25; i ++) {
+    							mdir = randomDirection();
+    						}
+    						if(rc.canMove(mdir)) {
+    							rc.move(mdir);
+    						}
+    					}
+    					Clock.yield();
+    					nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);;
+    				}
+    			}
+    		}
+    	}
     }
     
     
