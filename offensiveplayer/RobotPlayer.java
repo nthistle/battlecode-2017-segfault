@@ -1,15 +1,12 @@
-package offensiveplayer;
-import java.util.Arrays;
+package dynamicstrategy;
 import java.util.Random;
-
-import com.sun.jdi.Location;
 
 import battlecode.common.*;
 
 public strictfp class RobotPlayer {
     static RobotController rc;
     static Random rand;
-    static int otherID;
+    static int myID;
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
      * If this method returns, the robot dies!
@@ -34,8 +31,7 @@ public strictfp class RobotPlayer {
             	break;
         }
 	}
-    // =================== ARCHON ===========================
-
+    
     static void runArchon() throws GameActionException {
     	// T=1
     	// determine center
@@ -49,8 +45,10 @@ public strictfp class RobotPlayer {
     	int preID = rc.readBroadcast(500) + 1;
     	rc.broadcast(500, preID);
     	float[] center = unpack(rc.readBroadcast(0));
-    	float myDist = rc.getLocation().distanceSquaredTo(new MapLocation(center[0],center[1]))*100;
-    	System.out.println("My dist to center: " + myDist);
+    	System.out.println("Read center as " + center[0] + ", " + center[1]);
+    	float myDist = rc.getLocation().distanceSquaredTo(new MapLocation(center[0],center[1]));
+    	System.out.println("My coords: " + rc.getLocation().x + ", " + rc.getLocation().y);
+    	System.out.println("PreID: " + preID + ", My dist to center^2: " + myDist);
     	rc.broadcast(500+preID, (int)(myDist));
     	Clock.yield();
     	// T=2
@@ -63,90 +61,121 @@ public strictfp class RobotPlayer {
     	System.out.println("Self-identified as rank #" + rank);
     	boolean isAlpha = (rank == 0);
     	if(isAlpha) {
-    		System.out.println("I am the Alpha");
+    		System.out.println("I am the Alpha, broadcasting my coords");
     		rc.broadcast(1, pack(rc.getLocation().x,rc.getLocation().y));
-    		
-    		// Build a gardener in the best direction
-			if (rc.hasRobotBuildRequirements(RobotType.GARDENER)) {
-				Direction[] buildDirection = bestArchonDirection(rc.getLocation());
-				for (Direction k : buildDirection) { 
-	    			if (rc.canHireGardener(k)) {
-	    				System.out.println("Getting a gardener");
-	    	    		rc.broadcast(100, 0);
-	    				rc.hireGardener(k);
-	    				break;
-	    			}
-				}
-			}
-    		
     	}
-    	Clock.yield();
-    	// The rest of the game
-    	while(true) {
-    		Clock.yield();
+    	// all archons assess their surroundings
+    	TreeInfo[] nearbyTrees  = rc.senseNearbyTrees();
+    	float[] treeMassByDirection = new float[16];
+    	// tree mass by direction represents roughly area of a tree in a given direction,
+    	// giving additional weight to closer trees (think inverse of a moment of inertia)
+    	Direction dir;
+    	MapLocation myLocation = rc.getLocation();
+    	float inDeg, dist;
+    	int realDir;
+    	for(TreeInfo ti : nearbyTrees) {
+    		dir = myLocation.directionTo(ti.getLocation());
+    		inDeg = dir.getAngleDegrees() + 11.25f;
+    		while(inDeg < 360f) inDeg += 360f;
+    		while(inDeg > 360f) inDeg -= 360f;
+    		realDir = (int)(inDeg/22.5f);
+    		dist = myLocation.distanceTo(ti.getLocation());
+    		treeMassByDirection[realDir] += (ti.radius * ti.radius) * (10.0f-dist)*(10.0f-dist);
     	}
-    }
-    // Returns an array of directions sorted from the least number of trees to the most
-    static Direction[] bestArchonDirection(MapLocation myLocation) throws GameActionException {
-    	float x = myLocation.x;
-    	float y = myLocation.y;
-    	float diff = 2.5f*(float)Math.sqrt(2);
-    	float xcen = 0;
-    	float ycen = 0;
-    	int numtrees[][] = new int[8][2];
-    	//Creates and checks tree numbers for 8 different circles, each with radius 5 rotated 45degrees from each other
-    	for (int i=0; i<8; i++) {
-    		if (i==0) {
-    			xcen = x+5; ycen = y;
-    		} 
-    		if (i==1) {
-    			xcen = x+diff; ycen = y+diff;
-    		} 
-    		if (i==2) {
-    			xcen = x; ycen = y+5;
-    		}
-    		if (i==3) {
-    			xcen = x-diff; ycen = y+diff;
-    		}
-    		if (i==4) {
-    			xcen = x-5; ycen = y;
-    		}
-    		if (i==5) {
-    			xcen = x-diff; ycen = y-diff;
-    		}
-    		if (i==6) {
-    			xcen = x; ycen = y-5;
-    		}
-    		
-    		if (i==7) {
-    			xcen = x+diff; ycen = y-diff;
-    		}
-    		MapLocation myloc = new MapLocation(xcen, ycen);
-    		if(rc.onTheMap(myloc, 5.0f)) {
-    			TreeInfo[] myT = rc.senseNearbyTrees(new MapLocation(xcen, ycen), 5.0f, Team.NEUTRAL);
-    			numtrees[i][0] = myT.length;
-    			numtrees[i][1] = i;
-    			System.out.println(myT.length);
-    		} else {
-    			numtrees[i][1] = i;
-    			numtrees[i][0] = 10000000; // arbitrarily large number
+    	for(int i = 0; i < 16; i ++) {
+    		dir = new Direction(i*(float)Math.PI/8.0f);
+    		for(dist = 2.49f; dist < 10.0f; dist += 2.49f) {
+    			if(!rc.onTheMap(myLocation.add(dir,dist))) {
+    				// boundary in this direction, pretend it's a huge tree
+    				treeMassByDirection[i] += 35 * (10.0f-dist)*(10.0f-dist);
+    			}
     		}
     	}
-    	// Sort the array[][] of [trees][location] by number of trees
-    	java.util.Arrays.sort(numtrees, new java.util.Comparator<int[]>() {
-    	    public int compare(int[] a, int[] b) {
-    	        return Integer.compare(a[0], b[0]);
-    	    }
-    	});
-    	//Translate circle number (0-8) to direction (0-7pi/8)
-    	Direction[] ranked = new Direction[8];
-    	for (int j=0; j<8; j++) {
-    		ranked[j] = new Direction((float)numtrees[j][1]*(float)Math.PI/4.0f);
+    	for(int i = 0; i < 16; i ++) {
+    		System.out.println("In direction " + i + ", " + treeMassByDirection[i]);
+    	}
+    	float[] smoothedTreeMassByDirection = new float[16];
+    	for(int i = 0; i < 16; i ++) {
+    		smoothedTreeMassByDirection[i] += 4.0f * treeMassByDirection[i];
+    		smoothedTreeMassByDirection[i] += 2.0f * treeMassByDirection[(15+i)%16];
+    		smoothedTreeMassByDirection[i] += 2.0f * treeMassByDirection[(17+i)%16];
+    		smoothedTreeMassByDirection[i] += 1.0f * treeMassByDirection[(14+i)%16];
+    		smoothedTreeMassByDirection[i] += 1.0f * treeMassByDirection[(18+i)%16];
+    		smoothedTreeMassByDirection[i] += 0.5f * treeMassByDirection[(13+i)%16];
+    		smoothedTreeMassByDirection[i] += 0.5f * treeMassByDirection[(19+i)%16];
+    		smoothedTreeMassByDirection[i] += 0.25f * treeMassByDirection[(12+i)%16];
+    		smoothedTreeMassByDirection[i] += 0.25f * treeMassByDirection[(20+i)%16];
+    		smoothedTreeMassByDirection[i] += 0.125f * treeMassByDirection[(11+i)%16];
+    		smoothedTreeMassByDirection[i] += 0.125f * treeMassByDirection[(21+i)%16];
+    		smoothedTreeMassByDirection[i] += 0.0625f * treeMassByDirection[(10+i)%16];
+    		smoothedTreeMassByDirection[i] += 0.0625f * treeMassByDirection[(22+i)%16];
+    		smoothedTreeMassByDirection[i] += 0.03125f * treeMassByDirection[(9+i)%16];
+    		smoothedTreeMassByDirection[i] += 0.03125f * treeMassByDirection[(23+i)%16];
     	}
     	
-    	return ranked;
+    	int bestDirection = 0;
+    	for(int i = 1; i < 16; i ++) {
+    		if(smoothedTreeMassByDirection[i] < smoothedTreeMassByDirection[bestDirection]) {
+    			bestDirection = i;
+    		}
+    	}
+    	int secondBestDirection = 0;
+    	for(int i = 1; i < 16; i ++) {
+    		if(i == bestDirection) continue;
+    		if(smoothedTreeMassByDirection[i] < smoothedTreeMassByDirection[secondBestDirection]) {
+    			secondBestDirection = i;
+    		}
+    	}
+    	
+    	if(isAlpha) {
+    		Direction buildDir = findBuildDirection(bestDirection*(float)Math.PI/8.0f,RobotType.GARDENER);
+    		System.out.println("bestDirection is " + bestDirection);
+    		if(buildDir != null) {
+    			rc.buildRobot(RobotType.GARDENER, buildDir);
+    			rc.broadcast(400+rank, 1);
+    		}
+    		else
+    			System.out.println("BIG PROBLEM!!! EDGE CASE!!! DIRECTION IS BADDDDD");
+    	}
+    	
+    	Clock.yield();
+    	// T=3
+    	// gardener starts building a scout
+    	
+    	Clock.yield();
+    	// T=4+
+    	
+    	// now we have non-alpha ones build gardeners
+    	if(!isAlpha) {
+    		Direction buildDir = findBuildDirection(bestDirection*(float)Math.PI/8.0f,RobotType.GARDENER);
+    		System.out.println("bestDirection is " + bestDirection);
+    		if(buildDir != null) {
+    			rc.buildRobot(RobotType.GARDENER, buildDir);
+    		}
+    		else
+    			System.out.println("BIG PROBLEM!!! EDGE CASE!!! DIRECTION IS BADDDDD");
+    	}
+    	
+    	Clock.yield();
+    	for(int t = 0; true; t++) {
+    		if(t%50 == rank) {
+    			if(rand.nextDouble() < 25.0f/t) { // lower chance to spawn new ones as time goes on
+    				float tdir = rand.nextFloat()*2.0f*(float)Math.PI;
+    				for(float j = 0.0f; j < 2.0f*(float)Math.PI; j+=(float)Math.PI/16.0) {
+    					if(rc.canBuildRobot(RobotType.GARDENER, new Direction(tdir + j))) {
+    						rc.buildRobot(RobotType.GARDENER, new Direction(tdir+j));
+    						break;
+    					}
+    				}
+    			}
+    		}
+    		Clock.yield();
+    		// other than occasionally spawn gardeners, do nothing
+    	}
     }
-
+    
+    
+    
     /*
      * Returns approximate center in following format:
      * float[] {x, y}
@@ -154,15 +183,6 @@ public strictfp class RobotPlayer {
     static float[] locateApproxCenter() throws GameActionException {
     	MapLocation[] initArchonLocsA = rc.getInitialArchonLocations(Team.A);
     	MapLocation[] initArchonLocsB = rc.getInitialArchonLocations(Team.B);
-    	if(rc.getTeam()==Team.A) {
-    		for (int k=0; k<initArchonLocsB.length; k++) {
-    			rc.broadcast(k+4, pack(initArchonLocsB[k].x, initArchonLocsB[k].y));
-    		}
-    	} else {
-    		for (int k=0; k<initArchonLocsA.length; k++) {
-    			rc.broadcast(k+4, pack(initArchonLocsA[k].x, initArchonLocsA[k].y));
-    		}
-    	}
     	MapLocation[] initArchonLocs = new MapLocation[2 * initArchonLocsA.length];
     	int t = 0;
     	for(MapLocation ml : initArchonLocsA)
@@ -178,81 +198,246 @@ public strictfp class RobotPlayer {
     	
     	return new float[] {netX/initArchonLocs.length, netY/initArchonLocs.length};
     }
-    // =========================END ARCHON===================================
-    // ========================= GARDENER ===================================
-	static void runGardener() throws GameActionException {
-		System.out.println("I am a gardener");
-    	if (rc.readBroadcast(100)==0) {
-    		if (rc.hasRobotBuildRequirements(RobotType.SCOUT)) {
-	    		for (Direction k : getBestDirections(rc.getLocation())) {
-	    			if(rc.canBuildRobot(RobotType.SCOUT, k)) {
-	    				rc.broadcast(100, 1);
-	    				rc.broadcast(150, 1);
-	    				rc.buildRobot(RobotType.SCOUT, k);
-	    				break;
-	    			}
-	    		}
-    		}
-    	}
-    	gardenerTreeStrategy();
-    }
-    static void gardenerTreeStrategy() throws GameActionException {
+    
+    static void runGardener() throws GameActionException {
+    	myID = rc.readBroadcast(101);
+    	rc.broadcast(101, myID + 1);
+    	System.out.println("Gardener #" + myID + " spawned");
+    	
     	while(true) {
+    		Direction dir = randomDirection();
+    		for(int i = 0; i < 10 && !rc.canBuildRobot(RobotType.SCOUT, dir); i++) {
+    			dir = randomDirection();
+    		}
+    		if(rc.canBuildRobot(RobotType.SCOUT, dir)) {
+    			rc.buildRobot(RobotType.SCOUT, dir);
+        		while(true)
+        			Clock.yield();
+    		}
     		Clock.yield();
     	}
     }
-    // =====================END GARDENER=================================
-    // ======================== SCOUT ===================================
     
     static void runScout() throws GameActionException {
-    	System.out.println("I am a scout.");
-    	int scouttype = rc.readBroadcast(150);
-    	if (scouttype==0) {
-    		rc.broadcast(150, 1);
-    		circleScout();
-    		return;
-    	} else if (scouttype==1) {
-    		rc.broadcast(150, 2);
-    		pathScout();
+    	try {
+    	
+    	
+    	myID = rc.readBroadcast(102);
+    	rc.broadcast(102, myID+1);
+    	System.out.println("Scout #" + myID + " spawned");
+    	
+    	Team enemy = rc.getTeam().opponent();
+    	
+    	MapLocation myLocation;
+    	
+    	if(myID == 0) {
+    		System.out.println("I am initial scout");
+    		// Mission: harass enemy archon, finding path while on way
+    		//
+		// TODO: add path finding logic here
+    		//
+		/*
+		float cdist;
+    		do {
+    			myLocation = rc.getLocation();
+    			MapLocation[] initArchLocs = rc.getInitialArchonLocations(enemy);
+	    		MapLocation closest = initArchLocs[0];
+	    		cdist = myLocation.distanceTo(closest);
+	    		for(int i = 1; i < initArchLocs.length; i ++) {
+	    			if(initArchLocs[i].distanceTo(myLocation) < cdist) {
+	    				cdist = initArchLocs[i].distanceTo(myLocation);
+	    				closest = initArchLocs[i];
+	    			}
+	    		}
+	    		Direction dir = myLocation.directionTo(closest);
+	    		if(rc.canMove(dir)) 
+	    			rc.move(dir);
+	    		else if(rc.canMove(dir.rotateRightDegrees(68.3f)))
+	    			rc.move(dir.rotateRightDegrees(68.3f));
+	    		else if(rc.canMove(dir.rotateLeftDegrees(68.3f)))
+	    			rc.move(dir.rotateLeftDegrees(68.3f));
+	    		else if(rc.canMove(dir.rotateRightDegrees(130.0f)))
+	    			rc.move(dir.rotateRightDegrees(130.0f));
+	    		else if(rc.canMove(dir.rotateLeftDegrees(130.0f)))
+	    			rc.move(dir.rotateLeftDegrees(130.0f));
+	    		Clock.yield();
+    		} while(cdist > 8.5f);
+    		System.out.println("I'm " + (cdist-2.5f) + " away from a starting enemy archon location");
+    		// now within 6.0 of starting enemy archon location
+    		*/
+		
+    		RobotInfo[] nearbyRobots;
+    		Direction mdir = randomDirection();
+    		while(true) {
+    			
+    			myLocation = rc.getLocation();
+    			nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
+    			
+    			// priorities for scout harassment:
+    			// closest enemy gardener
+    			// closest enemy archon
+    			if(nearbyRobots.length > 0) {
+    				RobotInfo closestGardener = null;
+    				RobotInfo closestArchon = null;
+    				for(RobotInfo ri : nearbyRobots) {
+    					if(ri.getType() == RobotType.GARDENER) {
+    						if(closestGardener == null) {
+    							closestGardener = ri;
+    						} else if(ri.getLocation().distanceTo(myLocation) < closestGardener.getLocation().distanceTo(myLocation)) {
+    							closestGardener = ri;
+    						}
+    					} else if(ri.getType() == RobotType.ARCHON) {
+    						if(closestArchon == null) {
+    							closestArchon = ri;
+    						} else if(ri.getLocation().distanceTo(myLocation) < closestArchon.getLocation().distanceTo(myLocation)) {
+    							closestArchon = ri;
+    						}
+    					}
+    				}
+    				if(closestGardener != null) {
+    					// attack closestGardener
+    					float distTo = closestGardener.getLocation().distanceTo(myLocation);
+    					Direction towardsTarget = myLocation.directionTo(closestGardener.getLocation());
+    					if(distTo < 3.0f) { // 2 is used up by radius
+    						if(rc.canFireSingleShot()) {
+    							rc.fireSingleShot(towardsTarget);
+    						}
+    					} else {
+    						// move closer
+    						if(distTo < 4.5f) { // 2.0f (radius) + 2.5f (stride dist) 
+    							if(rc.canMove(towardsTarget, distTo-2.5f)) {
+    								rc.move(towardsTarget, distTo-2.5f);
+    							}
+    							else {
+    	    						if(rc.canFireSingleShot()) {
+    	    							rc.fireSingleShot(towardsTarget);
+    	    						}
+    							}
+    						} else {
+    							if(rc.canMove(towardsTarget)) {
+    								rc.move(towardsTarget);
+    							}
+    							else if(rc.canMove(towardsTarget.rotateRightDegrees(90.0f))) {
+    								rc.move(towardsTarget.rotateRightDegrees(90.0f));
+    							}
+    							else if(rc.canMove(towardsTarget.rotateLeftDegrees(90.0f))) {
+    								rc.move(towardsTarget.rotateLeftDegrees(90.0f));
+    							}
+    						}
+    					}
+    				}
+    				else {
+    					// attack closestArchon
+    					float distTo = closestArchon.getLocation().distanceTo(myLocation);
+    					Direction towardsTarget = myLocation.directionTo(closestArchon.getLocation());
+    					if(distTo < 4.0f) { // 3 is used up by radius
+    						if(rc.canFireSingleShot()) {
+    							rc.fireSingleShot(towardsTarget);
+    						}
+    					} else {
+    						// move closer
+    						if(distTo < 5.5f) { // 3.0f (radius) + 2.5f (stride dist) 
+    							if(rc.canMove(towardsTarget, distTo-2.5f)) {
+    								rc.move(towardsTarget, distTo-2.5f);
+    							}
+    							else {
+    	    						if(rc.canFireSingleShot()) {
+    	    							rc.fireSingleShot(towardsTarget);
+    	    						}
+    							}
+    						} else {
+    							if(rc.canMove(towardsTarget)) {
+    								rc.move(towardsTarget);
+    							}
+    							else if(rc.canMove(towardsTarget.rotateRightDegrees(90.0f))) {
+    								rc.move(towardsTarget.rotateRightDegrees(90.0f));
+    							}
+    							else if(rc.canMove(towardsTarget.rotateLeftDegrees(90.0f))) {
+    								rc.move(towardsTarget.rotateLeftDegrees(90.0f));
+    							}
+    						}
+    					}
+    				}
+    				Clock.yield();
+    			}
+    			else {
+    				// wander around until this is no longer the case
+    				while(nearbyRobots.length == 0) { 
+    					if(rc.canMove(mdir)) {
+    						rc.move(mdir);
+    					}
+    					else {
+    						for(int i = 0; !rc.canMove(mdir) && i < 25; i ++) {
+    							mdir = randomDirection();
+    						}
+    						if(rc.canMove(mdir)) {
+    							rc.move(mdir);
+    						}
+    					}
+    					Clock.yield();
+    					nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);;
+    				}
+    			}
+    			
+    		}
+    	}
+    	
+    	
+    	}catch(Exception e){
+    		e.printStackTrace();
     	}
     }
     
-    static void pathScout() throws GameActionException {
-    	System.out.println("PathScout");
-    	System.out.println(rc.getLocation());
-    	float[] enemylocation = unpack(rc.readBroadcast(4));
-    	MapLocation el = new MapLocation(enemylocation[0], enemylocation[1]);
-    	// runs until it hits the enemy archon
-    	while(rc.getLocation().distanceTo(el) > 1) {
-    		Direction[] possibleMoves = getBestDirections(rc.getLocation(), el, 30f);
-			MapLocation dankloc = rc.getLocation();
-    		for (Direction k: possibleMoves) {
-    			dankloc = rc.getLocation().add(k, 2.5f);
-    			if(!rc.isLocationOccupiedByTree(dankloc)) {
-    				if(rc.canMove(dankloc)) {
-    					rc.move(k);
-    					break;
-    				}
-    			}
-    		}
-			Clock.yield();
-    	}
-    }
+    
+    
+    // TODO: repurpose circle scout code
+    
+    /*
     
     static void circleScout() throws GameActionException {
     	float[] alphalocation = unpack(rc.readBroadcast(1));
     	MapLocation al = new MapLocation(alphalocation[0], alphalocation[1]);
 		//get sufficient distance away from archon
-    	while(rc.getLocation().distanceTo(al) < 19.0f) {
-			Direction[] mydir = getBestDirections(rc.getLocation());
-			for (Direction k : mydir) {
-				if(rc.canMove(k)) {
-					rc.move(k);
-					break;
-				}
-			}
-            Clock.yield();
-		}
+    	float[] centerlocation = unpack(rc.readBroadcast(0));
+    	MapLocation cl = new MapLocation(centerlocation[0], centerlocation[1]);
+    	MapLocation myLoc = rc.getLocation();
+    	Direction dir = myLoc.directionTo(cl);
+    	float mdist = myLoc.distanceTo(al);
+    	System.out.println("Circlescout, about to move away");
+    	while(mdist < 10) { // circle radius @17
+    		System.out.println("Still in loop");
+    		if(mdist > 14.5) {
+    			if(rc.canMove(dir, 17.0f-mdist)) {
+    				rc.move(dir, 17.0f-mdist);
+    			}
+    		}
+    		else if(rc.canMove(dir)) {
+    			rc.move(dir);
+    		}
+    		
+    		Clock.yield();
+    		myLoc = rc.getLocation();
+    		mdist = myLoc.distanceTo(al);
+    	}
+    	
+    	
+    	for(int i = 0; i < 43; i ++) {
+    		myLoc = rc.getLocation();
+    		dir = myLoc.directionTo(al);
+    		dir = dir.rotateRightDegrees(85.78f); // with stride radius 2.5, this keeps in circle
+    		if(rc.canMove(dir)) {
+    			rc.move(dir);
+    		}
+    		else {
+    			System.out.println("Cannot move (circle) in dir " + dir);
+    		}
+    		Clock.yield();
+    	}
+    	// guaranteed circle radius @ almost exactly 17.0f
+    	
+    	
+    	// for now, perpetually circle
+    	
 		//circle around archon
 		float theta = 7.5f; // 48 * 7.5 = 360 degrees
 		Direction alphaToScout = al.directionTo(rc.getLocation());
@@ -283,19 +468,43 @@ public strictfp class RobotPlayer {
 		}
 		rc.broadcast(151, (int)sumtrees);
     }
-    // =====================END SCOUT=======================
+    */
+    
+    
     // ====================== HELPER =======================
     
     
     public static int pack(float x, float y) {
-		return (int)((((int)(x*100))/100.0*10000000) + (int)(((int)(y*100))/100.0*100));
+		return (int)((((int)(x*10))/10.0*100000) + (int)(y*10));
 	}
     
 	public static float[] unpack(int p) {
 		float[] ret = new float[2];
-		ret[0] = ((p / 100000) / 100.0f);
-		ret[1] = ((p % 100000) / 100.0f);
+		ret[0] = ((p / 10000) / 10.0f);
+		ret[1] = ((p % 10000) / 10.0f);
 		return ret;
+	}
+	
+	
+	public static boolean canAfford(RobotType rt) {
+		return rc.getTeamBullets() > rt.bulletCost;
+	}
+	
+	
+	// checks canBuild in up to pi/8 in either direction (increments of pi/64)
+	public static Direction findBuildDirection(float angle, RobotType rt) {
+		Direction dir = new Direction(angle);
+		if(rc.canBuildRobot(rt, new Direction(angle)))
+			return new Direction(angle); // cue "that was easy"
+		for(int i = 1; i <= 8; i ++) {
+			dir = new Direction(angle + (i*(float)Math.PI/64.0f));
+			if(rc.canBuildRobot(rt,dir))
+				return dir;
+			dir = new Direction(angle - (i*(float)Math.PI/64.0f));
+			if(rc.canBuildRobot(rt,dir))
+				return dir;
+		}
+		return null; // ruh roh
 	}
 
     /**
@@ -305,32 +514,4 @@ public strictfp class RobotPlayer {
     static Direction randomDirection() {
         return new Direction(rand.nextFloat() * 2 * (float)Math.PI);
     }
-    
-    // gets the perpendicular directions in order of closest to the center
-    static Direction[] getBestDirections(MapLocation myLoc) throws GameActionException {
-    	float[] center = locateApproxCenter();
-    	Direction bestdir = myLoc.directionTo(new MapLocation(center[0], center[1]));
-    	Direction nextdir = bestdir.rotateLeftDegrees(90f);
-    	Direction threedir = bestdir.rotateLeftDegrees(-90f);
-    	Direction[] bestDirections = new Direction[] {bestdir, nextdir, threedir, bestdir.opposite()};
-    	return bestDirections;
-	}
-    
-    // gets the directions in order of closest to specified location at intervals of theta (degrees)
-    static Direction[] getBestDirections(MapLocation myLoc, MapLocation otherLoc, float theta) throws GameActionException {
-    	float initialtheta = theta;
-    	Direction[] dirs = new Direction [(int)(360.0f/theta)];
-    	Direction bestdir = myLoc.directionTo(otherLoc);
-    	dirs[0] = bestdir;
-    	for (int j=1; j<dirs.length; j++) {
-    		bestdir = bestdir.rotateLeftDegrees(theta);
-    		dirs[j] = bestdir;
-    		if (theta>0f) {
-    			theta = theta*-1f;
-    		} else {
-    			theta = theta*-1f + initialtheta;
-    		}
-    	}
-    	return dirs;
-	}
 }
