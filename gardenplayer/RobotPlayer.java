@@ -76,6 +76,11 @@ public strictfp class RobotPlayer {
 
         int z=0;
         boolean clear = false;
+        boolean corners = false;
+        boolean[] cs = new boolean[4];
+        for(int i=0; i<4; i++)
+            cs[i] = false;
+        int status = 0;
         TreeInfo[] myTrees;
 
         // The code you want your robot to perform every round should be in this loop
@@ -99,11 +104,10 @@ public strictfp class RobotPlayer {
 //                    rc.buildRobot(RobotType.LUMBERJACK, dir);
 //                }
 
-                // Move randomly
-
+                //System.out.println(corners+" "+cs[0]+" "+cs[1]+" "+cs[2]+" "+cs[3]);
                 if(clear == false) {
                     TreeInfo[] nearbyTrees = rc.senseNearbyTrees(2.0f);
-                    if(nearbyTrees.length==0 && rc.onTheMap(rc.getLocation(),3.0f)==true)
+                    if(nearbyTrees.length==0 && rc.onTheMap(rc.getLocation(),3.5f)==true)
                         clear = true;
                 }
                 if(clear == false) {
@@ -114,17 +118,65 @@ public strictfp class RobotPlayer {
                     if(rc.hasTreeBuildRequirements() == true) {
 
                         if(myTrees.length>0) {
+                            z = z % myTrees.length;
                             rc.water(myTrees[z].getID());
                             z++;
-                            z = z % myTrees.length;
                         }
-
-                        for(int i=0; i<8; i++) {
-                            if(rc.canPlantTree(new Direction((float)(0.0+Math.PI/4.0*i))))
-                                rc.plantTree(new Direction((float)(0.0+Math.PI/4.0*i)));
-                            //System.out.println(0.0+Math.PI/4.0*i);
+                        if(!corners) {
+                            if(cs[0]==false && rc.hasTreeBuildRequirements()) {
+                                if(status==0) {
+                                    tryMove(new Direction((float) (Math.PI)));
+                                    Clock.yield();
+                                    tryMove(new Direction((float) (Math.PI)));
+                                    status = 1;
+                                }
+                                if(rc.canPlantTree(new Direction((float)(Math.PI/2.0)))) {
+                                    rc.plantTree(new Direction((float) (Math.PI / 2.0)));
+                                    cs[0] = true;
+                                }
+                            }
+                            else if(cs[2]==false && rc.hasTreeBuildRequirements()) {
+                                //tryMove(new Direction((float)(Math.PI)));
+                                if(rc.canPlantTree(new Direction((float)(Math.PI*3/2.0)))) {
+                                    rc.plantTree(new Direction((float) (Math.PI * 3 / 2.0)));
+                                    tryMove(new Direction((float) (0.0)));
+                                    Clock.yield();
+                                    tryMove(new Direction((float) (0.0)));
+                                    cs[2] = true;
+                                }
+                            }
+                            else if(cs[1]==false && rc.hasTreeBuildRequirements()) {
+                                if(status==1) {
+                                    tryMove(new Direction((float) (0.0)));
+                                    Clock.yield();
+                                    tryMove(new Direction((float) (0.0)));
+                                    status=2;
+                                }
+                                if(rc.canPlantTree(new Direction((float)(Math.PI/2.0)))) {
+                                    rc.plantTree(new Direction((float) (Math.PI / 2.0)));
+                                    cs[1] = true;
+                                }
+                            }
+                            else if(cs[3]==false && rc.hasTreeBuildRequirements()) {
+                                //tryMove(new Direction((float)(0.0)));
+                                if(rc.canPlantTree(new Direction((float)(Math.PI*3/2.0)))) {
+                                    rc.plantTree(new Direction((float) (Math.PI * 3 / 2.0)));
+                                    tryMove(new Direction((float) (Math.PI)));
+                                    Clock.yield();
+                                    tryMove(new Direction((float) (Math.PI)));
+                                    cs[3] = true;
+                                }
+                            }
+                            if(cs[0]==true && cs[1]==true && cs[2]==true && cs[3]==true)
+                                corners = true;
                         }
-                        //System.out.println("WHAT");
+                        else {
+                            System.out.println("NORTH! "+rc.canPlantTree(new Direction((float)(Math.PI/2.0))));
+                            for (int i = 0; i < 4; i++) {
+                                if (rc.canPlantTree(new Direction((float) (0.0 + Math.PI / 2.0 * i))))
+                                    rc.plantTree(new Direction((float) (0.0 + Math.PI / 2.0 * i)));
+                            }
+                        }
                     }
                 }
 
