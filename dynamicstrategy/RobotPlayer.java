@@ -259,21 +259,22 @@ public strictfp class RobotPlayer {
     			// priorities for scout harassment:
     			// closest enemy gardener
     			// closest enemy archon
-    			
     			if(nearbyRobots.length > 0) {
     				RobotInfo closestGardener = null;
     				RobotInfo closestArchon = null;
     				for(RobotInfo ri : nearbyRobots) {
     					if(ri.getType() == RobotType.GARDENER) {
-    						if(closestGardener == null)
+    						if(closestGardener == null) {
     							closestGardener = ri;
-    						else if(ri.getLocation().distanceTo(myLocation) < closestGardener.getLocation().distanceTo(myLocation)) {
+    						} else if(ri.getLocation().distanceTo(myLocation) < closestGardener.getLocation().distanceTo(myLocation)) {
     							closestGardener = ri;
+    						}
     					} else if(ri.getType() == RobotType.ARCHON) {
-    						if(closestArchon == null)
+    						if(closestArchon == null) {
     							closestArchon = ri;
-    						else if(ri.getLocation().distanceTo(myLocation) < closestArchon.getLocation().distanceTo(myLocation)) {
+    						} else if(ri.getLocation().distanceTo(myLocation) < closestArchon.getLocation().distanceTo(myLocation)) {
     							closestArchon = ri;
+    						}
     					}
     				}
     				if(closestGardener != null) {
@@ -292,13 +293,31 @@ public strictfp class RobotPlayer {
     							}
     						} else {
     							if(rc.canMove(towardsTarget)) {
-    								rc.move(towardsTar);
+    								rc.move(towardsTarget);
     							}
     						}
     					}
     				}
     				else {
     					// attack closestArchon
+    					float distTo = closestArchon.getLocation().distanceTo(myLocation);
+    					Direction towardsTarget = myLocation.directionTo(closestArchon.getLocation());
+    					if(distTo < 4.0f) { // 3 is used up by radius
+    						if(rc.canFireSingleShot()) {
+    							rc.fireSingleShot(towardsTarget);
+    						}
+    					} else {
+    						// move closer
+    						if(distTo < 5.5f) { // 3.0f (radius) + 2.5f (stride dist) 
+    							if(rc.canMove(towardsTarget, distTo-2.5f)) {
+    								rc.move(towardsTarget, distTo-2.5f);
+    							}
+    						} else {
+    							if(rc.canMove(towardsTarget)) {
+    								rc.move(towardsTarget);
+    							}
+    						}
+    					}
     				}
     			}
     			else {
