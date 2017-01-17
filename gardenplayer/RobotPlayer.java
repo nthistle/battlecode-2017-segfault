@@ -72,8 +72,10 @@ public strictfp class RobotPlayer {
     }
 
 	static void runGardener() throws GameActionException {
-        System.out.println("I'm a gardener!");
+        //UPDATE TO ACCOUNT FOR UNIT COLLISION
 
+        System.out.println("I'm a gardener!");
+        int DONOTBUILDHERE = 0;
         int z=0;
         boolean clear = false;
         boolean corners = false;
@@ -104,25 +106,24 @@ public strictfp class RobotPlayer {
 //                    rc.buildRobot(RobotType.LUMBERJACK, dir);
 //                }
 
-                //System.out.println(corners+" "+cs[0]+" "+cs[1]+" "+cs[2]+" "+cs[3]);
-                if(clear == false) {
+
+                if(clear == false) {    //is there space
                     TreeInfo[] nearbyTrees = rc.senseNearbyTrees(2.0f);
                     if(nearbyTrees.length==0 && rc.onTheMap(rc.getLocation(),3.5f)==true)
                         clear = true;
                 }
-                if(clear == false) {
+                if(clear == false) { //move to space
                     tryMove(randomDirection());
                 }
-                else {
+                else { //main algo
                     myTrees = rc.senseNearbyTrees(2.0f);
-                    if(rc.hasTreeBuildRequirements() == true) {
 
-                        if(myTrees.length>0) {
-                            z = z % myTrees.length;
+                        if(myTrees.length>0) { //SWITCH TO WATER LOWEST!!! (watering)
+                           z = z % myTrees.length;
                             rc.water(myTrees[z].getID());
                             z++;
                         }
-                        if(!corners) {
+                        if(!corners) { //build diagnols first, left-top, left-bottom, right-top, right-bottom
                             if(cs[0]==false && rc.hasTreeBuildRequirements()) {
                                 if(status==0) {
                                     tryMove(new Direction((float) (Math.PI)));
@@ -130,15 +131,15 @@ public strictfp class RobotPlayer {
                                     tryMove(new Direction((float) (Math.PI)));
                                     status = 1;
                                 }
-                                if(rc.canPlantTree(new Direction((float)(Math.PI/2.0)))) {
-                                    rc.plantTree(new Direction((float) (Math.PI / 2.0)));
+                                if(rc.canPlantTree(new Direction((float)(Math.PI/2.0 + .1)))) {
+                                    rc.plantTree(new Direction((float) (Math.PI / 2.0 + .1)));
                                     cs[0] = true;
                                 }
                             }
                             else if(cs[2]==false && rc.hasTreeBuildRequirements()) {
                                 //tryMove(new Direction((float)(Math.PI)));
-                                if(rc.canPlantTree(new Direction((float)(Math.PI*3/2.0)))) {
-                                    rc.plantTree(new Direction((float) (Math.PI * 3 / 2.0)));
+                                if(rc.canPlantTree(new Direction((float)(Math.PI*3/2.0 - .1)))) {
+                                    rc.plantTree(new Direction((float) (Math.PI * 3 / 2.0-.1)));
                                     tryMove(new Direction((float) (0.0)));
                                     Clock.yield();
                                     tryMove(new Direction((float) (0.0)));
@@ -152,15 +153,15 @@ public strictfp class RobotPlayer {
                                     tryMove(new Direction((float) (0.0)));
                                     status=2;
                                 }
-                                if(rc.canPlantTree(new Direction((float)(Math.PI/2.0)))) {
-                                    rc.plantTree(new Direction((float) (Math.PI / 2.0)));
+                                if(rc.canPlantTree(new Direction((float)(Math.PI/2.0 - .1)))) {
+                                    rc.plantTree(new Direction((float) (Math.PI / 2.0-.1)));
                                     cs[1] = true;
                                 }
                             }
                             else if(cs[3]==false && rc.hasTreeBuildRequirements()) {
                                 //tryMove(new Direction((float)(0.0)));
-                                if(rc.canPlantTree(new Direction((float)(Math.PI*3/2.0)))) {
-                                    rc.plantTree(new Direction((float) (Math.PI * 3 / 2.0)));
+                                if(rc.canPlantTree(new Direction((float)(Math.PI*3/2.0 + .1)))) {
+                                    rc.plantTree(new Direction((float) (Math.PI * 3 / 2.0+.1)));
                                     tryMove(new Direction((float) (Math.PI)));
                                     Clock.yield();
                                     tryMove(new Direction((float) (Math.PI)));
@@ -170,15 +171,13 @@ public strictfp class RobotPlayer {
                             if(cs[0]==true && cs[1]==true && cs[2]==true && cs[3]==true)
                                 corners = true;
                         }
-                        else {
-                            System.out.println("NORTH! "+rc.canPlantTree(new Direction((float)(Math.PI/2.0))));
+                        else { //build cardinal directions, skip over hole to build units
                             for (int i = 0; i < 4; i++) {
-                                if (rc.canPlantTree(new Direction((float) (0.0 + Math.PI / 2.0 * i))))
+                                if(DONOTBUILDHERE!=i && rc.canPlantTree(new Direction((float) (0.0 + Math.PI / 2.0 * i))))
                                     rc.plantTree(new Direction((float) (0.0 + Math.PI / 2.0 * i)));
                             }
                         }
                     }
-                }
 
                 // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
                 Clock.yield();
