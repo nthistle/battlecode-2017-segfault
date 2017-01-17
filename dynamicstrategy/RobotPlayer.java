@@ -129,6 +129,7 @@ public strictfp class RobotPlayer {
     	
     	if(isAlpha) {
     		Direction buildDir = findBuildDirection(bestDirection*(float)Math.PI/8.0f,RobotType.GARDENER);
+    		System.out.println("bestDirection is " + bestDirection);
     		if(buildDir != null) {
     			rc.buildRobot(RobotType.GARDENER, buildDir);
     			rc.broadcast(400+rank, 1);
@@ -147,6 +148,7 @@ public strictfp class RobotPlayer {
     	// now we have non-alpha ones build gardeners
     	if(!isAlpha) {
     		Direction buildDir = findBuildDirection(bestDirection*(float)Math.PI/8.0f,RobotType.GARDENER);
+    		System.out.println("bestDirection is " + bestDirection);
     		if(buildDir != null) {
     			rc.buildRobot(RobotType.GARDENER, buildDir);
     		}
@@ -217,19 +219,24 @@ public strictfp class RobotPlayer {
     }
     
     static void runScout() throws GameActionException {
+    	try {
+    	
+    	
     	myID = rc.readBroadcast(102);
     	rc.broadcast(102, myID+1);
     	System.out.println("Scout #" + myID + " spawned");
     	
     	Team enemy = rc.getTeam().opponent();
     	
-    	MapLocation myLocation = rc.getLocation();
+    	MapLocation myLocation;
     	
     	if(myID == 0) {
+    		System.out.println("I am initial scout");
     		// Mission: harass enemy archon, finding path while on way
     		// TODO: add path finding logic here
     		float cdist;
     		do {
+    			myLocation = rc.getLocation();
     			MapLocation[] initArchLocs = rc.getInitialArchonLocations(enemy);
 	    		MapLocation closest = initArchLocs[0];
 	    		cdist = myLocation.distanceTo(closest);
@@ -246,15 +253,21 @@ public strictfp class RobotPlayer {
 	    			rc.move(dir.rotateRightDegrees(68.3f));
 	    		else if(rc.canMove(dir.rotateLeftDegrees(68.3f)))
 	    			rc.move(dir.rotateLeftDegrees(68.3f));
+	    		else if(rc.canMove(dir.rotateRightDegrees(130.0f)))
+	    			rc.move(dir.rotateRightDegrees(130.0f));
+	    		else if(rc.canMove(dir.rotateLeftDegrees(130.0f)))
+	    			rc.move(dir.rotateLeftDegrees(130.0f));
 	    		Clock.yield();
     		} while(cdist > 8.5f);
+    		System.out.println("I'm " + (cdist-2.5f) + " away from a starting enemy archon location");
     		// now within 6.0 of starting enemy archon location
     		
-    		RobotInfo[] nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);;
+    		RobotInfo[] nearbyRobots;
     		Direction mdir = randomDirection();
     		while(true) {
     			
     			myLocation = rc.getLocation();
+    			nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
     			
     			// priorities for scout harassment:
     			// closest enemy gardener
@@ -291,9 +304,20 @@ public strictfp class RobotPlayer {
     							if(rc.canMove(towardsTarget, distTo-2.5f)) {
     								rc.move(towardsTarget, distTo-2.5f);
     							}
+    							else {
+    	    						if(rc.canFireSingleShot()) {
+    	    							rc.fireSingleShot(towardsTarget);
+    	    						}
+    							}
     						} else {
     							if(rc.canMove(towardsTarget)) {
     								rc.move(towardsTarget);
+    							}
+    							else if(rc.canMove(towardsTarget.rotateRightDegrees(90.0f))) {
+    								rc.move(towardsTarget.rotateRightDegrees(90.0f));
+    							}
+    							else if(rc.canMove(towardsTarget.rotateLeftDegrees(90.0f))) {
+    								rc.move(towardsTarget.rotateLeftDegrees(90.0f));
     							}
     						}
     					}
@@ -312,13 +336,25 @@ public strictfp class RobotPlayer {
     							if(rc.canMove(towardsTarget, distTo-2.5f)) {
     								rc.move(towardsTarget, distTo-2.5f);
     							}
+    							else {
+    	    						if(rc.canFireSingleShot()) {
+    	    							rc.fireSingleShot(towardsTarget);
+    	    						}
+    							}
     						} else {
     							if(rc.canMove(towardsTarget)) {
     								rc.move(towardsTarget);
     							}
+    							else if(rc.canMove(towardsTarget.rotateRightDegrees(90.0f))) {
+    								rc.move(towardsTarget.rotateRightDegrees(90.0f));
+    							}
+    							else if(rc.canMove(towardsTarget.rotateLeftDegrees(90.0f))) {
+    								rc.move(towardsTarget.rotateLeftDegrees(90.0f));
+    							}
     						}
     					}
     				}
+    				Clock.yield();
     			}
     			else {
     				// wander around until this is no longer the case
@@ -338,7 +374,13 @@ public strictfp class RobotPlayer {
     					nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);;
     				}
     			}
+    			
     		}
+    	}
+    	
+    	
+    	}catch(Exception e){
+    		e.printStackTrace();
     	}
     }
     
