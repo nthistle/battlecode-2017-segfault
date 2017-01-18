@@ -47,7 +47,9 @@ public strictfp class RobotPlayer {
                 Direction dir = randomDirection();
 
                 // Randomly attempt to build a gardener in this direction
-                if (rc.canHireGardener(dir) &&  (garden==true || rc.getTeamBullets()>100)) {
+                if(rc.getTeamBullets()>10000)
+                    rc.donate(10000f);
+                if (rc.canHireGardener(dir) &&  (garden==true || rc.getTeamBullets()>200)) {
                     rc.hireGardener(dir);
                     garden = false;
                 }
