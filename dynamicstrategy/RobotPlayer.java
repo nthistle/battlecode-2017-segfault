@@ -27,6 +27,9 @@ public strictfp class RobotPlayer {
             case SCOUT:
             	runScout();
             	break;
+            case LUMBERJACK:
+            	runLumberjack();
+            	break;
             default:
             	break;
         }
@@ -189,6 +192,22 @@ public strictfp class RobotPlayer {
             	//TODO: finish alpha logic for managing the game from this point on
             	// by tweaking spawnrates etc.
     		}
+
+	    	for(int t = 0; true; t++) {
+	    		if(t%50 == rank) {
+	    			if(rand.nextDouble() < Math.max(25.0/t, 0.1)) { // lower chance to spawn new ones as time goes on
+	    				float tdir = rand.nextFloat()*2.0f*(float)Math.PI;
+	    				for(float j = 0.0f; j < 2.0f*(float)Math.PI; j+=(float)Math.PI/16.0) {
+	    					if(rc.canBuildRobot(RobotType.GARDENER, new Direction(tdir + j))) {
+	    						rc.buildRobot(RobotType.GARDENER, new Direction(tdir+j));
+	    						break;
+	    					}
+	    				}
+	    			}
+	    		}
+	    		Clock.yield();
+	    		// other than occasionally spawn gardeners
+	    	}
     		
     		
     	} else {
@@ -240,6 +259,37 @@ public strictfp class RobotPlayer {
     	myID = rc.readBroadcast(101);
     	rc.broadcast(101, myID + 1);
     	System.out.println("Gardener #" + myID + " spawned");
+    	
+
+    	Direction dir;
+    	// check for urgent scout orders
+    	while(rc.readBroadcast(201) > 0) {
+    		// build a scout
+    		dir = randomDirection();
+    		for(int i = 0; !rc.canBuildRobot(RobotType.SCOUT, dir) && i < 20; i ++) {
+    			dir = randomDirection();
+    		}
+    		if(rc.canBuildRobot(RobotType.SCOUT, dir)) {
+    			rc.buildRobot(RobotType.SCOUT, dir);
+        		rc.broadcast(201, rc.readBroadcast(201)-1);
+    		}
+    		Clock.yield();
+    	}
+    	
+    	// check for urgent lumberjack orders
+    	while(rc.readBroadcast(202) > 0) {
+    		// build a scout
+    		dir = randomDirection();
+    		for(int i = 0; !rc.canBuildRobot(RobotType.LUMBERJACK, dir) && i < 20; i ++) {
+    			dir = randomDirection();
+    		}
+    		if(rc.canBuildRobot(RobotType.LUMBERJACK, dir)) {
+    			rc.buildRobot(RobotType.LUMBERJACK, dir);
+        		rc.broadcast(202, rc.readBroadcast(202)-1);
+    		}
+    		Clock.yield();
+    	}
+    	
     	gardenerFactory();
     }
     
@@ -436,6 +486,8 @@ public strictfp class RobotPlayer {
     		RobotInfo[] nearbyRobots;
     		TreeInfo[] nearbyTrees;
     		Direction mdir = randomDirection();
+    		boolean hasShotArchonLast = false;
+    		
     		while(true) {
     			
     			myLocation = rc.getLocation();
@@ -502,7 +554,7 @@ public strictfp class RobotPlayer {
     						}
     					}
     				}
-    				else {
+    				else if(closestArchon != null) {
     					// attack closestArchon
     					float distTo = closestArchon.getLocation().distanceTo(myLocation);
     					Direction towardsTarget = myLocation.directionTo(closestArchon.getLocation());
@@ -517,9 +569,16 @@ public strictfp class RobotPlayer {
     								rc.move(towardsTarget, distTo-2.5f);
     							}
     							else {
-    	    						if(rc.canFireSingleShot()) {
+    	    						if(!hasShotArchonLast && rc.canFireSingleShot()) {
     	    							rc.fireSingleShot(towardsTarget);
+    	    							hasShotArchonLast = true;
     	    						}
+    	    						else {
+    	    							hasShotArchonLast = false;
+    	    						}
+    	    						// don't want us to shoot archon every single turn,
+    	    						// because this uses bullets like crazy and we can't really
+    	    						// get above 100 bullets (consumption 1 per turn, gain 1 per turn)
     							}
     						} else {
     							if(rc.canMove(towardsTarget)) {
@@ -533,6 +592,12 @@ public strictfp class RobotPlayer {
     							}
     						}
     					}
+    				}
+    				else {
+    					if(rc.canMove(mdir))
+    						rc.move(mdir);
+    					else
+    						mdir = randomDirection();
     				}
     				Clock.yield();
     			}
@@ -562,6 +627,52 @@ public strictfp class RobotPlayer {
     	//}catch(Exception e){
     	//	e.printStackTrace();
     	//}
+    }
+    
+    
+
+
+    static void runLumberjack() throws GameActionException {
+        System.out.println("I'm a lumberjack!");
+        Team enemy = rc.getTeam().opponent();
+
+        // The code you want your robot to perform every round should be in this loop
+        while (true) {
+
+            // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
+            try {
+
+                // See if there are any enemy robots within striking range (distance 1 from lumberjack's radius)
+                RobotInfo[] robots = rc.senseNearbyRobots(RobotType.LUMBERJACK.bodyRadius+GameConstants.LUMBERJACK_STRIKE_RADIUS, enemy);
+
+                if(robots.length > 0 && !rc.hasAttacked()) {
+                    // Use strike() to hit all nearby robots!
+                    rc.strike();
+                } else {
+                    // No close robots, so search for robots within sight radius
+                    robots = rc.senseNearbyRobots(-1,enemy);
+
+                    // If there is a robot, move towards it
+                    if(robots.length > 0) {
+                        MapLocation myLocation = rc.getLocation();
+                        MapLocation enemyLocation = robots[0].getLocation();
+                        Direction toEnemy = myLocation.directionTo(enemyLocation);
+
+                        tryMove(toEnemy);
+                    } else {
+                        // Move Randomly
+                        tryMove(randomDirection());
+                    }
+                }
+
+                // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
+                Clock.yield();
+
+            } catch (Exception e) {
+                System.out.println("Lumberjack Exception");
+                e.printStackTrace();
+            }
+        }
     }
     
     
@@ -645,6 +756,102 @@ public strictfp class RobotPlayer {
 		rc.broadcast(151, (int)sumtrees);
     }
     */
+    
+    
+    // I don't really like the tryMove method, but we'll use it for now
+    
+    
+    // queue starts at 600+
+    static void queueOrder(RobotType rt) throws GameActionException {
+    	int orderSlot = rc.readBroadcast(600); // number of orders in queue
+    	int val = typeToNum(rt);
+    	rc.broadcast(orderSlot, val);
+    	rc.broadcast(600, orderSlot + 1);
+    }
+    
+    static RobotType peekOrder() throws GameActionException {
+    	int numOrders = rc.readBroadcast(600);
+    	if(numOrders == 0)
+    		return null;
+    	return numToType(rc.readBroadcast(601));
+    }
+    
+    static RobotType popOrder() throws GameActionException {
+    	int numOrders = rc.readBroadcast(600);
+    	if(numOrders == 0)
+    		return null;
+    	RobotType order = numToType(rc.readBroadcast(601));
+    	// move everything over!
+    	int i = 1;
+    	int nextThing = rc.readBroadcast(601+i);
+    	while(nextThing != 0) {
+    		rc.broadcast(600+i, nextThing);
+    		i++;
+    		nextThing = rc.readBroadcast(601+i);
+    	}
+    	return order;
+    }
+    
+    static int typeToNum(RobotType rt) {
+    	if(rt == RobotType.SCOUT)
+    		return 1;
+    	if(rt == RobotType.SOLDIER)
+    		return 2;
+    	if(rt == RobotType.LUMBERJACK)
+    		return 3;
+    	if(rt == RobotType.TANK)
+    		return 4;
+    	return -1;
+    }
+    
+    static RobotType numToType(int t) {
+    	if(t == 1)
+    		return RobotType.SCOUT;
+    	if(t == 2)
+    		return RobotType.SOLDIER;
+    	if(t == 3)
+    		return RobotType.LUMBERJACK;
+    	if(t == 4)
+    		return RobotType.TANK;
+    	return null;
+    }
+    
+    
+    static boolean tryMove(Direction dir) throws GameActionException {
+        return tryMove(dir,20,3);
+    }
+    
+
+    static boolean tryMove(Direction dir, float degreeOffset, int checksPerSide) throws GameActionException {
+
+        // First, try intended direction
+        if (rc.canMove(dir)) {
+            rc.move(dir);
+            return true;
+        }
+
+        // Now try a bunch of similar angles
+        boolean moved = false;
+        int currentCheck = 1;
+
+        while(currentCheck<=checksPerSide) {
+            // Try the offset of the left side
+            if(rc.canMove(dir.rotateLeftDegrees(degreeOffset*currentCheck))) {
+                rc.move(dir.rotateLeftDegrees(degreeOffset*currentCheck));
+                return true;
+            }
+            // Try the offset on the right side
+            if(rc.canMove(dir.rotateRightDegrees(degreeOffset*currentCheck))) {
+                rc.move(dir.rotateRightDegrees(degreeOffset*currentCheck));
+                return true;
+            }
+            // No move performed, try slightly further
+            currentCheck++;
+        }
+
+        // A move never happened, so return false.
+        return false;
+    }
     
     
     // ====================== HELPER =======================
