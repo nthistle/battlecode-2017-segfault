@@ -48,13 +48,13 @@ public strictfp class RobotPlayer {
                 Direction dir = randomDirection();
 
                 // Randomly attempt to build a gardener in this direction
-                if (rc.canHireGardener(dir) && Math.random() < 1 && garden==true) {
+                if (rc.canHireGardener(dir) &&  (garden==true || rc.getTeamBullets()>100)) {
                     rc.hireGardener(dir);
                     garden = false;
                 }
 
                 // Move randomly
-                tryMove(randomDirection());
+                //tryMove(randomDirection());
 
                 // Broadcast archon's location for other robots on the team to know
                 MapLocation myLocation = rc.getLocation();
@@ -108,20 +108,30 @@ public strictfp class RobotPlayer {
 
 
                 if(clear == false) {    //is there space
-                    TreeInfo[] nearbyTrees = rc.senseNearbyTrees(2.0f);
-                    if(nearbyTrees.length==0 && rc.onTheMap(rc.getLocation(),3.5f)==true)
+                    TreeInfo[] nearbyTrees = rc.senseNearbyTrees(3.5f);
+                    RobotInfo[] nearbyRobots = rc.senseNearbyRobots(3.5f);
+                    if(nearbyTrees.length==0 && nearbyRobots.length==0 && rc.onTheMap(rc.getLocation(),3.5f)==true)
                         clear = true;
                 }
                 if(clear == false) { //move to space
-                    tryMove(randomDirection());
+                    Direction didr = randomDirection();
+                    while(!rc.canMove(didr))
+                        didr = randomDirection();
+                    tryMove(didr);
                 }
                 else { //main algo
                     myTrees = rc.senseNearbyTrees(2.0f);
 
-                        if(myTrees.length>0) { //SWITCH TO WATER LOWEST!!! (watering)
-                           z = z % myTrees.length;
-                            rc.water(myTrees[z].getID());
-                            z++;
+                        if(myTrees.length>0) { //Waters lowest
+                            double hp = 100.0;
+                            int water = 0;
+                            for(int i=0; i<myTrees.length; i++) {
+                                if((double)myTrees[i].getHealth()<hp) {
+                                    hp = (double)myTrees[i].getHealth();
+                                    water = i;
+                                }
+                        }
+                            rc.water(myTrees[water].getID());
                         }
                         if(!corners) { //build diagnols first, left-top, left-bottom, right-top, right-bottom
                             if(cs[0]==false && rc.hasTreeBuildRequirements()) {
