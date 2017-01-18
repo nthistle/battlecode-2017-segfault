@@ -436,50 +436,43 @@ public strictfp class RobotPlayer {
 				System.out.println(nearbyTrees.length);
 				if (nearbyTrees.length > 0) {
 					TreeInfo closestTree = nearbyTrees[0];
-                	/*float closestDist = closestTree.getLocation().distanceTo(myLocation);
-            		for(int i = 1; i < nearbyTrees.length; i ++) {
-            			if(nearbyTrees[i].getLocation().distanceTo(myLocation) < closestDist) {
-            				closestDist = nearbyTrees[i].getLocation().distanceTo(myLocation);
-            				closestTree = nearbyTrees[i];
-            			}
-            		}*/
 
-					for (int i = 0; i < nearbyTrees.length; i++) {
+					for (int i = 0; i < nearbyTrees.length; i++) { //gets tree with most bullets
 						if (nearbyTrees[i].getContainedBullets() > closestTree.getContainedBullets()) {
 							closestTree = nearbyTrees[i];
 						}
 					}
-					if (closestTree.getContainedBullets() == 0) {
+					if (closestTree.getContainedBullets() == 0) { //else gets tree w/ robot that is closest
 						for (int i = 0; i < nearbyTrees.length; i++) {
 							if (nearbyTrees[i].getContainedRobot()!=null && (closestTree.getContainedRobot()==null || rc.getLocation().distanceTo(nearbyTrees[i].getLocation()) < rc.getLocation().distanceTo(closestTree.getLocation()))) {
 								closestTree = nearbyTrees[i];
 							}
 						}
 					}
-					if(closestTree.getContainedBullets() == 0 && closestTree.getContainedRobot() == null) {
-						for(int i=0; i<nearbyTrees.length; i++) {
-							if(nearbyTrees[i].getTeam()==enemy && (closestTree.getTeam()!=enemy || rc.getLocation().distanceTo(nearbyTrees[i].getLocation()) < rc.getLocation().distanceTo(closestTree.getLocation()) ) );
+					if(closestTree.getContainedBullets() == 0 && closestTree.getContainedRobot() == null) { //gets tree that is closest enemy
+						for(int i=0; i<nearbyTrees.length; i++)
+							if(nearbyTrees[i].getTeam()==enemy && (closestTree.getTeam()!=enemy || rc.getLocation().distanceTo(nearbyTrees[i].getLocation()) < rc.getLocation().distanceTo(closestTree.getLocation()) ) ) {
 								closestTree = nearbyTrees[i];
 						}
 					}
-					if(closestTree.getContainedBullets() == 0 && closestTree.getContainedRobot() == null && closestTree.getTeam()!=enemy) {
+					if(closestTree.getContainedBullets() == 0 && closestTree.getContainedRobot() == null && closestTree.getTeam()!=enemy) { //gets closest tree
 						for(int i=0; i<nearbyTrees.length; i++) {
 							if(rc.getLocation().distanceTo(nearbyTrees[i].getLocation()) < rc.getLocation().distanceTo(closestTree.getLocation()))
 								closestTree = nearbyTrees[i];
 						}
 					}
-					System.out.println("BEGIN TURN!");
-					for(int i=0; i<nearbyTrees.length; i++) {
-						System.out.println(i+". "+nearbyTrees[i].getID()+" "+nearbyTrees[i].getContainedBullets()+" "+nearbyTrees[i].getContainedRobot()+" "+nearbyTrees[i].getTeam()+" "+rc.getLocation().distanceTo(nearbyTrees[i].getLocation()));
-					}
-					System.out.println(closestTree.getID()+" "+rc.getLocation().distanceTo(closestTree.getLocation()));
+//					System.out.println("BEGIN TURN!");
+//					for(int i=0; i<nearbyTrees.length; i++) {
+//						System.out.println(i+". "+nearbyTrees[i].getID()+" "+nearbyTrees[i].getContainedBullets()+" "+nearbyTrees[i].getContainedRobot()+" "+nearbyTrees[i].getTeam()+" "+rc.getLocation().distanceTo(nearbyTrees[i].getLocation()));
+//					}
+//					System.out.println(closestTree.getID()+" "+rc.getLocation().distanceTo(closestTree.getLocation()));
 
-					if(rc.canShake(closestTree.getID())) {
+					if(rc.canShake(closestTree.getID())) { //get bullets if applicable
 						rc.shake(closestTree.getID());
 					}
-					if (rc.canChop(closestTree.getID())) {
+					if (rc.canChop(closestTree.getID())) { //chop if applicable
 						rc.chop(closestTree.getID());
-					} else {
+					} else { //move w/ funny dodge stuff
 						Direction toTree = myLocation.directionTo(closestTree.getLocation());
 						if (rc.canMove(toTree)) {
 							rc.move(toTree);
@@ -489,7 +482,7 @@ public strictfp class RobotPlayer {
 							rc.move(toTree.rotateLeftDegrees(90.0f));
 						}
 					}
-				} else {
+				} else { //run around until you find trees
 					if (Math.random() < 0.05) {
 						curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
 					}
