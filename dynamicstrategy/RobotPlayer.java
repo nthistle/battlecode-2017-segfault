@@ -396,12 +396,14 @@ public strictfp class RobotPlayer {
     	System.out.println("Scout #" + myID + " spawned");
     	
     	Team enemy = rc.getTeam().opponent();
-    	
+    	int steps = 0;
+    	int totalTrees = 0;
     	MapLocation myLocation;
     	
     	if(myID == 0) {
     		System.out.println("I am initial scout");
     		// Mission: harass enemy archon, finding path while on way
+    		// added tree numbers
     		// TODO: add path finding logic here
     		float cdist;
     		do {
@@ -432,12 +434,21 @@ public strictfp class RobotPlayer {
     		// now within 6.0 of starting enemy archon location
     		
     		RobotInfo[] nearbyRobots;
+    		TreeInfo[] nearbyTrees;
     		Direction mdir = randomDirection();
     		while(true) {
     			
     			myLocation = rc.getLocation();
     			nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
-    			
+    			//tree data
+    			if (steps<50) {
+        			nearbyTrees = rc.senseNearbyTrees(myLocation, 10f, Team.NEUTRAL);
+	    			totalTrees += nearbyTrees.length;
+	    			steps+=1;
+	    			rc.broadcast(150, steps);
+	    			rc.broadcast(151, totalTrees);
+    			}
+    			//end tree data
     			// priorities for scout harassment:
     			// closest enemy gardener
     			// closest enemy archon
