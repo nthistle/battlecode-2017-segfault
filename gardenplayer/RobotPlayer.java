@@ -328,27 +328,41 @@ public strictfp class RobotPlayer {
 						}
 					}
 				} else { //run around until you find trees
-					if (Math.random() < 0.05) {
-						curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
-					}
-					curdirection += curdiff + 2 * (float) Math.PI;
-					while (curdirection > 2 * (float) Math.PI) {
-						curdirection -= 2 * (float) Math.PI;
-					}
-					Direction d = new Direction(curdirection);
-					if (rc.canMove(d)) {
-						rc.move(d);
-					} else {
-						curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
-						curdirection = (float) Math.random() * 2 * (float) Math.PI;
-					}
-
-					RobotInfo[] robots = rc.senseNearbyRobots(RobotType.LUMBERJACK.bodyRadius + GameConstants.LUMBERJACK_STRIKE_RADIUS, enemy);
-
-					if (robots.length > 0 && !rc.hasAttacked()) {
-						// Use strike() to hit all nearby robots!
-						rc.strike();
-					}
+                    RobotInfo[] robots = rc.senseNearbyRobots(RobotType.LUMBERJACK.sensorRadius, enemy);
+                    RobotInfo[] robotsF = rc.senseNearbyRobots(RobotType.LUMBERJACK.sensorRadius);
+                    //RobotInfo[] robots = rc.senseNearbyRobots(RobotType.LUMBERJACK.bodyRadius + GameConstants.LUMBERJACK_STRIKE_RADIUS, enemy);
+                    System.out.println("MEMEMS");
+                    System.out.println(enemy);
+                    System.out.println(robotsF.length);
+                    System.out.println(robots.length);
+                    if (robots.length > 0 && !rc.hasAttacked()) {
+                        // Use strike() to hit all nearby robots!
+                        RobotInfo[] rs = rc.senseNearbyRobots(RobotType.LUMBERJACK.bodyRadius + GameConstants.LUMBERJACK_STRIKE_RADIUS, enemy);
+//                        RobotInfo[] rs = rc.senseNearbyRobots(RobotType.LUMBERJACK.bodyRadius + GameConstants.LUMBERJACK_STRIKE_RADIUS, );
+                        if(rs.length>0 && !rc.hasAttacked())
+                            rc.strike();
+                        else {
+                            Direction toEnemy = myLocation.directionTo(robots[0].getLocation());
+                            if (rc.canMove(toEnemy))
+                                rc.move(toEnemy);
+                        }
+                    }
+                    else {
+                        if (Math.random() < 0.05) {
+                            curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
+                        }
+                        curdirection += curdiff + 2 * (float) Math.PI;
+                        while (curdirection > 2 * (float) Math.PI) {
+                            curdirection -= 2 * (float) Math.PI;
+                        }
+                        Direction d = new Direction(curdirection);
+                        if (rc.canMove(d)) {
+                            rc.move(d);
+                        } else {
+                            curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
+                            curdirection = (float) Math.random() * 2 * (float) Math.PI;
+                        }
+                    }
 				}
 				// See if there are any enemy robots within striking range (distance 1 from lumberjack's radius)
                 /* else {
