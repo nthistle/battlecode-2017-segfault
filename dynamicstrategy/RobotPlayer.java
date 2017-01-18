@@ -631,24 +631,108 @@ public strictfp class RobotPlayer {
     
     
 
+	static void runLumberjack() throws GameActionException {
+		System.out.println("I'm a lumberjack!");
+		Team enemy = rc.getTeam().opponent();
 
-    static void runLumberjack() throws GameActionException {
-        System.out.println("I'm a lumberjack!");
-        Team enemy = rc.getTeam().opponent();
+		MapLocation myLocation;
 
-        // The code you want your robot to perform every round should be in this loop
-        while (true) {
+		float curdirection = (float) Math.random() * 2 * (float) Math.PI;
+		float curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
+		// The code you want your robot to perform every round should be in this loop
+		while (true) {
+			myLocation = rc.getLocation();
 
-            // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
-            try {
+			// Try/catch blocks stop unhandled exceptions, which cause your robot to explode
+			try {
+				TreeInfo[] nearbyEnemyTrees = rc.senseNearbyTrees(rc.getType().sensorRadius, rc.getTeam().opponent());
+				TreeInfo[] nearbyNeutralTrees = rc.senseNearbyTrees(rc.getType().sensorRadius, Team.NEUTRAL);
+				
+				TreeInfo[] nearbyTrees = new TreeInfo[nearbyEnemyTrees.length + nearbyNeutralTrees.length];
+				int t = 0;
+				for(TreeInfo ti : nearbyEnemyTrees)
+					nearbyTrees[t++] = ti;
+				for(TreeInfo ti : nearbyNeutralTrees)
+					nearbyTrees[t++] = ti;
+				// temporary, eventually just replace instances
+				System.out.println(nearbyTrees.length);
+				if (nearbyTrees.length > 0) {
+					TreeInfo closestTree = nearbyTrees[0]; // has closest robot containing tree, if none, most bullets 
+					TreeInfo dankestTree = nearbyTrees[0]; // actually the closest tree
 
-                // See if there are any enemy robots within striking range (distance 1 from lumberjack's radius)
-                RobotInfo[] robots = rc.senseNearbyRobots(RobotType.LUMBERJACK.bodyRadius+GameConstants.LUMBERJACK_STRIKE_RADIUS, enemy);
+					for (int i = 0; i < nearbyTrees.length; i++) { //gets tree with most bullets
+						if (nearbyTrees[i].getContainedBullets() > closestTree.getContainedBullets()) {
+							closestTree = nearbyTrees[i];
+						}
+					}
+					if (closestTree.getContainedBullets() == 0) { //else gets tree w/ robot that is closest
+						for (int i = 0; i < nearbyTrees.length; i++) {
+							if (nearbyTrees[i].getContainedRobot()!=null && (closestTree.getContainedRobot()==null || rc.getLocation().distanceTo(nearbyTrees[i].getLocation()) < rc.getLocation().distanceTo(closestTree.getLocation()))) {
+								closestTree = nearbyTrees[i];
+							}
+						}
+					}
+					/*if(closestTree.getContainedBullets() == 0 && closestTree.getContainedRobot() == null) { //gets tree that is closest enemy
+						for(int i=0; i<nearbyTrees.length; i++)
+							if(nearbyTrees[i].getTeam()==enemy && (closestTree.getTeam()!=enemy || rc.getLocation().distanceTo(nearbyTrees[i].getLocation()) < rc.getLocation().distanceTo(closestTree.getLocation()) ) ) {
+								closestTree = nearbyTrees[i];
+						}
+					}*/
+					if(closestTree.getContainedBullets() == 0 && closestTree.getContainedRobot() == null && closestTree.getTeam()!=enemy) { //gets closest tree
+						for(int i=0; i<nearbyTrees.length; i++) {
+							if(rc.getLocation().distanceTo(nearbyTrees[i].getLocation()) < rc.getLocation().distanceTo(closestTree.getLocation()))
+								closestTree = nearbyTrees[i];
+						}
+					}
+//					System.out.println("BEGIN TURN!");
+//					for(int i=0; i<nearbyTrees.length; i++) {
+//						System.out.println(i+". "+nearbyTrees[i].getID()+" "+nearbyTrees[i].getContainedBullets()+" "+nearbyTrees[i].getContainedRobot()+" "+nearbyTrees[i].getTeam()+" "+rc.getLocation().distanceTo(nearbyTrees[i].getLocation()));
+//					}
+//					System.out.println(closestTree.getID()+" "+rc.getLocation().distanceTo(closestTree.getLocation()));
 
-                if(robots.length > 0 && !rc.hasAttacked()) {
-                    // Use strike() to hit all nearby robots!
-                    rc.strike();
-                } else {
+					if(rc.canShake(closestTree.getID())) { //get bullets if applicable
+						rc.shake(closestTree.getID());
+					}
+					if (rc.canChop(closestTree.getID())) { //chop if applicable
+						rc.chop(closestTree.getID());
+					} else { //move w/ funny dodge stuff
+						if (rc.canChop(dankestTree.getLocation())) {
+							rc.chop(dankestTree.getLocation());
+						}
+						Direction toTree = myLocation.directionTo(closestTree.getLocation());
+						if (rc.canMove(toTree)) {
+							rc.move(toTree);
+						} else if (rc.canMove(toTree.rotateRightDegrees(30.0f))) { // try to move perpendicularly, to get around obstacles
+							rc.move(toTree.rotateRightDegrees(30.0f));
+						} else if (rc.canMove(toTree.rotateLeftDegrees(30.0f))) {
+							rc.move(toTree.rotateLeftDegrees(30.0f));
+						}
+					}
+				} else { //run around until you find trees
+					if (Math.random() < 0.05) {
+						curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
+					}
+					curdirection += curdiff + 2 * (float) Math.PI;
+					while (curdirection > 2 * (float) Math.PI) {
+						curdirection -= 2 * (float) Math.PI;
+					}
+					Direction d = new Direction(curdirection);
+					if (rc.canMove(d)) {
+						rc.move(d);
+					} else {
+						curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
+						curdirection = (float) Math.random() * 2 * (float) Math.PI;
+					}
+
+					RobotInfo[] robots = rc.senseNearbyRobots(RobotType.LUMBERJACK.bodyRadius + GameConstants.LUMBERJACK_STRIKE_RADIUS, enemy);
+
+					if (robots.length > 0 && !rc.hasAttacked()) {
+						// Use strike() to hit all nearby robots!
+						rc.strike();
+					}
+				}
+				// See if there are any enemy robots within striking range (distance 1 from lumberjack's radius)
+                /* else {
                     // No close robots, so search for robots within sight radius
                     robots = rc.senseNearbyRobots(-1,enemy);
 
@@ -663,17 +747,17 @@ public strictfp class RobotPlayer {
                         // Move Randomly
                         tryMove(randomDirection());
                     }
-                }
+                }*/
 
-                // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
-                Clock.yield();
+				// Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
+				Clock.yield();
 
-            } catch (Exception e) {
-                System.out.println("Lumberjack Exception");
-                e.printStackTrace();
-            }
-        }
-    }
+			} catch (Exception e) {
+				System.out.println("Lumberjack Exception");
+				e.printStackTrace();
+			}
+		}
+	}
     
     
     
