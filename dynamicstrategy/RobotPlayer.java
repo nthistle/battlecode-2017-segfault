@@ -203,8 +203,139 @@ public strictfp class RobotPlayer {
     	myID = rc.readBroadcast(101);
     	rc.broadcast(101, myID + 1);
     	System.out.println("Gardener #" + myID + " spawned");
+    	gardenerFactory();
+    }
+    
+    
+    static void gardenerFactory() throws GameActionException {
+
+        int DONOTBUILDHERE = rand.nextInt(4);
+        int z=0;
+        boolean clear = false;
+        boolean corners = false;
+        boolean[] cs = new boolean[4];
+        boolean[] hasPlantedCardinal = new boolean[4];
+        int numCardinalLeft = 4;
+        
+        for(int i=0; i<4; i++)
+            cs[i] = false;
+        int status = 0;
+        TreeInfo[] myTrees;
+        
+        Direction curDir = randomDirection();
+        
+        
+        // get to clear area
+        while(!clear) {
+			TreeInfo[] nearbyTrees = rc.senseNearbyTrees(3.5f);
+			RobotInfo[] nearbyRobots = rc.senseNearbyRobots(3.5f);
+			if (nearbyTrees.length == 0 && nearbyRobots.length == 0
+					&& rc.onTheMap(rc.getLocation(), 3.5f) == true)
+				clear = true;
+			if(!clear) {
+				for(int i = 0; i < 10 && !rc.canMove(curDir); i ++)
+					curDir = randomDirection();
+				if(rc.canMove(curDir))
+					rc.move(curDir);
+				Clock.yield();
+			}
+        }
+        
+        // now construct our "pod" / "factory"
+        boolean doneBuilding = false;
+        while(!doneBuilding) {
+        	gardenerWaterLowest();
+			if (!corners) { // build diagonals first, left-top,
+							// left-bottom, right-top, right-bottom
+				if (cs[0] == false && rc.hasTreeBuildRequirements()) {
+					if (status == 0) {
+						attemptmove(new Direction((float) (Math.PI)));
+						Clock.yield();
+						attemptmove(new Direction((float) (Math.PI)));
+						status = 1;
+					}
+					if (rc.canPlantTree(new Direction((float) (Math.PI / 2.0 + .1)))) {
+						rc.plantTree(new Direction((float) (Math.PI / 2.0 + .1)));
+						cs[0] = true;
+					}
+				} else if (cs[2] == false && rc.hasTreeBuildRequirements()) {
+					// attemptmove(new Direction((float)(Math.PI)));
+					if (rc.canPlantTree(new Direction((float) (Math.PI * 3 / 2.0 - .1)))) {
+						rc.plantTree(new Direction((float) (Math.PI * 3 / 2.0 - .1)));
+						attemptmove(new Direction((float) (0.0)));
+						Clock.yield();
+						attemptmove(new Direction((float) (0.0)));
+						cs[2] = true;
+					}
+				} else if (cs[1] == false && rc.hasTreeBuildRequirements()) {
+					if (status == 1) {
+						attemptmove(new Direction((float) (0.0)));
+						Clock.yield();
+						attemptmove(new Direction((float) (0.0)));
+						status = 2;
+					}
+					if (rc.canPlantTree(new Direction((float) (Math.PI / 2.0 - .1)))) {
+						rc.plantTree(new Direction((float) (Math.PI / 2.0 - .1)));
+						cs[1] = true;
+					}
+				} else if (cs[3] == false && rc.hasTreeBuildRequirements()) {
+					// attemptmove(new Direction((float)(0.0)));
+					if (rc.canPlantTree(new Direction((float) (Math.PI * 3 / 2.0 + .1)))) {
+						rc.plantTree(new Direction((float) (Math.PI * 3 / 2.0 + .1)));
+						attemptmove(new Direction((float) (Math.PI)));
+						Clock.yield();
+						attemptmove(new Direction((float) (Math.PI)));
+						cs[3] = true;
+					}
+				}
+				if (cs[0] == true && cs[1] == true && cs[2] == true && cs[3] == true)
+					corners = true;
+			} else { // build cardinal directions, skip over hole to
+						// build units
+				for (int i = 0; i < 4; i++) {
+					if (!hasPlantedCardinal[i] && DONOTBUILDHERE != i
+							&& rc.canPlantTree(new Direction((float) (0.0 + Math.PI / 2.0 * i)))) {
+						rc.plantTree(new Direction((float) (0.0 + Math.PI / 2.0 * i)));
+						hasPlantedCardinal[i] = true;
+						numCardinalLeft --;
+					}
+				}
+			}
+			if(numCardinalLeft == 0)
+				doneBuilding = true;
+			Clock.yield();
+        }
+        
+        // whoopie, now we're done building
+        while(true) {
+        	gardenerWaterLowest();
+        	Clock.yield();
+        }
+    }
+    
+    private static void gardenerWaterLowest() throws GameActionException {
+		TreeInfo[] myTrees = rc.senseNearbyTrees(2.0f);
+
+		if (myTrees.length > 0) { // Waters lowest
+			double hp = 100.0;
+			int water = 0;
+			for (int i = 0; i < myTrees.length; i++) {
+				if ((double) myTrees[i].getHealth() < hp) {
+					hp = (double) myTrees[i].getHealth();
+					water = i;
+				}
+			}
+			rc.water(myTrees[water].getID());
+		}
+    }
     	
-    	while(true) {
+    private static void attemptmove(Direction direction) throws GameActionException {
+    	if(rc.canMove(direction)) {
+    		rc.move(direction);
+    	}
+	}
+
+	/*	while(true) {
     		Direction dir = randomDirection();
     		for(int i = 0; i < 10 && !rc.canBuildRobot(RobotType.SCOUT, dir); i++) {
     			dir = randomDirection();
@@ -216,11 +347,9 @@ public strictfp class RobotPlayer {
     		}
     		Clock.yield();
     	}
-    }
+    }*/
     
     static void runScout() throws GameActionException {
-    	try {
-    	
     	
     	myID = rc.readBroadcast(102);
     	rc.broadcast(102, myID+1);
@@ -371,7 +500,7 @@ public strictfp class RobotPlayer {
     						}
     					}
     					Clock.yield();
-    					nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);;
+    					nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
     				}
     			}
     			
@@ -379,9 +508,9 @@ public strictfp class RobotPlayer {
     	}
     	
     	
-    	}catch(Exception e){
-    		e.printStackTrace();
-    	}
+    	//}catch(Exception e){
+    	//	e.printStackTrace();
+    	//}
     }
     
     
