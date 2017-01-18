@@ -136,7 +136,7 @@ public strictfp class RobotPlayer {
 				if (test) {
 					if (rc.hasRobotBuildRequirements(RobotType.LUMBERJACK))
 						rc.buildRobot(RobotType.LUMBERJACK, randomDirection());
-					test = false;
+					//test = false;
 				}
 
 				// Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
@@ -444,26 +444,26 @@ public strictfp class RobotPlayer {
             			}
             		}*/
 
-					for (int i = 1; i < nearbyTrees.length; i++) {
+					for (int i = 0; i < nearbyTrees.length; i++) {
 						if (nearbyTrees[i].getContainedBullets() > closestTree.getContainedBullets()) {
 							closestTree = nearbyTrees[i];
 						}
 					}
 					if (closestTree.getContainedBullets() == 0) {
-						for (int i = 1; i < nearbyTrees.length; i++) {
+						for (int i = 0; i < nearbyTrees.length; i++) {
 							if (nearbyTrees[i].getContainedRobot()!=null && (closestTree.getContainedRobot()==null || rc.getLocation().distanceTo(nearbyTrees[i].getLocation()) < rc.getLocation().distanceTo(closestTree.getLocation()))) {
 								closestTree = nearbyTrees[i];
 							}
 						}
 					}
 					if(closestTree.getContainedBullets() == 0 && closestTree.getContainedRobot() == null) {
-						for(int i=1; i<nearbyTrees.length; i++) {
-							if(nearbyTrees[i].getTeam()==enemy && (closestTree.getTeam()!=enemy || nearbyTrees[i].getHealth() < closestTree.getHealth()) );
+						for(int i=0; i<nearbyTrees.length; i++) {
+							if(nearbyTrees[i].getTeam()==enemy && (closestTree.getTeam()!=enemy || rc.getLocation().distanceTo(nearbyTrees[i].getLocation()) < rc.getLocation().distanceTo(closestTree.getLocation()) ) );
 								closestTree = nearbyTrees[i];
 						}
 					}
 					if(closestTree.getContainedBullets() == 0 && closestTree.getContainedRobot() == null && closestTree.getTeam()!=enemy) {
-						for(int i=1; i<nearbyTrees.length; i++) {
+						for(int i=0; i<nearbyTrees.length; i++) {
 							if(rc.getLocation().distanceTo(nearbyTrees[i].getLocation()) < rc.getLocation().distanceTo(closestTree.getLocation()))
 								closestTree = nearbyTrees[i];
 						}
@@ -472,7 +472,7 @@ public strictfp class RobotPlayer {
 					for(int i=0; i<nearbyTrees.length; i++) {
 						System.out.println(i+". "+nearbyTrees[i].getID()+" "+nearbyTrees[i].getContainedBullets()+" "+nearbyTrees[i].getContainedRobot()+" "+nearbyTrees[i].getTeam()+" "+rc.getLocation().distanceTo(nearbyTrees[i].getLocation()));
 					}
-					System.out.println(closestTree.getID());
+					System.out.println(closestTree.getID()+" "+rc.getLocation().distanceTo(closestTree.getLocation()));
 
 					if(rc.canShake(closestTree.getID())) {
 						rc.shake(closestTree.getID());
@@ -483,6 +483,10 @@ public strictfp class RobotPlayer {
 						Direction toTree = myLocation.directionTo(closestTree.getLocation());
 						if (rc.canMove(toTree)) {
 							rc.move(toTree);
+						} else if (rc.canMove(toTree.rotateRightDegrees(90.0f))) { // try to move perpendicularly, to get around obstacles
+							rc.move(toTree.rotateRightDegrees(90.0f));
+						} else if (rc.canMove(toTree.rotateLeftDegrees(90.0f))) {
+							rc.move(toTree.rotateLeftDegrees(90.0f));
 						}
 					}
 				} else {
