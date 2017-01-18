@@ -229,15 +229,47 @@ public strictfp class RobotPlayer {
     	Team enemy = rc.getTeam().opponent();
     	
     	MapLocation myLocation;
-    	
     	if(myID == 0) {
     		System.out.println("I am initial scout");
     		// Mission: harass enemy archon, finding path while on way
-    		//
-		// TODO: add path finding logic here
-    		//
-		/*
-		float cdist;
+    		// TODO: add path finding logic here
+			myLocation = rc.getLocation();
+			MapLocation[] initArchLocs = rc.getInitialArchonLocations(enemy);
+			MapLocation closestEnemy = myLocation;
+			for (int g = 0; g < initArchLocs.length; g++) {
+				if (myLocation.distanceTo(initArchLocs[g]) < myLocation.distanceTo(min)) {
+					closestEnemy = initArchLocs[g];
+				}
+			}
+			while(myLocation != closestEnemy) {
+				myLocation = rc.getLocation();
+				closestEnemy = myLocation;
+				for (int g = 0; g < initArchLocs.length; g++) {
+					if (myLocation.distanceTo(initArchLocs[g]) < myLocation.distanceTo(min)) {
+						closestEnemy = initArchLocs[g];
+					}
+				}
+				cdist = myLocation.distanceTo(closestEnemy);
+				Direction theta = myLocation.directionTo(closestEnemy);
+				for(float i = 0; i < (360/15); i+=1) {
+					float stride_magnitude = 2.5f;
+					// Add the vector with magnitude 2.5 and direction theta
+					// <myLocation.x + 2.5cos(theta), myLocation.y + 2.5sin(theta)>
+					MapLocation surrounded_by_trees = new MapLocation();
+					surrounded_by_trees.x = myLocation.x + (stride_magnitude * Math.cos(theta));
+					surrounded_by_trees.y = myLocation.y + (stride_magnitude * Math.sin(theta));
+					float MAGIC = 1.0f; // inspired by shwetark patel; can set tolerance later
+					rc.senseNearbyTrees(surrounded_by_trees, MAGIC, Team.A)
+					rc.senseNearbyTrees(surrounded_by_trees, MAGIC, Team.B)
+					rc.senseNearbyTrees(surrounded_by_trees, MAGIC, Team.Neutral);
+					// pick the closest one not surrounded by trees
+				}
+
+			}
+
+
+			/*
+			float cdist;
     		do {
     			myLocation = rc.getLocation();
     			MapLocation[] initArchLocs = rc.getInitialArchonLocations(enemy);
@@ -250,7 +282,7 @@ public strictfp class RobotPlayer {
 	    			}
 	    		}
 	    		Direction dir = myLocation.directionTo(closest);
-	    		if(rc.canMove(dir)) 
+	    		if(rc.canMove(dir))
 	    			rc.move(dir);
 	    		else if(rc.canMove(dir.rotateRightDegrees(68.3f)))
 	    			rc.move(dir.rotateRightDegrees(68.3f));
@@ -263,9 +295,9 @@ public strictfp class RobotPlayer {
 	    		Clock.yield();
     		} while(cdist > 8.5f);
     		System.out.println("I'm " + (cdist-2.5f) + " away from a starting enemy archon location");
-    		// now within 6.0 of starting enemy archon location
     		*/
-		
+    		// now within 6.0 of starting enemy archon location
+    		
     		RobotInfo[] nearbyRobots;
     		Direction mdir = randomDirection();
     		while(true) {
