@@ -81,7 +81,16 @@ public strictfp class RobotPlayer {
     		realDir = (int)(inDeg/22.5f);
     		dist = myLocation.distanceTo(ti.getLocation());
     		treeMassByDirection[realDir] += (ti.radius * ti.radius) * (10.0f-dist)*(10.0f-dist);
+    		if(ti.radius > (dist * (float)Math.PI/8.0f)) {
+        		treeMassByDirection[(realDir+1)%16] += (0.25f * ti.radius * ti.radius) * (10.0f-dist)*(10.0f-dist);
+        		treeMassByDirection[(realDir+15)%16] += (0.25f * ti.radius * ti.radius) * (10.0f-dist)*(10.0f-dist);
+    		}
     	}
+    	float totalTreeMassFactor = 0.0f;
+    	for(int i = 0; i < 16; i ++) {
+    		totalTreeMassFactor += treeMassByDirection[i];
+    	}
+    	System.out.println("Total Tree Mass Factor: " + totalTreeMassFactor);
     	for(int i = 0; i < 16; i ++) {
     		dir = new Direction(i*(float)Math.PI/8.0f);
     		for(dist = 2.49f; dist < 10.0f; dist += 2.49f) {
@@ -136,7 +145,10 @@ public strictfp class RobotPlayer {
     		}
     		else
     			System.out.println("BIG PROBLEM!!! EDGE CASE!!! DIRECTION IS BADDDDD");
+    		
+        	rc.broadcast(201, rc.readBroadcast(201) + 1); // add urgent order for scout
     	}
+    	
     	
     	Clock.yield();
     	// T=3
@@ -156,21 +168,46 @@ public strictfp class RobotPlayer {
     			System.out.println("BIG PROBLEM!!! EDGE CASE!!! DIRECTION IS BADDDDD");
     	}
     	
-    	Clock.yield();
-    	for(int t = 0; true; t++) {
-    		if(t%50 == rank) {
-    			if(rand.nextDouble() < 25.0f/t) { // lower chance to spawn new ones as time goes on
-    				float tdir = rand.nextFloat()*2.0f*(float)Math.PI;
-    				for(float j = 0.0f; j < 2.0f*(float)Math.PI; j+=(float)Math.PI/16.0) {
-    					if(rc.canBuildRobot(RobotType.GARDENER, new Direction(tdir + j))) {
-    						rc.buildRobot(RobotType.GARDENER, new Direction(tdir+j));
-    						break;
-    					}
-    				}
-    			}
+
+    	if(isAlpha) {
+    		
+    		
+    		if(totalTreeMassFactor < 5.0f) {
+    			// very light, tree/soldier centric approach
+    			
     		}
-    		Clock.yield();
-    		// other than occasionally spawn gardeners, do nothing
+    		else if(totalTreeMassFactor < 150.0f) {
+    			// medium ish
+            	rc.broadcast(202, rc.readBroadcast(202) + 1); // add urgent order for lumberjack
+            	
+    		}
+    		else {
+    			// we gotta get these trees out of the way
+
+            	rc.broadcast(202, rc.readBroadcast(202) + 3); // add urgent order for lumberjacks
+            	
+            	//TODO: finish alpha logic for managing the game from this point on
+            	// by tweaking spawnrates etc.
+    		}
+    		
+    		
+    	} else {
+	    	Clock.yield();
+	    	for(int t = 0; true; t++) {
+	    		if(t%50 == rank) {
+	    			if(rand.nextDouble() < Math.max(25.0/t, 0.1)) { // lower chance to spawn new ones as time goes on
+	    				float tdir = rand.nextFloat()*2.0f*(float)Math.PI;
+	    				for(float j = 0.0f; j < 2.0f*(float)Math.PI; j+=(float)Math.PI/16.0) {
+	    					if(rc.canBuildRobot(RobotType.GARDENER, new Direction(tdir + j))) {
+	    						rc.buildRobot(RobotType.GARDENER, new Direction(tdir+j));
+	    						break;
+	    					}
+	    				}
+	    			}
+	    		}
+	    		Clock.yield();
+	    		// other than occasionally spawn gardeners, do nothing
+	    	}
     	}
     }
     
@@ -207,10 +244,12 @@ public strictfp class RobotPlayer {
     }
     
     
+    
+    // MAJOR TODO: add order receiving code into gardener
+    // both URGENT and regular
     static void gardenerFactory() throws GameActionException {
 
         int DONOTBUILDHERE = rand.nextInt(4);
-        int z=0;
         boolean clear = false;
         boolean corners = false;
         boolean[] cs = new boolean[4];
@@ -220,10 +259,10 @@ public strictfp class RobotPlayer {
         for(int i=0; i<4; i++)
             cs[i] = false;
         int status = 0;
-        TreeInfo[] myTrees;
         
         Direction curDir = randomDirection();
         
+        int wanderTurns = 0;
         
         // get to clear area
         while(!clear) {
@@ -238,6 +277,7 @@ public strictfp class RobotPlayer {
 				if(rc.canMove(curDir))
 					rc.move(curDir);
 				Clock.yield();
+				wanderTurns ++;
 			}
         }
         
