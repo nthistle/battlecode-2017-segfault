@@ -163,7 +163,8 @@ public strictfp class RobotPlayer {
     			// very light, tree/soldier centric approach
     			terrainType = 1;
     			maxGardenerBuild = 5;
-            	rc.broadcast(203, rc.readBroadcast(203) + 2); // add urgent order for soldiers
+            	//rc.broadcast(203, rc.readBroadcast(203) + 2); // add urgent order for soldiers
+    			queueOrder(RobotType.SOLDIER);
     		}
     		else if(totalTreeMassFactor < 150.0f) {
     			// medium ish
@@ -1025,7 +1026,7 @@ public strictfp class RobotPlayer {
 					}
 					Direction enemyDir = myLocation.directionTo(closestEnemy.getLocation());
 					System.out.println("closestDist is " + closestDist);
-					if(closestDist < 25.0f) {
+					if((closestEnemy.getType() == RobotType.ARCHON && closestDist < 25.0f) || closestDist < 13f) {
 						if(rc.canMove(enemyDir, 0.2f)) {
 							rc.move(enemyDir, 0.2f);
 							hasMoved = true;
