@@ -25,8 +25,17 @@ public final strictfp class CommunicationsHandler
 			System.out.println("[ID" + a.getID() + "] found my distance as " + myDist); 
 		a.rc.broadcast(200 + a.getID(), (int)(100*myDist));
 		Clock.yield();
-		
-		return 1;
+		int numAlphas = getNumMade(a.rc, RobotType.ARCHON);
+		int rank = 0;
+		for(int i = 0; i < numAlphas; i ++) {
+			if(i == a.getID())
+				continue;
+			if((100*myDist) > a.rc.readBroadcast(200 + i))
+				rank ++;
+		}
+		if(debugPrint)
+			System.out.println("[ID" + a.getID() + "] self assigned as rank " + rank);
+		return rank;
 	}
 	
 	
