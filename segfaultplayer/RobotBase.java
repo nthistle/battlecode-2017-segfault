@@ -64,6 +64,10 @@ public strictfp abstract class RobotBase
 	}
 	
 	
+	// TODO: (big one)
+	// rework checking if a shot is clear to instead assess amount of collateral damage (cost)
+	// (and possibly also add one to check the possible benefit)
+	
 	public boolean isSingleShotClear(Direction tDir) throws GameActionException {
 		return isSingleShotClear(tDir, false);
 	}
