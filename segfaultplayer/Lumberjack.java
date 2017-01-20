@@ -10,6 +10,8 @@ public strictfp class Lumberjack extends RobotBase
 	}
 	
 	public void run() throws GameActionException {
+		System.out.println("I'm a lumberjack!");
+
 
 	}
 }

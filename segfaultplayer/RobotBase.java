@@ -89,15 +89,6 @@ public strictfp abstract class RobotBase
 				return false;
 			}
 		}
-		for(int i=0; i<allyArchons.length; i++) {
-			Direction fDir = rc.getLocation().directionTo(allyArchons[i]);
-			double length = (double)rc.getLocation().distanceTo(allyArchons[i]);
-			double dist = Math.sqrt(2*length*length - 2*length*length*Math.cos(tDir.radiansBetween(fDir)));
-			if(dist<2.0+.1)  {//archon radius
-				System.out.println("dankmemes");
-				return false;
-			}
-		}
 		for(int i=0; i<trees.length; i++) {
 			if(trees[i].getTeam()==ally) {
 				Direction fDir = rc.getLocation().directionTo(trees[i].getLocation());
