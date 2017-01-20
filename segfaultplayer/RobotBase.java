@@ -6,8 +6,8 @@ public strictfp abstract class RobotBase
 {
 	protected final RobotController rc;
 	private int myID;
-	final Team enemy;
-	final Team ally;
+	public final Team enemy;
+	public final Team ally;
 	MapLocation[] enemyArchons;
 	MapLocation[] allyArchons;
 
@@ -31,8 +31,37 @@ public strictfp abstract class RobotBase
 	
 	public abstract void run() throws GameActionException; // implemented by subclass robots
 
+
+	
+	
+	//
+	//
+	//
+	public RobotController getRC() {
+		return rc;
+	}
+	
 	public int getID() {
 		return myID;
+	}
+	
+
+	// =====================================================================================
+	//                                     HELPER   METHODS
+	// =====================================================================================
+	
+	// consider moving to a static class later
+	
+	
+	public MapLocation findClosest(MapLocation to, MapLocation[] poss) {
+		if(poss.length == 0)
+			return null;
+		MapLocation closest = poss[0];
+		for(int i = 1; i < poss.length; i ++) {
+			if(poss[i].distanceSquaredTo(to) < closest.distanceSquaredTo(closest))
+				closest = poss[i];
+		}
+		return closest;
 	}
 
 	//Srinidi: Add move with dodge.
@@ -41,7 +70,7 @@ public strictfp abstract class RobotBase
 
 	//Parameters: Target direction
 	//Returns true if way is clear, else false
-	public boolean isSingleShotClear(Direction tDir) {
+	public boolean isSingleShotClear(Direction tDir) throws GameActionException {
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
 		TreeInfo[] trees = rc.senseNearbyTrees();
 		rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(tDir,Float.valueOf(100.0+"")),0,255,255);
@@ -73,7 +102,7 @@ public strictfp abstract class RobotBase
 
 	//Parameters: Target direction
 	//Returns true if triad is clear, else false
-	public boolean isTriadShotClear(Direction tDir) {
+	public boolean isTriadShotClear(Direction tDir) throws GameActionException {
 		tDir = tDir.rotateRightDegrees(40.0f);
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
 		TreeInfo[] trees = rc.senseNearbyTrees();
@@ -109,7 +138,7 @@ public strictfp abstract class RobotBase
 
 	//Parameters: Target direction
 	//Returns true if pentad is clear, else false
-	public boolean isPentadShotClear(Direction tDir) {
+	public boolean isPentadShotClear(Direction tDir) throws GameActionException {
 		tDir = tDir.rotateRightDegrees(45.0f);
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
 		TreeInfo[] trees = rc.senseNearbyTrees();
@@ -165,13 +194,6 @@ public strictfp abstract class RobotBase
 		return ret;
 	}
 	
-
-	// =====================================================================================
-	//                                     HELPER   METHODS
-	// =====================================================================================
-	
-	// consider moving to a static class later
-
 	/**
 	 * Returns a random Direction
 	 * @return a random Direction

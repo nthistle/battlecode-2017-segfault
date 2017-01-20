@@ -13,4 +13,12 @@ public final strictfp class CommunicationsHandler
 	
 	// add some communications stuff
 	
+	public int assignAlphaArchonProtocol(Archon a) throws GameActionException {
+		// turn one, calculate distance to nearest archon
+		MapLocation[] enemyStartingArchons = a.rc.getInitialArchonLocations(a.enemy);
+		
+		
+		
+		return 1;
+	}
 }
