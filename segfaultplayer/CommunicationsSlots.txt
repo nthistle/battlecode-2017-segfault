@@ -5,3 +5,6 @@ Communications Slots
 103	-	total number of soldiers created (id of new soldier)
 104	-	total number of lumberjacks created (id of new lumberjack)
 105	-	total number of tanks created (id of new tank)
+150 - 	total number of steps the pathscout has taken
+151 -	total number of trees the pathscout has seen
+152 -	scaled number of trees (rad^2) pathscout has seen
