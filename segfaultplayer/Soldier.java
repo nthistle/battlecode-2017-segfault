@@ -25,7 +25,7 @@ public strictfp class Soldier extends RobotBase
 				break;
 			}
 		}
-		if(rc.canFireSingleShot() && target!=null)
+		if(target!=null && rc.canFireSingleShot())
 			rc.fireSingleShot(rc.getLocation().directionTo(target.getLocation()));
 	}
 }

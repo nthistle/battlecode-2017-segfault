@@ -33,7 +33,9 @@ public strictfp abstract class RobotBase
 	//Parameter: Destination
 	//Moves 1 move without getting hit (dodge) towards destination as best as possible
 
-	public boolean isWayClear(Direction tDir, RobotType r) {
+	//Parameters: Target direction
+	//Returns true if way is clear, else false
+	public boolean isWayClear(Direction tDir) {
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
 		TreeInfo[] trees = rc.senseNearbyTrees();
 		for(int i=0; i<robots.length; i++) {
