@@ -49,17 +49,17 @@ public strictfp class Soldier extends RobotBase
 	public boolean checkPenta(RobotInfo target) {
 		double distance = rc.getLocation().distanceTo(target.getLocation());
 		boolean ret = false;
-		if(target.getType()==RobotType.SCOUT && distance<4.0)
+		if(target.getType()==RobotType.SCOUT && distance<6.0)
 			ret = true;
-		else if(target.getType()==RobotType.ARCHON && distance<5.0)
+		else if(target.getType()==RobotType.ARCHON && distance<7.0)
 			ret = true;
-		else if(target.getType()==RobotType.GARDENER && distance<5.0)
+		else if(target.getType()==RobotType.GARDENER && distance<7.0)
 			ret = true;
-		else if(target.getType()==RobotType.LUMBERJACK && distance<5.0)
+		else if(target.getType()==RobotType.LUMBERJACK && distance<7.0)
 			ret = true;
-		else if(target.getType()==RobotType.SOLDIER && distance<5.0)
+		else if(target.getType()==RobotType.SOLDIER && distance<7.0)
 			ret = true;
-		else if(target.getType()==RobotType.TANK && distance<5.0)
+		else if(target.getType()==RobotType.TANK && distance<7.0)
 			ret = true;
 		return ret;
 	}

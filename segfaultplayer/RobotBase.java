@@ -44,18 +44,19 @@ public strictfp abstract class RobotBase
 	public boolean isSingleShotClear(Direction tDir) {
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
 		TreeInfo[] trees = rc.senseNearbyTrees();
+		rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(tDir,Float.valueOf(100.0+"")),0,255,255);
 		for(int i=0; i<robots.length; i++) {
 			Direction fDir = rc.getLocation().directionTo(robots[i].getLocation());
 			Double length = (double)rc.getLocation().distanceTo(robots[i].getLocation());
 			Double dist = Math.sqrt(2*length*length - 2*length*length*Math.cos(tDir.radiansBetween(fDir)));
-			if(dist<robots[i].getRadius())
+			if(dist<robots[i].getRadius()+.1)
 				return false;
 		}
 		for(int i=0; i<allyArchons.length; i++) {
 			Direction fDir = rc.getLocation().directionTo(allyArchons[i]);
 			Double length = (double)rc.getLocation().distanceTo(allyArchons[i]);
 			Double dist = Math.sqrt(2*length*length - 2*length*length*Math.cos(tDir.radiansBetween(fDir)));
-			if(dist<2.0) //archon radius
+			if(dist<2.0+.1) //archon radius
 				return false;
 		}
 		for(int i=0; i<trees.length; i++) {
@@ -63,7 +64,7 @@ public strictfp abstract class RobotBase
 				Direction fDir = rc.getLocation().directionTo(trees[i].getLocation());
 				Double length = (double) rc.getLocation().distanceTo(trees[i].getLocation());
 				Double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
-				if (dist < trees[i].getRadius())
+				if (dist < trees[i].getRadius()+.1)
 					return false;
 			}
 		}
@@ -77,19 +78,20 @@ public strictfp abstract class RobotBase
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
 		TreeInfo[] trees = rc.senseNearbyTrees();
 		for(int z=0; z<3; z++) {
-			tDir = tDir.rotateRightDegrees(20.0f);
+			tDir = tDir.rotateLeftDegrees(20.0f);
+			rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(tDir,Float.valueOf(100.0+"")),255,0,255);
 			for (int i = 0; i < robots.length; i++) {
 				Direction fDir = rc.getLocation().directionTo(robots[i].getLocation());
 				Double length = (double) rc.getLocation().distanceTo(robots[i].getLocation());
 				Double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
-				if (dist < robots[i].getRadius())
+				if (dist < robots[i].getRadius()+.1)
 					return false;
 			}
 			for(int i=0; i<allyArchons.length; i++) {
 				Direction fDir = rc.getLocation().directionTo(allyArchons[i]);
 				Double length = (double)rc.getLocation().distanceTo(allyArchons[i]);
 				Double dist = Math.sqrt(2*length*length - 2*length*length*Math.cos(tDir.radiansBetween(fDir)));
-				if(dist<2.0) //archon radius
+				if(dist<2.0+.1) //archon radius
 					return false;
 			}
 			for(int i=0; i<trees.length; i++) {
@@ -97,7 +99,7 @@ public strictfp abstract class RobotBase
 					Direction fDir = rc.getLocation().directionTo(trees[i].getLocation());
 					Double length = (double) rc.getLocation().distanceTo(trees[i].getLocation());
 					Double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
-					if (dist < trees[i].getRadius())
+					if (dist < trees[i].getRadius()+.1)
 						return false;
 				}
 			}
@@ -112,27 +114,31 @@ public strictfp abstract class RobotBase
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
 		TreeInfo[] trees = rc.senseNearbyTrees();
 		for(int z=0; z<5; z++) {
-			tDir = tDir.rotateRightDegrees(15.0f);
+			tDir = tDir.rotateLeftDegrees(15.0f);
+			rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(tDir,Float.valueOf(100.0+"")),255,255,0);
 			for (int i = 0; i < robots.length; i++) {
+					rc.setIndicatorDot(robots[i].getLocation(), 255,0,0);
 				Direction fDir = rc.getLocation().directionTo(robots[i].getLocation());
 				Double length = (double) rc.getLocation().distanceTo(robots[i].getLocation());
 				Double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
-				if (dist < robots[i].getRadius())
+				if (dist < robots[i].getRadius()+.1)
 					return false;
 			}
 			for(int i=0; i<allyArchons.length; i++) {
+					rc.setIndicatorDot(allyArchons[i], 0,0,255);
 				Direction fDir = rc.getLocation().directionTo(allyArchons[i]);
 				Double length = (double)rc.getLocation().distanceTo(allyArchons[i]);
 				Double dist = Math.sqrt(2*length*length - 2*length*length*Math.cos(tDir.radiansBetween(fDir)));
-				if(dist<2.0) //archon radius
+				if(dist<2.0+.1) //archon radius
 					return false;
 			}
 			for(int i=0; i<trees.length; i++) {
 				if(trees[i].getTeam()==ally) {
+						rc.setIndicatorDot(trees[i].getLocation(), 0,0,255);
 					Direction fDir = rc.getLocation().directionTo(trees[i].getLocation());
 					Double length = (double) rc.getLocation().distanceTo(trees[i].getLocation());
 					Double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
-					if (dist < trees[i].getRadius())
+					if (dist < trees[i].getRadius()+.1)
 						return false;
 				}
 			}
