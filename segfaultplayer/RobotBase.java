@@ -32,6 +32,38 @@ public strictfp abstract class RobotBase
 	public abstract void run() throws GameActionException; // implemented by subclass robots
 
 
+	
+	
+	//
+	//
+	//
+	public RobotController getRC() {
+		return rc;
+	}
+	
+	public int getID() {
+		return myID;
+	}
+	
+
+	// =====================================================================================
+	//                                     HELPER   METHODS
+	// =====================================================================================
+	
+	// consider moving to a static class later
+	
+	
+	public MapLocation findClosest(MapLocation to, MapLocation[] poss) {
+		if(poss.length == 0)
+			return null;
+		MapLocation closest = poss[0];
+		for(int i = 1; i < poss.length; i ++) {
+			if(poss[i].distanceSquaredTo(to) < closest.distanceSquaredTo(closest))
+				closest = poss[i];
+		}
+		return closest;
+	}
+
 	//Srinidi: Add move with dodge.
 	//Parameter: Destination
 	//Moves 1 move without getting hit (dodge) towards destination as best as possible
@@ -143,25 +175,6 @@ public strictfp abstract class RobotBase
 		return true;
 	}
 	
-	
-	//
-	//
-	//
-	public RobotController getRC() {
-		return rc;
-	}
-	
-	public int getID() {
-		return myID;
-	}
-	
-
-	// =====================================================================================
-	//                                     HELPER   METHODS
-	// =====================================================================================
-	
-	// consider moving to a static class later
-
 	/**
 	 * Returns a random Direction
 	 * @return a random Direction
