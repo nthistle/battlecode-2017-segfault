@@ -16,35 +16,42 @@ public strictfp class Scout extends RobotBase
 	}
 	
 	public void run() throws GameActionException {
-		MapLocation dank = rc.getInitialArchonLocations(enemy)[0];
-		System.out.println(dank);
-		float dist = pathscout(dank);
-		harass();
-		//circleEnemy(dank, dist);
+		while (true) {
+			MapLocation dank = rc.getInitialArchonLocations(enemy)[0];
+			System.out.println(dank);
+			float dist = pathscout(dank);
+			harass();
+			//circleEnemy(dank, dist);
+		}
 	}
 	public void harass() throws GameActionException {
 		RobotType[] orderedBots = {RobotType.SCOUT, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SOLDIER, RobotType.ARCHON};
 		while(true) {
 			RobotInfo[] iKillYou = pickRobot(orderedBots);
-			RobotInfo bestRobot = iKillYou[0];
-			int id = bestRobot.ID;
-			while(bestRobot.health!=0) {
-				MapLocation myLoc = rc.getLocation();
-				Direction bestDir = myLoc.directionTo(bestRobot.location);
-				// shoot at enemy
-				if(isSingleShotClear(bestDir, true)) {
-					if(rc.canFireSingleShot()) {
-						rc.fireSingleShot(bestDir);
+			if(orderedBots.length>=1) { // if any robots in range
+				RobotInfo bestRobot = iKillYou[0];
+				int id = bestRobot.ID;
+				System.out.println("Going to harrass a target!!");
+				while(bestRobot.health!=0 && rc.canSenseRobot(id)) {
+					MapLocation myLoc = rc.getLocation();
+					Direction bestDir = myLoc.directionTo(bestRobot.location);
+					// shoot at enemy
+					if(isSingleShotClear(bestDir, true)) {
+						if(rc.canFireSingleShot()) {
+							rc.fireSingleShot(bestDir);
+						}
+					} 
+					if(rc.canMove(bestDir)) {
+						rc.move(bestDir); //move towards enemy
 					}
-				} 
-				if(rc.canMove(bestDir)) {
-					rc.move(bestDir); //move towards enemy
+					Clock.yield();
+					// re-sense enemy info
+					if(rc.canSenseRobot(id)) { 
+						bestRobot = rc.senseRobot(id);
+					}
 				}
-				Clock.yield();
-				// re-sense enemy info
-				if(rc.canSenseRobot(id)) { 
-					bestRobot = rc.senseRobot(id);
-				}
+			} else {
+				return; // go back to enemy archon
 			}
 		}
 	}

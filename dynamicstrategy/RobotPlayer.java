@@ -43,19 +43,19 @@ public strictfp class RobotPlayer {
     	// T=1
     	// determine center
     	if(rc.readBroadcast(0) == 0) {
-    		System.out.println("Approx center has not been located, locating it...");
+    		//////System.out.println("Approx center has not been located, locating it...");
     		float[] center = locateApproxCenter();
-    		System.out.println("roughly @ (" + center[0] + "," + center[1] + ")");
+    		////System.out.println("roughly @ (" + center[0] + "," + center[1] + ")");
     		rc.broadcast(0, pack(center[0], center[1]));
     	}
     	// determine alpha
     	int preID = rc.readBroadcast(500) + 1;
     	rc.broadcast(500, preID);
     	float[] center = unpack(rc.readBroadcast(0));
-    	System.out.println("Read center as " + center[0] + ", " + center[1]);
+    	////System.out.println("Read center as " + center[0] + ", " + center[1]);
     	float myDist = rc.getLocation().distanceSquaredTo(new MapLocation(center[0],center[1]));
-    	System.out.println("My coords: " + rc.getLocation().x + ", " + rc.getLocation().y);
-    	System.out.println("PreID: " + preID + ", My dist to center^2: " + myDist);
+    	////System.out.println("My coords: " + rc.getLocation().x + ", " + rc.getLocation().y);
+    	////System.out.println("PreID: " + preID + ", My dist to center^2: " + myDist);
     	rc.broadcast(500+preID, (int)(myDist));
     	Clock.yield();
     	// T=2
@@ -65,10 +65,10 @@ public strictfp class RobotPlayer {
     		if((int)(myDist) > rc.readBroadcast(501+i))
     			rank ++;
     	}
-    	System.out.println("Self-identified as rank #" + rank);
+    	////System.out.println("Self-identified as rank #" + rank);
     	boolean isAlpha = (rank == 0);
     	if(isAlpha) {
-    		System.out.println("I am the Alpha, broadcasting my coords");
+    		////System.out.println("I am the Alpha, broadcasting my coords");
     		rc.broadcast(1, pack(rc.getLocation().x,rc.getLocation().y));
     	}
     	// all archons assess their surroundings
@@ -97,7 +97,7 @@ public strictfp class RobotPlayer {
     	for(int i = 0; i < 16; i ++) {
     		totalTreeMassFactor += treeMassByDirection[i];
     	}
-    	System.out.println("Total Tree Mass Factor: " + totalTreeMassFactor);
+    	////System.out.println("Total Tree Mass Factor: " + totalTreeMassFactor);
     	for(int i = 0; i < 16; i ++) {
     		dir = new Direction(i*(float)Math.PI/8.0f);
     		for(dist = 2.49f; dist < 10.0f; dist += 2.49f) {
@@ -108,7 +108,7 @@ public strictfp class RobotPlayer {
     		}
     	}
     	for(int i = 0; i < 16; i ++) {
-    		System.out.println("In direction " + i + ", " + treeMassByDirection[i]);
+    		////System.out.println("In direction " + i + ", " + treeMassByDirection[i]);
     	}
     	float[] smoothedTreeMassByDirection = new float[16];
     	for(int i = 0; i < 16; i ++) {
@@ -148,13 +148,13 @@ public strictfp class RobotPlayer {
     	
     	if(isAlpha) {
     		Direction buildDir = findBuildDirection(bestDirection*(float)Math.PI/8.0f,RobotType.GARDENER);
-    		System.out.println("bestDirection is " + bestDirection);
+    		////System.out.println("bestDirection is " + bestDirection);
     		if(buildDir != null) {
     			rc.buildRobot(RobotType.GARDENER, buildDir);
     			rc.broadcast(400+rank, 1);
     		}
     		else
-    			System.out.println("BIG PROBLEM!!! EDGE CASE!!! DIRECTION IS BADDDDD");
+    			////System.out.println("BIG PROBLEM!!! EDGE CASE!!! DIRECTION IS BADDDDD");
 
         	rc.broadcast(201, rc.readBroadcast(201) + 1); // add urgent order for scout
         	
@@ -195,7 +195,7 @@ public strictfp class RobotPlayer {
     	// now we have non-alpha ones build gardeners
     	if(!isAlpha) {
     		Direction buildDir = findBuildDirection(bestDirection*(float)Math.PI/8.0f,RobotType.GARDENER);
-    		System.out.println("bestDirection is " + bestDirection);
+    		////System.out.println("bestDirection is " + bestDirection);
     		if(buildDir != null) {
     			rc.buildRobot(RobotType.GARDENER, buildDir);
     		}
@@ -356,7 +356,7 @@ public strictfp class RobotPlayer {
     static void runGardener() throws GameActionException {
     	myID = rc.readBroadcast(101);
     	rc.broadcast(101, myID + 1);
-    	System.out.println("Gardener #" + myID + " spawned");
+    	////System.out.println("Gardener #" + myID + " spawned");
 
     	Direction dir;
     	
@@ -549,12 +549,12 @@ public strictfp class RobotPlayer {
 			Clock.yield();
         }
         
-        //System.out.println("Factory Gardener, done building my house");
+        //////System.out.println("Factory Gardener, done building my house");
         // whoopie, now we're done building
         while(true) {
         	RobotType nextOrder = peekOrder();
         	if(nextOrder != null) {
-        		//System.out.println("I see an order!");
+        		//////System.out.println("I see an order!");
         		// can we build him?
         		for(float ff = 0.0f; ff < 2.0f * (float)Math.PI; ff += (float)Math.PI/16.0) {
         			if(rc.canBuildRobot(nextOrder, new Direction(ff))) {
@@ -610,7 +610,7 @@ public strictfp class RobotPlayer {
     	int t = 0;
     	myID = rc.readBroadcast(102);
     	rc.broadcast(102, myID+1);
-    	System.out.println("Scout #" + myID + " spawned");
+    	////System.out.println("Scout #" + myID + " spawned");
     	
     	Team enemy = rc.getTeam().opponent();
     	int steps = 0;
@@ -620,7 +620,7 @@ public strictfp class RobotPlayer {
     	if(true) {
     	//if(myID == 10000) {
     	//if(myID == 0) {
-    		System.out.println("I am initial scout");
+    		////System.out.println("I am initial scout");
     		// Mission: harass enemy archon, finding path while on way
     		// added tree numbers
     		// TODO: add path finding logic here
@@ -650,7 +650,7 @@ public strictfp class RobotPlayer {
 	    		Clock.yield();
 	    		t++;
     		} while(cdist > 8.5f);
-    		System.out.println("I'm " + (cdist-2.5f) + " away from a starting enemy archon location");
+    		////System.out.println("I'm " + (cdist-2.5f) + " away from a starting enemy archon location");
     		// now within 6.0 of starting enemy archon location
     		
     		RobotInfo[] nearbyRobots;
@@ -803,7 +803,7 @@ public strictfp class RobotPlayer {
     
 
 	static void runLumberjack() throws GameActionException {
-		System.out.println("I'm a lumberjack!");
+		////System.out.println("I'm a lumberjack!");
 		Team enemy = rc.getTeam().opponent();
 
 		RobotInfo[] nearbyFriendlies = rc.senseNearbyRobots(3.5f, rc.getTeam());
@@ -818,7 +818,7 @@ public strictfp class RobotPlayer {
 			}
 		}
 		if(closestGardener != null) {
-			System.out.println("There actually is a gardener, trying to MOVE AWAY!");
+			////System.out.println("There actually is a gardener, trying to MOVE AWAY!");
 			Direction theDirection = closestGardener.getLocation().directionTo(rc.getLocation());
 			for(int i = 0; i < 8; i ++) {
 				if(rc.canMove(theDirection))
@@ -827,7 +827,7 @@ public strictfp class RobotPlayer {
 			}
 		}
 		else {
-			System.out.println("No friendly gardener nearby :(");
+			////System.out.println("No friendly gardener nearby :(");
 		}
 		
 		MapLocation myLocation;
@@ -888,7 +888,7 @@ public strictfp class RobotPlayer {
 				for(TreeInfo ti : nearbyNeutralTrees)
 					nearbyTrees[t++] = ti;
 				// temporary, eventually just replace instances
-				//System.out.println(nearbyTrees.length);
+				//////System.out.println(nearbyTrees.length);
 				if (nearbyTrees.length > 0) {
 					TreeInfo closestTree = nearbyTrees[0]; // has closest robot containing tree, if none, most bullets 
 					TreeInfo dankestTree = nearbyTrees[0]; // actually the closest tree
@@ -917,11 +917,11 @@ public strictfp class RobotPlayer {
 								closestTree = nearbyTrees[i];
 						}
 					}
-//					System.out.println("BEGIN TURN!");
+//					////System.out.println("BEGIN TURN!");
 //					for(int i=0; i<nearbyTrees.length; i++) {
-//						System.out.println(i+". "+nearbyTrees[i].getID()+" "+nearbyTrees[i].getContainedBullets()+" "+nearbyTrees[i].getContainedRobot()+" "+nearbyTrees[i].getTeam()+" "+rc.getLocation().distanceTo(nearbyTrees[i].getLocation()));
+//						////System.out.println(i+". "+nearbyTrees[i].getID()+" "+nearbyTrees[i].getContainedBullets()+" "+nearbyTrees[i].getContainedRobot()+" "+nearbyTrees[i].getTeam()+" "+rc.getLocation().distanceTo(nearbyTrees[i].getLocation()));
 //					}
-//					System.out.println(closestTree.getID()+" "+rc.getLocation().distanceTo(closestTree.getLocation()));
+//					////System.out.println(closestTree.getID()+" "+rc.getLocation().distanceTo(closestTree.getLocation()));
 
 					if(rc.canShake(closestTree.getID())) { //get bullets if applicable
 						rc.shake(closestTree.getID());
@@ -986,7 +986,7 @@ public strictfp class RobotPlayer {
 				Clock.yield();
 
 			} catch (Exception e) {
-				System.out.println("Lumberjack Exception");
+				////System.out.println("Lumberjack Exception");
 				e.printStackTrace();
 			}
 		}
@@ -995,7 +995,7 @@ public strictfp class RobotPlayer {
 	
 
 	static void runSoldier() throws GameActionException {
-		System.out.println("I'm an soldier!");
+		////System.out.println("I'm an soldier!");
 		Team enemy = rc.getTeam().opponent();
 
 		float curdirection = (float) rand.nextDouble() * 2 * (float) Math.PI;
@@ -1025,7 +1025,7 @@ public strictfp class RobotPlayer {
 						}
 					}
 					Direction enemyDir = myLocation.directionTo(closestEnemy.getLocation());
-					System.out.println("closestDist is " + closestDist);
+					////System.out.println("closestDist is " + closestDist);
 					if((closestEnemy.getType() == RobotType.ARCHON && closestDist < 25.0f) || closestDist < 13f) {
 						if(rc.canMove(enemyDir, 0.2f)) {
 							rc.move(enemyDir, 0.2f);
@@ -1115,7 +1115,7 @@ public strictfp class RobotPlayer {
 				Clock.yield();
 
 			} catch (Exception e) {
-				System.out.println("Soldier Exception");
+				////System.out.println("Soldier Exception");
 				e.printStackTrace();
 			}
 		}
@@ -1137,9 +1137,9 @@ public strictfp class RobotPlayer {
     	MapLocation myLoc = rc.getLocation();
     	Direction dir = myLoc.directionTo(cl);
     	float mdist = myLoc.distanceTo(al);
-    	System.out.println("Circlescout, about to move away");
+    	////System.out.println("Circlescout, about to move away");
     	while(mdist < 10) { // circle radius @17
-    		System.out.println("Still in loop");
+    		////System.out.println("Still in loop");
     		if(mdist > 14.5) {
     			if(rc.canMove(dir, 17.0f-mdist)) {
     				rc.move(dir, 17.0f-mdist);
@@ -1163,7 +1163,7 @@ public strictfp class RobotPlayer {
     			rc.move(dir);
     		}
     		else {
-    			System.out.println("Cannot move (circle) in dir " + dir);
+    			////System.out.println("Cannot move (circle) in dir " + dir);
     		}
     		Clock.yield();
     	}
@@ -1184,19 +1184,19 @@ public strictfp class RobotPlayer {
     			TreeInfo[] mytrees = rc.senseNearbyTrees();
     			sumtrees += mytrees.length;
     			totaltrees[i] = mytrees.length;
-    			System.out.println(mytrees.length);
+    			////System.out.println(mytrees.length);
 			}
 			// move scout
 			alphaToScout = alphaToScout.rotateRightDegrees(theta);
-			System.out.println(alphaToScout);
+			////System.out.println(alphaToScout);
 			newLoc = al.add(alphaToScout, 19.0f);
 			//make sure this is less than 2.5, but it should be
 			if (rc.canMove(newLoc)) {
-				System.out.println("MOVING BRUH");
-				System.out.println(newLoc);
+				////System.out.println("MOVING BRUH");
+				////System.out.println(newLoc);
 				rc.move(newLoc);
 			} else {
-				System.out.println("RIP CANT MOVE THIS SHOULD NEVER HAPPEN UNLESS WE REACH THE EDGE");
+				////System.out.println("RIP CANT MOVE THIS SHOULD NEVER HAPPEN UNLESS WE REACH THE EDGE");
 			}
             Clock.yield();
 		}
@@ -1214,7 +1214,7 @@ public strictfp class RobotPlayer {
     	int val = typeToNum(rt);
     	rc.broadcast(601 + orderSlot, val);
     	rc.broadcast(600, orderSlot + 1);
-    	//System.out.println("Queueing Order for " + val + ", in slot " + orderSlot);
+    	//////System.out.println("Queueing Order for " + val + ", in slot " + orderSlot);
     }
     
     static RobotType peekOrder() throws GameActionException {
@@ -1238,7 +1238,7 @@ public strictfp class RobotPlayer {
     		nextThing = rc.readBroadcast(601+i);
     	}
     	rc.broadcast(600, numOrders - 1);
-    	//System.out.println("Popping order for " + typeToNum(order) + ", now " + numOrders + " left");
+    	//////System.out.println("Popping order for " + typeToNum(order) + ", now " + numOrders + " left");
     	return order;
     }
     
