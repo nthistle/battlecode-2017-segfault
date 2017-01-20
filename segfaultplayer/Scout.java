@@ -24,40 +24,49 @@ public strictfp class Scout extends RobotBase
 			//circleEnemy(dank, dist);
 		}
 	}
+	// the harass method shoots at the best enemy
+	// caveat: if another enemy is in the way of the "best enemy", 
+	// it wont move towards the best enemy but will still shoot
 	public void harass() throws GameActionException {
+		// priority order of robots
 		RobotType[] orderedBots = {RobotType.SCOUT, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SOLDIER, RobotType.ARCHON};
 		while(true) {
-			RobotInfo[] iKillYou = pickRobot(orderedBots);
-			if(orderedBots.length>=1) { // if any robots in range
-				RobotInfo bestRobot = iKillYou[0];
-				int id = bestRobot.ID;
+			RobotInfo[] iKillYou = pickRobot(orderedBots);	//orders all robot by type, then by distance
+			
+			if(orderedBots.length>=1) { 					// if any robots in range
+				RobotInfo bestRobot = iKillYou[0];			// the best enemy
+				int id = bestRobot.ID;			//the id of the best enemy
+				
 				System.out.println("Going to harrass a target!!");
-				while(bestRobot.health!=0 && rc.canSenseRobot(id)) {
-					MapLocation myLoc = rc.getLocation();
-					Direction bestDir = myLoc.directionTo(bestRobot.location);
-					// shoot at enemy
-					if(isSingleShotClear(bestDir, true)) {
-						if(rc.canFireSingleShot()) {
-							rc.fireSingleShot(bestDir);
-						}
-					} 
-					if(rc.canMove(bestDir)) {
-						rc.move(bestDir); //move towards enemy
+				
+				MapLocation myLoc = rc.getLocation();
+				Direction bestDir = myLoc.directionTo(bestRobot.location); // direction to best enemy
+				
+				// shoot at enemy if no friendly fire
+				if(isSingleShotClearScout(bestDir, true)) {		
+					if(rc.canFireSingleShot()) {
+						rc.fireSingleShot(bestDir);
 					}
-					Clock.yield();
-					// re-sense enemy info
-					if(rc.canSenseRobot(id)) { 
-						bestRobot = rc.senseRobot(id);
-					}
+				} 
+				// move in the direction of the best enemy if you can
+				if(rc.canMove(bestDir)) {
+					rc.move(bestDir);
+				}
+				Clock.yield();
+				// re-sense enemy info for the new turn
+				if(rc.canSenseRobot(id)) { 
+					bestRobot = rc.senseRobot(id);
 				}
 			} else {
-				return; // go back to enemy archon
+				return; // there are no enemies, go back to enemy archon
 			}
 		}
 	}
 	public RobotInfo[] pickRobot(RobotType[] mybots) throws GameActionException {
 		MapLocation myLoc = rc.getLocation();
 		RobotInfo[] nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
+		
+		// compare robots by type according to array taken in & distance is tiebreaker
 	    Arrays.sort(nearbyRobots, new Comparator<RobotInfo>() {
 	        public int compare(RobotInfo r1, RobotInfo r2) {
 	        	int type1 = 0;
@@ -70,9 +79,9 @@ public strictfp class Scout extends RobotBase
 	        			type2 = i;
 	        		}
 	        	}
-	        	if (type1==type2) {
+	        	if (type1==type2) { // the type of robot is the same
 	        		return (Float.compare(myLoc.distanceTo(r1.location), myLoc.distanceTo(r2.location)));
-	        	} else {
+	        	} else { // return the robot with the better type
 	        		return Integer.compare(type1, type2);
 	        	}	
 	        }
@@ -81,7 +90,7 @@ public strictfp class Scout extends RobotBase
 	    	System.out.println(nearbyRobots[i].type);
 	    	System.out.println(myLoc.distanceTo(nearbyRobots[i].location));
 	    }
-	    return nearbyRobots;
+	    return nearbyRobots; // returns the array, best enemies at array[0], worst at array[array.length-1]
 	}
 	
 	public void circleEnemy(MapLocation el, float circlerad) throws GameActionException {
