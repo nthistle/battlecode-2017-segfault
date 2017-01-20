@@ -9,17 +9,16 @@ public strictfp abstract class RobotBase
 	
 	public RobotBase(RobotController rc) throws GameActionException {
 		this.rc = rc;
-		assignID();
+		myID = -1;
+	}
+	
+	public RobotBase(RobotController rc, int id) throws GameActionException {
+		this.rc = rc;
+		myID = id;
 	}
 	
 	public abstract void run() throws GameActionException; // implemented by subclass robots
 	
-	
-	private void assignID() throws GameActionException {
-		int num = typeToNum(rc.getType());
-		myID = rc.readBroadcast(100 + num);
-		rc.broadcast(100 + num, myID + 1);
-	}
 	
 	public int getID() {
 		return myID;
@@ -32,6 +31,14 @@ public strictfp abstract class RobotBase
 	
 	// consider moving to a static class later
     
+	public static int getAndAssignNextID(RobotController rc) throws GameActionException {
+		int num = typeToNum(rc.getType());
+		int nextID = rc.readBroadcast(100+num);
+		rc.broadcast(100+num, nextID+1);
+		return nextID;
+	}
+	
+	
     public static int typeToNum(RobotType rt) {
     	if(rt == RobotType.ARCHON)
     		return 0;
