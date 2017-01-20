@@ -6,8 +6,8 @@ public strictfp abstract class RobotBase
 {
 	protected final RobotController rc;
 	private int myID;
-	final Team enemy;
-	final Team ally;
+	public final Team enemy;
+	public final Team ally;
 	MapLocation[] enemyArchons;
 	MapLocation[] allyArchons;
 
