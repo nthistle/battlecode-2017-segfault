@@ -17,8 +17,8 @@ public strictfp class Gardener extends RobotBase
 			Direction dir = randomDirection();
 			if(rc.canBuildRobot(RobotType.SCOUT,dir)==true && 1==0)
 				rc.buildRobot(RobotType.SCOUT,dir);
-			else if(rc.canBuildRobot(RobotType.SOLDIER,dir) && xd) {
-				rc.buildRobot(RobotType.SOLDIER, dir);
+			else if(rc.canBuildRobot(RobotType.SCOUT,dir) && xd) {
+				rc.buildRobot(RobotType.SCOUT, dir);
 				xd = false;
 			}
 
