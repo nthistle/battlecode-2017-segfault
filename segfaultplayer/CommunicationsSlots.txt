@@ -1,0 +1,6 @@
+Communications Slots
+1	-	alpha archon starting location
+101	-	total number of gardeners created (id of new gardener)
+102	-	total number of scouts created (id of new scout)
+103	-	total number of soldiers created (id of new soldier)
+104	-	total number of lumberjacks created (id of new lumberjack)
