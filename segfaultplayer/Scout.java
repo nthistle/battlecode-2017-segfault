@@ -53,10 +53,6 @@ public strictfp class Scout extends RobotBase
 					rc.move(bestDir);
 				}
 				Clock.yield();
-				// re-sense enemy info for the new turn
-				if(rc.canSenseRobot(id)) { 
-					bestRobot = rc.senseRobot(id);
-				}
 			} else {
 				return; // there are no enemies, go back to enemy archon
 			}
