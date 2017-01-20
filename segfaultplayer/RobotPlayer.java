@@ -9,19 +9,49 @@ public strictfp class RobotPlayer {
     	
         
         switch (rc.getType()) {
-            /*case ARCHON:
-                runArchon();
+            case ARCHON:
+                handleArchon(rc);
                 break;
             case GARDENER:
-                runGardener();
+                handleGardener(rc);
                 break;
             case SOLDIER:
-                runSoldier();
+                handleSoldier(rc);
                 break;
             case LUMBERJACK:
-                runLumberjack();
-                break;*/
-        
+                handleLumberjack(rc);
+                break;
+            case SCOUT:
+            	handleScout(rc);
+            	break;
+            default:
+            	break;
         }
 	}
+    
+    public static void handleArchon(RobotController rc) throws GameActionException {
+    	Archon a = new Archon(rc);
+    	a.run();
+    }
+    
+    public static void handleGardener(RobotController rc) throws GameActionException {
+    	Gardener g = new Gardener(rc);
+    	g.run();
+    }
+    
+    public static void handleSoldier(RobotController rc) throws GameActionException {
+    	Soldier so = new Soldier(rc);
+    	so.run();
+    }
+    
+    public static void handleLumberjack(RobotController rc) throws GameActionException {
+    	Lumberjack lj = new Lumberjack(rc);
+    	lj.run();
+    }
+    
+    public static void handleScout(RobotController rc) throws GameActionException {
+    	Scout sc = new Scout(rc);
+    	sc.run();
+    }
+    
 }
