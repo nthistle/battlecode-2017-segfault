@@ -18,7 +18,10 @@ public strictfp abstract class RobotBase
 	}
 	
 	public abstract void run() throws GameActionException; // implemented by subclass robots
-	
+
+	//Srinidi: Add move with dodge.
+	//Parameter: Destination
+	//Moves 1 move without getting hit (dodge) towards destination as best as possible
 	
 	public int getID() {
 		return myID;
