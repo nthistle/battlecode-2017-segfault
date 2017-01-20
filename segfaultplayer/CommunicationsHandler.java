@@ -13,11 +13,11 @@ public final strictfp class CommunicationsHandler
 	
 	// add some communications stuff
 	
-	public int assignAlphaArchonProtocol(Archon a) throws GameActionException {
+	public static int assignAlphaArchonProtocol(Archon a) throws GameActionException {
 		return assignAlphaArchonProtocol(a, false);
 	}
 	
-	public int assignAlphaArchonProtocol(Archon a, boolean debugPrint) throws GameActionException {
+	public static int assignAlphaArchonProtocol(Archon a, boolean debugPrint) throws GameActionException {
 		// turn one, calculate distance to nearest archon
 		MapLocation[] enemyStartingArchons = a.rc.getInitialArchonLocations(a.enemy);
 		float myDist = RobotBase.findClosest(a.rc.getLocation(), enemyStartingArchons).distanceTo(a.rc.getLocation());
@@ -39,7 +39,7 @@ public final strictfp class CommunicationsHandler
 	}
 	
 	
-	public int getNumMade(RobotController rc, RobotType rt) throws GameActionException {
+	public static int getNumMade(RobotController rc, RobotType rt) throws GameActionException {
 		int slot = RobotBase.typeToNum(rt);
 		return rc.readBroadcast(100+slot);
 	}
