@@ -9,6 +9,7 @@ public strictfp abstract class RobotBase
 	final Team enemy;
 	final Team ally;
 	MapLocation[] enemyArchons;
+	MapLocation[] allyArchons;
 
 	public RobotBase(RobotController rc) throws GameActionException {
 		this.rc = rc;
@@ -16,6 +17,7 @@ public strictfp abstract class RobotBase
 		enemy = rc.getTeam().opponent();
 		ally = rc.getTeam();
 		enemyArchons = rc.getInitialArchonLocations(enemy);
+		allyArchons = rc.getInitialArchonLocations(ally);
 	}
 	
 	public RobotBase(RobotController rc, int id) throws GameActionException {
@@ -24,6 +26,7 @@ public strictfp abstract class RobotBase
 		enemy = rc.getTeam().opponent();
 		ally = rc.getTeam();
 		enemyArchons = rc.getInitialArchonLocations(enemy);
+		allyArchons = rc.getInitialArchonLocations(ally);
 	}
 	
 	public abstract void run() throws GameActionException; // implemented by subclass robots
@@ -38,7 +41,7 @@ public strictfp abstract class RobotBase
 
 	//Parameters: Target direction
 	//Returns true if way is clear, else false
-	public boolean isWayClear(Direction tDir) {
+	public boolean isSingleShotClear(Direction tDir) {
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
 		TreeInfo[] trees = rc.senseNearbyTrees();
 		for(int i=0; i<robots.length; i++) {
@@ -48,12 +51,91 @@ public strictfp abstract class RobotBase
 			if(dist<robots[i].getRadius())
 				return false;
 		}
-		for(int i=0; i<trees.length; i++) {
-			Direction fDir = rc.getLocation().directionTo(trees[i].getLocation());
-			Double length = (double)rc.getLocation().distanceTo(trees[i].getLocation());
+		for(int i=0; i<allyArchons.length; i++) {
+			Direction fDir = rc.getLocation().directionTo(allyArchons[i]);
+			Double length = (double)rc.getLocation().distanceTo(allyArchons[i]);
 			Double dist = Math.sqrt(2*length*length - 2*length*length*Math.cos(tDir.radiansBetween(fDir)));
-			if(dist<trees[i].getRadius())
+			if(dist<2.0) //archon radius
 				return false;
+		}
+		for(int i=0; i<trees.length; i++) {
+			if(trees[i].getTeam()==ally) {
+				Direction fDir = rc.getLocation().directionTo(trees[i].getLocation());
+				Double length = (double) rc.getLocation().distanceTo(trees[i].getLocation());
+				Double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
+				if (dist < trees[i].getRadius())
+					return false;
+			}
+		}
+		return true;
+	}
+
+	//Parameters: Target direction
+	//Returns true if triad is clear, else false
+	public boolean isTriadShotClear(Direction tDir) {
+		tDir = tDir.rotateRightDegrees(40.0f);
+		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
+		TreeInfo[] trees = rc.senseNearbyTrees();
+		for(int z=0; z<3; z++) {
+			tDir = tDir.rotateRightDegrees(20.0f);
+			for (int i = 0; i < robots.length; i++) {
+				Direction fDir = rc.getLocation().directionTo(robots[i].getLocation());
+				Double length = (double) rc.getLocation().distanceTo(robots[i].getLocation());
+				Double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
+				if (dist < robots[i].getRadius())
+					return false;
+			}
+			for(int i=0; i<allyArchons.length; i++) {
+				Direction fDir = rc.getLocation().directionTo(allyArchons[i]);
+				Double length = (double)rc.getLocation().distanceTo(allyArchons[i]);
+				Double dist = Math.sqrt(2*length*length - 2*length*length*Math.cos(tDir.radiansBetween(fDir)));
+				if(dist<2.0) //archon radius
+					return false;
+			}
+			for(int i=0; i<trees.length; i++) {
+				if(trees[i].getTeam()==ally) {
+					Direction fDir = rc.getLocation().directionTo(trees[i].getLocation());
+					Double length = (double) rc.getLocation().distanceTo(trees[i].getLocation());
+					Double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
+					if (dist < trees[i].getRadius())
+						return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	//Parameters: Target direction
+	//Returns true if pentad is clear, else false
+	public boolean isPentadShotClear(Direction tDir) {
+		tDir = tDir.rotateRightDegrees(45.0f);
+		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
+		TreeInfo[] trees = rc.senseNearbyTrees();
+		for(int z=0; z<5; z++) {
+			tDir = tDir.rotateRightDegrees(15.0f);
+			for (int i = 0; i < robots.length; i++) {
+				Direction fDir = rc.getLocation().directionTo(robots[i].getLocation());
+				Double length = (double) rc.getLocation().distanceTo(robots[i].getLocation());
+				Double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
+				if (dist < robots[i].getRadius())
+					return false;
+			}
+			for(int i=0; i<allyArchons.length; i++) {
+				Direction fDir = rc.getLocation().directionTo(allyArchons[i]);
+				Double length = (double)rc.getLocation().distanceTo(allyArchons[i]);
+				Double dist = Math.sqrt(2*length*length - 2*length*length*Math.cos(tDir.radiansBetween(fDir)));
+				if(dist<2.0) //archon radius
+					return false;
+			}
+			for(int i=0; i<trees.length; i++) {
+				if(trees[i].getTeam()==ally) {
+					Direction fDir = rc.getLocation().directionTo(trees[i].getLocation());
+					Double length = (double) rc.getLocation().distanceTo(trees[i].getLocation());
+					Double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
+					if (dist < trees[i].getRadius())
+						return false;
+				}
+			}
 		}
 		return true;
 	}
