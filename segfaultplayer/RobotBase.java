@@ -8,12 +8,14 @@ public strictfp abstract class RobotBase
 	private int myID;
 	final Team enemy;
 	final Team ally;
+	MapLocation[] enemyArchons;
 
 	public RobotBase(RobotController rc) throws GameActionException {
 		this.rc = rc;
 		myID = -1;
 		enemy = rc.getTeam().opponent();
 		ally = rc.getTeam();
+		enemyArchons = rc.getInitialArchonLocations(enemy);
 	}
 	
 	public RobotBase(RobotController rc, int id) throws GameActionException {
@@ -21,6 +23,7 @@ public strictfp abstract class RobotBase
 		myID = id;
 		enemy = rc.getTeam().opponent();
 		ally = rc.getTeam();
+		enemyArchons = rc.getInitialArchonLocations(enemy);
 	}
 	
 	public abstract void run() throws GameActionException; // implemented by subclass robots
