@@ -67,7 +67,40 @@ public strictfp abstract class RobotBase
 	// TODO: (big one)
 	// rework checking if a shot is clear to instead assess amount of collateral damage (cost)
 	// (and possibly also add one to check the possible benefit)
-	
+
+	public boolean isSingleShotClearScout(Direction tDir) throws GameActionException {
+		return isSingleShotClearScout(tDir, false);
+	}
+
+	//Parameters: Target direction
+	//Returns true if way is clear, else false
+	public boolean isSingleShotClearScout(Direction tDir, boolean drawIndicators) throws GameActionException {
+		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
+		TreeInfo[] trees = rc.senseNearbyTrees();
+
+		if(drawIndicators)
+			rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(tDir,Float.valueOf(100.0+"")),0,255,255);
+
+		for(int i=0; i<robots.length; i++) {
+			Direction fDir = rc.getLocation().directionTo(robots[i].getLocation());
+			double length = (double)rc.getLocation().distanceTo(robots[i].getLocation());
+			double dist = Math.sqrt(2*length*length - 2*length*length*Math.cos(tDir.radiansBetween(fDir)));
+			if(dist<robots[i].getRadius()+.1) {
+				return false;
+			}
+		}
+		for(int i=0; i<trees.length; i++) {
+			Direction fDir = rc.getLocation().directionTo(trees[i].getLocation());
+			double length = (double) rc.getLocation().distanceTo(trees[i].getLocation());
+			double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
+			if (dist < trees[i].getRadius()+.1) {
+				System.out.println("thetrees");
+				return false;
+			}
+			}
+		return true;
+	}
+
 	public boolean isSingleShotClear(Direction tDir) throws GameActionException {
 		return isSingleShotClear(tDir, false);
 	}
