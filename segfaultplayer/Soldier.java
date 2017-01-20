@@ -27,7 +27,7 @@ public strictfp class Soldier extends RobotBase
 	//Does fire action
 	public void shoot() throws GameActionException {
 		RobotInfo[] robots = rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadius, enemy);
-		RobotType[] priority = {RobotType.ARCHON, RobotType.SCOUT, RobotType.TANK, RobotType.SOLDIER, RobotType.GARDENER, RobotType.LUMBERJACK}
+		RobotType[] priority = {RobotType.ARCHON, RobotType.SCOUT, RobotType.TANK, RobotType.SOLDIER, RobotType.GARDENER, RobotType.LUMBERJACK};
 		RobotInfo target = null;
 		int z = 0;
 		while(target==null) {
