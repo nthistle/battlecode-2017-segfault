@@ -53,7 +53,7 @@ public strictfp abstract class RobotBase
 	// consider moving to a static class later
 	
 	
-	public MapLocation findClosest(MapLocation to, MapLocation[] poss) {
+	public static MapLocation findClosest(MapLocation to, MapLocation[] poss) {
 		if(poss.length == 0)
 			return null;
 		MapLocation closest = poss[0];
