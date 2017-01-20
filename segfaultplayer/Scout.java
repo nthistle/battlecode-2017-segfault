@@ -1,5 +1,6 @@
 package segfaultplayer;
 import java.util.HashSet;
+
 import java.util.Set;
 
 import battlecode.common.*;
@@ -13,23 +14,29 @@ public strictfp class Scout extends RobotBase
 	}
 	
 	public void run() throws GameActionException {
-		MapLocation el = rc.getInitialArchonLocations(enemy)[0];
-		pathscout(el);
+		MapLocation dank = rc.getInitialArchonLocations(enemy)[0];
+		System.out.println(dank);
+		pathscout(dank);
+		while(true) {
+			Clock.yield();
+		}
 	}
 	
 	public void pathscout(MapLocation el) throws GameActionException {
-		Set<TreeInfo> uniqueTrees = new HashSet<TreeInfo>();
+		Set<Integer> uniqueTrees = new HashSet<Integer>();
 		float scaledNumTrees = 0;
 		int steps = 0;
-		
-		while (rc.getLocation().distanceTo(el) < 1.0) {
+		System.out.println("dank Memes");
+		System.out.println(rc.getLocation().distanceTo(el));
+		while (rc.getLocation().distanceTo(el) > 1.0f) {
+			System.out.println(rc.getLocation().distanceTo(el));
 			boolean hasMoved = false;
 			MapLocation myLoc = rc.getLocation();
 			float distance = myLoc.distanceTo(el);
 			TreeInfo[] myTrees = rc.senseNearbyTrees();
 			// add all the new trees
 			for (TreeInfo k : myTrees) {
-				if(uniqueTrees.add(k)) {
+				if(uniqueTrees.add(k.ID)) {
 					scaledNumTrees+=(k.getRadius()*k.getRadius());
 				}
 			}
@@ -41,13 +48,18 @@ public strictfp class Scout extends RobotBase
 			for (TreeInfo k : myTrees) {
 				MapLocation treeLocation = k.getLocation();
 				if(k.containedBullets!=0) {
-					if(treeLocation.distanceTo(el) < distance) {
-						if(rc.canMove(treeLocation)) {
-							rc.move(treeLocation);
-							hasMoved = true;
-							steps+=1;
-							rc.broadcast(150, steps);
-							break;
+					// COLLECT BULLETS
+					if(rc.canShake(k.ID)) {
+						rc.shake(k.ID);
+					} else {
+						if(treeLocation.distanceTo(el) < distance) {
+							if(rc.canMove(treeLocation)) {
+								rc.move(treeLocation);
+								hasMoved = true;
+								steps+=1;
+								rc.broadcast(150, steps);
+								break;
+							}
 						}
 					}
 				}
