@@ -12,4 +12,9 @@ public strictfp class Soldier extends RobotBase
 	public void run() throws GameActionException {
 
 	}
+
+	//Does fire action
+	public void shoot() throws GameActionException {
+		RobotInfo[] robots = rc.senseNearbyRobots();
+	}
 }

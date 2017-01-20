@@ -6,15 +6,18 @@ public strictfp abstract class RobotBase
 {
 	protected final RobotController rc;
 	private int myID;
+	final Team enemy;
 	
 	public RobotBase(RobotController rc) throws GameActionException {
 		this.rc = rc;
 		myID = -1;
+		enemy = rc.getTeam().opponent();
 	}
 	
 	public RobotBase(RobotController rc, int id) throws GameActionException {
 		this.rc = rc;
 		myID = id;
+		enemy = rc.getTeam().opponent();
 	}
 	
 	public abstract void run() throws GameActionException; // implemented by subclass robots
