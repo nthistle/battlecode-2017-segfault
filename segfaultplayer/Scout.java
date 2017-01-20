@@ -16,20 +16,37 @@ public strictfp class Scout extends RobotBase
 	public void run() throws GameActionException {
 		MapLocation dank = rc.getInitialArchonLocations(enemy)[0];
 		System.out.println(dank);
-		pathscout(dank);
+		float dist = pathscout(dank);
+		circleEnemy(dank, dist);
+	}
+	public void circleEnemy(MapLocation el, float circlerad) throws GameActionException {
+		float theta = 2.5f/circlerad; // 48 * 7.5 = 360 degrees
+		MapLocation myLocation = rc.getLocation();
+		System.out.println("MOVING BRUH");
 		while(true) {
-			Clock.yield();
+			myLocation = rc.getLocation();
+			Direction enemyToScout = el.directionTo(myLocation);
+			enemyToScout = enemyToScout.rotateRightRads(theta);
+			MapLocation newLocation = el.add(enemyToScout, circlerad);
+			//make sure this is less than 2.5, but it should be
+			if (rc.canMove(newLocation)) {
+				System.out.println("MOVING BRUH");
+				System.out.println(newLocation);
+				rc.move(newLocation);
+			} else {
+				theta = -theta;
+				System.out.println("RIP CANT MOVE THIS SHOULD NEVER HAPPEN UNLESS WE REACH THE EDGE");
+			}
+            Clock.yield();
 		}
 	}
-	
-	public void pathscout(MapLocation el) throws GameActionException {
+	public float pathscout(MapLocation el) throws GameActionException {
 		Set<Integer> uniqueTrees = new HashSet<Integer>();
 		float scaledNumTrees = 0;
 		int steps = 0;
 		System.out.println("dank Memes");
 		System.out.println(rc.getLocation().distanceTo(el));
-		while (rc.getLocation().distanceTo(el) > 1.0f) {
-			System.out.println(rc.getLocation().distanceTo(el));
+		while (rc.getLocation().distanceTo(el) > 5.0f) {
 			boolean hasMoved = false;
 			MapLocation myLoc = rc.getLocation();
 			float distance = myLoc.distanceTo(el);
@@ -74,6 +91,7 @@ public strictfp class Scout extends RobotBase
 			}
 			Clock.yield();
 		}
+		return rc.getLocation().distanceTo(el);
 	}
 
 	//scout linear move
