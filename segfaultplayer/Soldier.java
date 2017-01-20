@@ -39,24 +39,14 @@ public strictfp class Soldier extends RobotBase
 			}
 			z++;
 		}
-		if(target==null) {
-			for(int i=0; i<robots.length; i++) {
-				if (robots[i].getType() == RobotType.SCOUT && isSingleShotClear(rc.getLocation().directionTo(robots[i].getLocation()))) {
-					target = robots[i];
-					break;
-				}
-			}
-		}
 
-		if(target!=null) {
-			Direction tDir = rc.getLocation().directionTo(target.getLocation());
-			if (rc.canFirePentadShot() && isPentadShotClear(tDir) && checkPenta(target))
-				rc.firePentadShot(tDir);
-			else if (rc.canFireTriadShot() && isTriadShotClear(tDir))
-				rc.fireTriadShot(tDir);
-			else if (rc.canFireSingleShot() && isSingleShotClear(tDir))
-				rc.fireSingleShot(tDir);
-		}
+		Direction tDir = rc.getLocation().directionTo(target.getLocation());
+		if (rc.canFirePentadShot() && isPentadShotClear(tDir) && checkPenta(target))
+			rc.firePentadShot(tDir);
+		else if (rc.canFireTriadShot() && isTriadShotClear(tDir))
+			rc.fireTriadShot(tDir);
+		else if (rc.canFireSingleShot() && isSingleShotClear(tDir))
+			rc.fireSingleShot(tDir);
 	}
 
 	public boolean checkPenta(RobotInfo target) {
