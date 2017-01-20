@@ -31,9 +31,6 @@ public strictfp abstract class RobotBase
 	
 	public abstract void run() throws GameActionException; // implemented by subclass robots
 
-	public int getID() {
-		return myID;
-	}
 
 	//Srinidi: Add move with dodge.
 	//Parameter: Destination
@@ -144,6 +141,18 @@ public strictfp abstract class RobotBase
 			}
 		}
 		return true;
+	}
+	
+	
+	//
+	//
+	//
+	public RobotController getRC() {
+		return rc;
+	}
+	
+	public int getID() {
+		return myID;
 	}
 	
 

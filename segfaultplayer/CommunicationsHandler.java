@@ -13,4 +13,8 @@ public final strictfp class CommunicationsHandler
 	
 	// add some communications stuff
 	
+	public int assignAlphaArchonProtocol(Archon a) throws GameActionException {
+		a.rc.broadcast(1, 1);
+		return 1;
+	}
 }
