@@ -38,7 +38,7 @@ public strictfp abstract class RobotBase
 
 	//Parameters: Target direction
 	//Returns true if way is clear, else false
-	public boolean isSingleShotClear(Direction tDir) {
+	public boolean isSingleShotClear(Direction tDir) throws GameActionException {
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
 		TreeInfo[] trees = rc.senseNearbyTrees();
 		rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(tDir,Float.valueOf(100.0+"")),0,255,255);
@@ -70,7 +70,7 @@ public strictfp abstract class RobotBase
 
 	//Parameters: Target direction
 	//Returns true if triad is clear, else false
-	public boolean isTriadShotClear(Direction tDir) {
+	public boolean isTriadShotClear(Direction tDir) throws GameActionException {
 		tDir = tDir.rotateRightDegrees(40.0f);
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
 		TreeInfo[] trees = rc.senseNearbyTrees();
@@ -106,7 +106,7 @@ public strictfp abstract class RobotBase
 
 	//Parameters: Target direction
 	//Returns true if pentad is clear, else false
-	public boolean isPentadShotClear(Direction tDir) {
+	public boolean isPentadShotClear(Direction tDir) throws GameActionException {
 		tDir = tDir.rotateRightDegrees(45.0f);
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
 		TreeInfo[] trees = rc.senseNearbyTrees();
