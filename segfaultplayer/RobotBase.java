@@ -7,27 +7,50 @@ public strictfp abstract class RobotBase
 	protected final RobotController rc;
 	private int myID;
 	final Team enemy;
-	
+	final Team ally;
+
 	public RobotBase(RobotController rc) throws GameActionException {
 		this.rc = rc;
 		myID = -1;
 		enemy = rc.getTeam().opponent();
+		ally = rc.getTeam();
 	}
 	
 	public RobotBase(RobotController rc, int id) throws GameActionException {
 		this.rc = rc;
 		myID = id;
 		enemy = rc.getTeam().opponent();
+		ally = rc.getTeam();
 	}
 	
 	public abstract void run() throws GameActionException; // implemented by subclass robots
 
+	public int getID() {
+		return myID;
+	}
+
 	//Srinidi: Add move with dodge.
 	//Parameter: Destination
 	//Moves 1 move without getting hit (dodge) towards destination as best as possible
-	
-	public int getID() {
-		return myID;
+
+	public boolean isWayClear(Direction tDir, RobotType r) {
+		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
+		TreeInfo[] trees = rc.senseNearbyTrees();
+		for(int i=0; i<robots.length; i++) {
+			Direction fDir = rc.getLocation().directionTo(robots[i].getLocation());
+			Double length = (double)rc.getLocation().distanceTo(robots[i].getLocation());
+			Double dist = Math.sqrt(2*length*length - 2*length*length*Math.cos(tDir.radiansBetween(fDir)));
+			if(dist<robots[i].getRadius())
+				return false;
+		}
+		for(int i=0; i<trees.length; i++) {
+			Direction fDir = rc.getLocation().directionTo(trees[i].getLocation());
+			Double length = (double)rc.getLocation().distanceTo(trees[i].getLocation());
+			Double dist = Math.sqrt(2*length*length - 2*length*length*Math.cos(tDir.radiansBetween(fDir)));
+			if(dist<trees[i].getRadius())
+				return false;
+		}
+		return true;
 	}
 	
 

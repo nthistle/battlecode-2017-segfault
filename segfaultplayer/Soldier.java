@@ -1,6 +1,8 @@
 package segfaultplayer;
 import battlecode.common.*;
 
+import java.awt.*;
+
 
 public strictfp class Soldier extends RobotBase
 {
@@ -15,6 +17,15 @@ public strictfp class Soldier extends RobotBase
 
 	//Does fire action
 	public void shoot() throws GameActionException {
-		RobotInfo[] robots = rc.senseNearbyRobots();
+		RobotInfo[] robots = rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadius, enemy);
+		RobotInfo target = null;
+		for(int i=0; i<robots.length; i++) {
+			if (robots[i].getType() == RobotType.SCOUT) {
+				target = robots[i];
+				break;
+			}
+		}
+		if(rc.canFireSingleShot() && target!=null)
+			rc.fireSingleShot(rc.getLocation().directionTo(target.getLocation()));
 	}
 }
