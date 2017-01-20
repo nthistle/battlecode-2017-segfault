@@ -16,9 +16,9 @@ public strictfp class Soldier extends RobotBase
 
 			shoot();
 
-			Direction dir = randomDirection();
-			if(rc.canMove(dir))
-				rc.move(dir);
+			//Direction dir = randomDirection();
+			//if(rc.canMove(dir))
+			//	rc.move(dir);
 
 			Clock.yield();
 		}

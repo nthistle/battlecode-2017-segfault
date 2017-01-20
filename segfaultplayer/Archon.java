@@ -12,7 +12,7 @@ public strictfp class Archon extends RobotBase
 	public void run() throws GameActionException {
 		while(true) {
 			Direction dir = randomDirection();
-			if(rc.canBuildRobot(RobotType.GARDENER,dir))
+			if(rc.canBuildRobot(RobotType.GARDENER,dir) && rc.getTeamBullets()>200)
 				rc.buildRobot(RobotType.GARDENER,dir);
 			Clock.yield();
 		}
