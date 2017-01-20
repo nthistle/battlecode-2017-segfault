@@ -10,6 +10,16 @@ public strictfp class Gardener extends RobotBase
 	}
 	
 	public void run() throws GameActionException {
+		while(true) {
+			Direction dir = randomDirection();
+			if(rc.canBuildRobot(RobotType.SOLDIER,dir))
+				rc.buildRobot(RobotType.SOLDIER,dir);
 
+			dir = randomDirection();
+			if(rc.canMove(dir))
+				rc.move(dir);
+
+			Clock.yield();
+		}
 	}
 }

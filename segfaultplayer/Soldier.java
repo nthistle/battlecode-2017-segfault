@@ -12,7 +12,16 @@ public strictfp class Soldier extends RobotBase
 	}
 	
 	public void run() throws GameActionException {
+		while(true) {
 
+			shoot();
+
+			Direction dir = randomDirection();
+			if(rc.canMove(dir))
+				rc.move(dir);
+
+			Clock.yield();
+		}
 	}
 
 	//Does fire action
@@ -20,7 +29,7 @@ public strictfp class Soldier extends RobotBase
 		RobotInfo[] robots = rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadius, enemy);
 		RobotInfo target = null;
 		for(int i=0; i<robots.length; i++) {
-			if (robots[i].getType() == RobotType.SCOUT) {
+			if (robots[i].getType() == RobotType.SCOUT && isWayClear(rc.getLocation().directionTo(robots[i].getLocation()))) {
 				target = robots[i];
 				break;
 			}

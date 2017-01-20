@@ -61,6 +61,14 @@ public strictfp abstract class RobotBase
 	// =====================================================================================
 	
 	// consider moving to a static class later
+
+	/**
+	 * Returns a random Direction
+	 * @return a random Direction
+	 */
+	static Direction randomDirection() {
+		return new Direction((float)Math.random() * 2 * (float)Math.PI);
+	}
     
 	public static int getAndAssignNextID(RobotController rc) throws GameActionException {
 		int num = typeToNum(rc.getType());
