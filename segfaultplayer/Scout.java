@@ -16,14 +16,106 @@ public strictfp class Scout extends RobotBase
 	}
 	
 	public void run() throws GameActionException {
-		while (true) {
-			MapLocation dank = rc.getInitialArchonLocations(enemy)[0];
-			System.out.println(dank);
-			float dist = pathscout(dank);
-			harass();
-			//circleEnemy(dank, dist);
+		
+		MapLocation dank = rc.getInitialArchonLocations(enemy)[0];
+		System.out.println(dank);
+		getpath(dank);
+		//float dist = pathscout(dank);
+		//harass();
+		//circleEnemy(dank, dist);
+	}
+	
+	public void getpath(MapLocation el) throws GameActionException {
+		Set<Integer> uniqueTrees = new HashSet<Integer>();
+		float scaledNumTrees = 0;
+		int steps = 0;
+		float sR = rc.getType().sensorRadius;
+		float stride = 2.0f;
+
+		System.out.println("dank Memes");
+		System.out.println(rc.getLocation().distanceTo(el));
+		
+		while (rc.getLocation().distanceTo(el) > 5.0f) {
+			boolean hasMoved = false;
+			MapLocation myLoc = rc.getLocation();
+			float distance = myLoc.distanceTo(el);
+			TreeInfo[] myTrees = rc.senseNearbyTrees();
+			// add all the new trees
+			for (TreeInfo k : myTrees) {
+				if(uniqueTrees.add(k.ID)) {
+					scaledNumTrees+=(k.getRadius()*k.getRadius());
+				}
+			}
+			//broadcast tree data
+			rc.broadcast(151, uniqueTrees.size());
+			rc.broadcast(152, (int)scaledNumTrees);
+			
+			//pathfinding
+			Direction myDir = pathFind(myLoc, myLoc, el, myTrees, 30f, stride, sR);
+			if(myDir!=null) {
+				if(rc.canMove(myDir, stride)) {
+					rc.move(myDir, stride);
+					steps+=1;
+					rc.broadcast(150, steps);
+				}
+			} else {
+				System.out.println("Theres NO PATH");
+				return;
+			}
+			Clock.yield();
 		}
 	}
+	public Direction pathFind(MapLocation startLoc, MapLocation myLoc, MapLocation endLoc, TreeInfo[] trees, float theta, float stride, float rad) throws GameActionException {
+		if((startLoc.distanceTo(myLoc) + stride + 1) > rad) {
+			// end case -> we've made it this far and we can't sense much further
+			System.out.println("IM SO DANK");
+			return startLoc.directionTo(myLoc);
+		}
+		Direction[] moves = getBestDirections(myLoc, endLoc, theta);
+		for (int i=0; i<moves.length; i++) {
+			MapLocation temploc = myLoc.add(moves[i], stride);
+			rc.setIndicatorLine(myLoc, temploc, 20*i, 0, 0);
+			if(isClear(temploc, trees)) {
+				Direction bestDir = pathFind(startLoc, temploc, endLoc, trees, theta, stride, rad);
+				if(bestDir!=null) {
+					System.out.println("DANKER THAN U");
+					if(startLoc!=myLoc) {
+						return startLoc.directionTo(myLoc);
+					} else {
+						return bestDir;
+					}
+				}
+			}
+		}
+		return null;
+		
+	}
+	public boolean isClear(MapLocation thisLoc, TreeInfo[] trees) {
+		for (TreeInfo t : trees) {
+			float distance = thisLoc.distanceTo(t.location);
+			if(distance<(t.radius+1.0f)) {
+				return false;
+			}
+		}
+		return true;
+	}
+    public static Direction[] getBestDirections(MapLocation myLoc, MapLocation otherLoc, float theta) throws GameActionException {
+    	float initialtheta = theta;
+    	Direction[] dirs = new Direction [(int)(360.0f/theta)];
+    	Direction bestdir = myLoc.directionTo(otherLoc);
+    	dirs[0] = bestdir;
+    	for (int j=1; j<dirs.length; j++) {
+    		bestdir = bestdir.rotateLeftDegrees(theta);
+    		dirs[j] = bestdir;
+    		if (theta>0f) {
+    			theta = theta*-1f;
+    		} else {
+    			theta = theta*-1f + initialtheta;
+    		}
+    	}
+    	return dirs;
+	}
+	
 	// the harass method shoots at the best enemy
 	// caveat: if another enemy is in the way of the "best enemy", 
 	// it wont move towards the best enemy but will still shoot
