@@ -1,4 +1,4 @@
-package segfaultplayer;
+package testLJplayer;
 import battlecode.common.*;
 
 import java.awt.*;
@@ -40,17 +40,14 @@ public strictfp class Soldier extends RobotBase
 				}
 			}
 			z++;
-			if(z>priority.length-1)
-				break;
 		}
-		if(target!=null) {
-			Direction tDir = rc.getLocation().directionTo(target.getLocation());
-			if (rc.canFirePentadShot() && isPentadShotClear(tDir) && checkPenta(target))
-				rc.firePentadShot(tDir);
-			else if (rc.canFireTriadShot() && isTriadShotClear(tDir))
-				rc.fireTriadShot(tDir);
-			else if (rc.canFireSingleShot() && isSingleShotClear(tDir))
-				rc.fireSingleShot(tDir);
-		}
+
+		Direction tDir = rc.getLocation().directionTo(target.getLocation());
+		if (rc.canFirePentadShot() && isPentadShotClear(tDir) && checkPenta(target))
+			rc.firePentadShot(tDir);
+		else if (rc.canFireTriadShot() && isTriadShotClear(tDir))
+			rc.fireTriadShot(tDir);
+		else if (rc.canFireSingleShot() && isSingleShotClear(tDir))
+			rc.fireSingleShot(tDir);
 	}
 }

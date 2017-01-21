@@ -60,8 +60,11 @@ public strictfp class RobotPlayer {
                     rc.move(dir.rotateRightDegrees(130.0f));
                 else if(rc.canMove(dir.rotateLeftDegrees(130.0f)))
                     rc.move(dir.rotateLeftDegrees(130.0f));
-                Clock.yield();
 
+                RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius,rc.getTeam().opponent());
+                if(robots.length>0)
+                    if(rc.canFireSingleShot())
+                        rc.fireSingleShot(rc.getLocation().directionTo(robots[0].getLocation()));
                 // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
                 Clock.yield();
 

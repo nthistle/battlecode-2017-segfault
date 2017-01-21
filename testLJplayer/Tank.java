@@ -1,20 +1,20 @@
-package segfaultplayer;
+package testLJplayer;
 import battlecode.common.*;
 
-import java.awt.*;
 
-
-public strictfp class Soldier extends RobotBase
+public strictfp class Tank extends RobotBase
 {
 	
-	public Soldier(RobotController rc, int id) throws GameActionException {
+	public Tank(RobotController rc, int id) throws GameActionException {
 		super(rc, id);
 	}
-	
+
 	public void run() throws GameActionException {
 		while(true) {
 
+			System.out.println("Try 1");
 			shoot();
+			System.out.println("Try 2");
 
 			//Direction dir = randomDirection();
 			//if(rc.canMove(dir))

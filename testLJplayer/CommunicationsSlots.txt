@@ -1,0 +1,12 @@
+Communications Slots 2
+1   	-	alpha archon starting location
+101 	-	total number of gardeners created (id of new gardener)
+102 	-	total number of scouts created (id of new scout)
+103 	-	total number of soldiers created (id of new soldier)
+104 	-	total number of lumberjacks created (id of new lumberjack)
+105 	-	total number of tanks created (id of new tank)
+150 	- 	total number of steps the pathscout has taken
+151 	-	total number of trees the pathscout has seen
+152 	-	scaled number of trees (rad^2) pathscout has seen
+200-203	-	alpha archon self-assignment
+600+	-	robot type manufacture orders

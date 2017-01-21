@@ -1,4 +1,4 @@
-package segfaultplayer;
+package testLJplayer;
 import battlecode.common.*;
 
 

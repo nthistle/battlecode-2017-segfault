@@ -25,6 +25,8 @@ public strictfp class Tank extends RobotBase
 	//Does fire action
 	public void shoot() throws GameActionException {
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
+		if(robots.length==0)
+			return;
 		RobotType[] priority = {RobotType.ARCHON, RobotType.SCOUT, RobotType.TANK, RobotType.SOLDIER, RobotType.GARDENER, RobotType.LUMBERJACK};
 		RobotInfo target = null;
 		int z = 0;
@@ -36,14 +38,17 @@ public strictfp class Tank extends RobotBase
 				}
 			}
 			z++;
+			if(z>priority.length-1)
+				break;
 		}
-
-		Direction tDir = rc.getLocation().directionTo(target.getLocation());
-		if (rc.canFirePentadShot() && isPentadShotClear(tDir) && checkPenta(target))
-			rc.firePentadShot(tDir);
-		else if (rc.canFireTriadShot() && isTriadShotClear(tDir))
-			rc.fireTriadShot(tDir);
-		else if (rc.canFireSingleShot() && isSingleShotClear(tDir))
-			rc.fireSingleShot(tDir);
+		if(target!=null) {
+			Direction tDir = rc.getLocation().directionTo(target.getLocation());
+			if (rc.canFirePentadShot() && isPentadShotClear(tDir) && checkPenta(target))
+				rc.firePentadShot(tDir);
+			else if (rc.canFireTriadShot() && isTriadShotClear(tDir))
+				rc.fireTriadShot(tDir);
+			else if (rc.canFireSingleShot() && isSingleShotClear(tDir))
+				rc.fireSingleShot(tDir);
+		}
 	}
 }
