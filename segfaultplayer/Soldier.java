@@ -45,10 +45,11 @@ public strictfp class Soldier extends RobotBase
 		}
 		if(target!=null) {
 			Direction tDir = rc.getLocation().directionTo(target.getLocation());
-			double[] value = isPentadShotClear(tDir);
-			if (rc.canFirePentadShot() && value[1]>value[0] && checkPenta(target))
+			double[] vPentad = isPentadShotClear(tDir);
+			double[] vTriad = isTriadShotClear(tDir);
+			if (rc.canFirePentadShot() && vPentad[1]>vPentad[0] && checkPenta(target))
 				rc.firePentadShot(tDir);
-			else if (rc.canFireTriadShot() && isTriadShotClear(tDir))
+			else if (rc.canFireTriadShot() && vTriad[0]==0)
 				rc.fireTriadShot(tDir);
 			else if (rc.canFireSingleShot() && isSingleShotClear(tDir))
 				rc.fireSingleShot(tDir);
