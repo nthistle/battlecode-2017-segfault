@@ -46,21 +46,25 @@ public strictfp abstract class RobotBase
 	
 
 	// =====================================================================================
-	//                                     HELPER   METHODS
+	//                              INSTANCE  HELPER  METHODS
 	// =====================================================================================
 	
-	// consider moving to a static class later
-	
-	
-	public static MapLocation findClosest(MapLocation to, MapLocation[] poss) {
-		if(poss.length == 0)
-			return null;
-		MapLocation closest = poss[0];
-		for(int i = 1; i < poss.length; i ++) {
-			if(poss[i].distanceSquaredTo(to) < closest.distanceSquaredTo(closest))
-				closest = poss[i];
+	public RobotInfo getNearest(RobotType rt, Team t) {
+		RobotInfo nearest = null;
+		RobotInfo[] sensed = rc.senseNearbyRobots(rc.getType().sensorRadius, t);
+		for(RobotInfo ri : sensed) {
+			if(ri.getType() == rt) {
+				if(nearest == null)
+					nearest = ri;
+				else {
+					if(ri.getLocation().distanceTo(rc.getLocation()) <
+							nearest.getLocation().distanceTo(rc.getLocation())) {
+						nearest = ri;
+					}
+				}
+			}
 		}
-		return closest;
+		return nearest;
 	}
 	
 	
@@ -252,12 +256,27 @@ public strictfp abstract class RobotBase
 			ret = true;
 		return ret;
 	}
+
 	
-	/**
-	 * Returns a random Direction
-	 * @return a random Direction
-	 */
-	static Direction randomDirection() {
+
+	// =====================================================================================
+	//                              STATIC  HELPER  METHODS
+	// =====================================================================================
+	
+	// consider moving to a static class later
+	
+	public static MapLocation findClosest(MapLocation to, MapLocation[] poss) {
+		if(poss.length == 0)
+			return null;
+		MapLocation closest = poss[0];
+		for(int i = 1; i < poss.length; i ++) {
+			if(poss[i].distanceSquaredTo(to) < closest.distanceSquaredTo(closest))
+				closest = poss[i];
+		}
+		return closest;
+	}
+	
+	public static Direction randomDirection() {
 		return new Direction((float)Math.random() * 2 * (float)Math.PI);
 	}
     
