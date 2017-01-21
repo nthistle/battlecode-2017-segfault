@@ -192,59 +192,57 @@ public strictfp abstract class RobotBase
 		}
 		return true;
 	}
-	
 
-	public boolean isPentadShotClear(Direction tDir) throws GameActionException {
+
+	public double[] isPentadShotClear(Direction tDir) throws GameActionException {
 		return isPentadShotClear(tDir, false);
 	}
 
 	//Parameters: Target direction
 	//Returns true if pentad is clear, else false
-	public boolean isPentadShotClear(Direction tDir, boolean drawIndicators) throws GameActionException {
+	public double[] isPentadShotClear(Direction tDir, boolean drawIndicators) throws GameActionException {
+		double[] ret = {0.0,0.0};
 		tDir = tDir.rotateRightDegrees(45.0f);
-		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
+		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius);
 		TreeInfo[] trees = rc.senseNearbyTrees();
 		for(int z=0; z<5; z++) {
 			tDir = tDir.rotateLeftDegrees(15.0f);
-			
+
 			if(drawIndicators)
 				rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(tDir,Float.valueOf(100.0+"")),255,255,0);
-			
+
 			for (int i = 0; i < robots.length; i++) {
-				
 				if(drawIndicators)
 					rc.setIndicatorDot(robots[i].getLocation(), 255,0,0);
-				
 				Direction fDir = rc.getLocation().directionTo(robots[i].getLocation());
 				double length = (double) rc.getLocation().distanceTo(robots[i].getLocation());
 				double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
-				if (dist < robots[i].getRadius()+.1)
-					return false;
-			}
-			for(int i=0; i<allyArchons.length; i++) {
-				if(drawIndicators)
-					rc.setIndicatorDot(allyArchons[i], 0,0,255);
-				Direction fDir = rc.getLocation().directionTo(allyArchons[i]);
-				double length = (double)rc.getLocation().distanceTo(allyArchons[i]);
-				double dist = Math.sqrt(2*length*length - 2*length*length*Math.cos(tDir.radiansBetween(fDir)));
-				if(dist<2.0+.1) //archon radius
-					return false;
+				if (dist < robots[i].getRadius()+.1) {
+					double score = 2.0;
+					if(robots[i].getType()==RobotType.ARCHON)
+						score+=4.0;
+					if(robots[i].getTeam()==rc.getTeam())
+						ret[0]+=score;
+					else
+						ret[1]+=score;
+				}
 			}
 			for(int i=0; i<trees.length; i++) {
-				if(trees[i].getTeam()==ally) {
-					
-					if(drawIndicators)
-						rc.setIndicatorDot(trees[i].getLocation(), 0,0,255);
-					
-					Direction fDir = rc.getLocation().directionTo(trees[i].getLocation());
-					double length = (double) rc.getLocation().distanceTo(trees[i].getLocation());
-					double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
-					if (dist < trees[i].getRadius()+.1)
-						return false;
+				if(drawIndicators)
+					rc.setIndicatorDot(trees[i].getLocation(), 0,0,255);
+				Direction fDir = rc.getLocation().directionTo(trees[i].getLocation());
+				double length = (double) rc.getLocation().distanceTo(trees[i].getLocation());
+				double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
+				if (dist < trees[i].getRadius()+.1) {
+					double score=1.0;
+					if(trees[i].getTeam()==rc.getTeam())
+						ret[0]+=score;
+					else
+						ret[1]+=score;
 				}
 			}
 		}
-		return true;
+		return ret;
 	}
 
 	//checks if close enough for pentad shot

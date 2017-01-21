@@ -43,7 +43,8 @@ public strictfp class Tank extends RobotBase
 		}
 		if(target!=null) {
 			Direction tDir = rc.getLocation().directionTo(target.getLocation());
-			if (rc.canFirePentadShot() && isPentadShotClear(tDir) && checkPenta(target))
+			double[] value = isPentadShotClear(tDir);
+			if (rc.canFirePentadShot() && value[1]>value[0] && checkPenta(target))
 				rc.firePentadShot(tDir);
 			else if (rc.canFireTriadShot() && isTriadShotClear(tDir))
 				rc.fireTriadShot(tDir);

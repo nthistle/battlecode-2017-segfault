@@ -12,38 +12,32 @@ public strictfp class Gardener extends RobotBase
 	}
 	
 	public void run() throws GameActionException {
-		RobotInfo nearestArchon = getNearest(RobotType.ARCHON, ally);
-		Direction dir = nearestArchon.getLocation().directionTo(rc.getLocation());
-		for(int i = 0; i < 20 && !rc.canMove(dir); i ++)
-			dir = randomDirection();
-		rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dir,5.0f), 255, 0, 0);
-		for(int i = 0; i < 25; i ++) {
-			if(rc.canMove(dir))
-				rc.move(dir);
-			Clock.yield();
+
+		boolean testOtherStuff = true;
+
+		if(testOtherStuff) {
+			while(true) {
+				Direction dir = randomDirection();
+				if(rc.canBuildRobot(RobotType.SOLDIER,dir))
+					rc.buildRobot(RobotType.SOLDIER,dir);
+
+				Clock.yield();
+			}
 		}
-		makeHexPod();
-		lifetimeWaterLowest();
-		
-		/*boolean xd = true;
-		while(true) {
-			Direction dir = randomDirection();
-			if(rc.canBuildRobot(RobotType.SCOUT,dir)==true && 1==0)
-				rc.buildRobot(RobotType.SCOUT,dir);
-			else if(rc.canBuildRobot(RobotType.SCOUT,dir) && xd && 1==0) {
-				rc.buildRobot(RobotType.SCOUT, dir);
-				xd = false;
+		else {
+			RobotInfo nearestArchon = getNearest(RobotType.ARCHON, ally);
+			Direction dir = nearestArchon.getLocation().directionTo(rc.getLocation());
+			for (int i = 0; i < 20 && !rc.canMove(dir); i++)
+				dir = randomDirection();
+			rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dir, 5.0f), 255, 0, 0);
+			for (int i = 0; i < 25; i++) {
+				if (rc.canMove(dir))
+					rc.move(dir);
+				Clock.yield();
 			}
-			else if(rc.canBuildRobot(RobotType.LUMBERJACK,dir)) {
-				rc.buildRobot(RobotType.LUMBERJACK,dir);
-			}
-
-			dir = randomDirection();
-			if(rc.canMove(dir))
-				rc.move(dir);
-
-			Clock.yield();
-		}*/
+			makeHexPod();
+			lifetimeWaterLowest();
+		}
 	}
 	
 	/**

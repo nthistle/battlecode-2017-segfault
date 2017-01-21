@@ -14,20 +14,30 @@ public strictfp class Archon extends RobotBase
 	}
 	
 	public void run() throws GameActionException {
+
+		boolean testOtherStuff = true;
+
 		int t = 40;
 		while(true) {
 			
 			
 			//if(rc.getRoundNum() > 200)
 			//	rc.resign(); // temporary for testing to prevent 3000 long games
-			
-			Direction dir = randomDirection();
-			if(rc.canBuildRobot(RobotType.GARDENER,dir) && t > 30) {// && rc.getTeamBullets()>200)
-				rc.buildRobot(RobotType.GARDENER,dir);
-				t = 0;
+			if(testOtherStuff) {
+				Direction dir = randomDirection();
+				if (rc.canBuildRobot(RobotType.GARDENER, dir) && rc.getTeamBullets()>200)
+					rc.buildRobot(RobotType.GARDENER, dir);
+				Clock.yield();
 			}
-			Clock.yield();
-			t ++;
+			else {
+				Direction dir = randomDirection();
+				if (rc.canBuildRobot(RobotType.GARDENER, dir) && t > 30) {// && rc.getTeamBullets()>200)
+					rc.buildRobot(RobotType.GARDENER, dir);
+					t = 0;
+				}
+				Clock.yield();
+				t++;
+			}
 		}
 	}
 }
