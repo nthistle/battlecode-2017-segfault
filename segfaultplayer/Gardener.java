@@ -17,7 +17,7 @@ public strictfp class Gardener extends RobotBase
 		for(int i = 0; i < 20 && !rc.canMove(dir); i ++)
 			dir = randomDirection();
 		rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dir,5.0f), 255, 0, 0);
-		for(int i = 0; i < 14; i ++) {
+		for(int i = 0; i < 25; i ++) {
 			if(rc.canMove(dir))
 				rc.move(dir);
 			Clock.yield();
@@ -81,7 +81,7 @@ public strictfp class Gardener extends RobotBase
 		Clock.yield();
 		for(int i = 0; i < 5; i ++) {
 			System.out.println("Trying " + i);
-			while(rc.getTeamBullets() < RobotType.GARDENER.bulletCost) {
+			for(int j = 0; j < 10 || rc.getTeamBullets() < 50.0f; j ++) {
 				waterLowest();
 				Clock.yield();
 			}

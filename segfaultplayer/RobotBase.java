@@ -8,7 +8,7 @@ public strictfp abstract class RobotBase
 {
 	protected final RobotController rc;
 	private int myID;
-	private static final int randSeed = 10382;
+	private static final int randSeed = 10383;
 	private static Random rand = new Random(randSeed);
 	public final Team enemy;
 	public final Team ally;
