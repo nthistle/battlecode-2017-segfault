@@ -60,6 +60,7 @@ public strictfp class Scout extends RobotBase
 	}
 	public RobotInfo[] pickRobot(RobotType[] mybots) throws GameActionException {
 		MapLocation myLoc = rc.getLocation();
+		// all nearby enemies
 		RobotInfo[] nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
 		
 		// compare robots by type according to array taken in & distance is tiebreaker

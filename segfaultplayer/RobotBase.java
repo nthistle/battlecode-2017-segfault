@@ -274,6 +274,18 @@ public strictfp abstract class RobotBase
 	
 	// consider moving to a static class later
 	
+    public static Direction[] getDirections(Direction startDir, float theta) throws GameActionException {
+    	float initialtheta = theta;
+    	Direction[] dirs = new Direction [(int)(360.0f/theta)];
+    	Direction bestdir = startDir;
+    	dirs[0] = bestdir;
+    	for (int j=1; j<dirs.length; j++) {
+    		bestdir = bestdir.rotateLeftDegrees(theta);
+    		dirs[j] = bestdir;
+    	}
+    	return dirs;
+	}
+	
 	public static MapLocation findClosest(MapLocation to, MapLocation[] poss) {
 		if(poss.length == 0)
 			return null;
