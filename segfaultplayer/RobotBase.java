@@ -1,4 +1,6 @@
 package segfaultplayer;
+import java.util.Random;
+
 import battlecode.common.*;
 
 
@@ -6,6 +8,8 @@ public strictfp abstract class RobotBase
 {
 	protected final RobotController rc;
 	private int myID;
+	private Random rand;
+	private int randSeed = 10382;
 	public final Team enemy;
 	public final Team ally;
 	MapLocation[] enemyArchons;
@@ -18,6 +22,7 @@ public strictfp abstract class RobotBase
 		ally = rc.getTeam();
 		enemyArchons = rc.getInitialArchonLocations(enemy);
 		allyArchons = rc.getInitialArchonLocations(ally);
+		rand = new Random(randSeed + rc.getID());
 	}
 	
 	public RobotBase(RobotController rc, int id) throws GameActionException {
@@ -27,6 +32,7 @@ public strictfp abstract class RobotBase
 		ally = rc.getTeam();
 		enemyArchons = rc.getInitialArchonLocations(enemy);
 		allyArchons = rc.getInitialArchonLocations(ally);
+		rand = new Random(randSeed + rc.getID());
 	}
 	
 	public abstract void run() throws GameActionException; // implemented by subclass robots
@@ -48,6 +54,11 @@ public strictfp abstract class RobotBase
 	// =====================================================================================
 	//                              INSTANCE  HELPER  METHODS
 	// =====================================================================================
+	
+	
+	// NOTE: if we ever need to cut down bytecodes, they changed the senseNearby
+	// methods to return things in order of nearest, could just take the first one
+	// that matches appropriate type
 	
 	public RobotInfo getNearest(RobotType rt, Team t) {
 		RobotInfo nearest = null;
@@ -277,7 +288,7 @@ public strictfp abstract class RobotBase
 	}
 	
 	public static Direction randomDirection() {
-		return new Direction((float)Math.random() * 2 * (float)Math.PI);
+		return new Direction(rand.nextFloat() * 2 * (float)Math.PI);
 	}
     
 	public static int getAndAssignNextID(RobotController rc) throws GameActionException {

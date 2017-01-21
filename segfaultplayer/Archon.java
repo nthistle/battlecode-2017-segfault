@@ -9,16 +9,20 @@ public strictfp class Archon extends RobotBase
 	
 	public Archon(RobotController rc, int id) throws GameActionException {
 		super(rc, id);
-		this.rank = CommunicationsHandler.assignAlphaArchonProtocol(this);
+		this.rank = CommunicationsHandler.assignAlphaArchonProtocol(this, true);
 		this.alpha = this.rank == 0;
 	}
 	
 	public void run() throws GameActionException {
+		int t = 40;
 		while(true) {
 			Direction dir = randomDirection();
-			if(rc.canBuildRobot(RobotType.GARDENER,dir) && rc.getTeamBullets()>200)
+			if(rc.canBuildRobot(RobotType.GARDENER,dir) && t > 30) {// && rc.getTeamBullets()>200)
 				rc.buildRobot(RobotType.GARDENER,dir);
+				t = 0;
+			}
 			Clock.yield();
+			t ++;
 		}
 	}
 }

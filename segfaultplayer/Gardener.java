@@ -12,6 +12,19 @@ public strictfp class Gardener extends RobotBase
 	}
 	
 	public void run() throws GameActionException {
+		RobotInfo nearestArchon = getNearest(RobotType.ARCHON, ally);
+		Direction dir = nearestArchon.getLocation().directionTo(rc.getLocation());
+		for(int i = 0; i < 20 && !rc.canMove(dir); i ++)
+			dir = randomDirection();
+		rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dir,5.0f), 255, 0, 0);
+		for(int i = 0; i < 14; i ++) {
+			if(rc.canMove(dir))
+				rc.move(dir);
+			Clock.yield();
+		}
+		makeHexPod();
+		lifetimeWaterLowest();
+		
 		/*boolean xd = true;
 		while(true) {
 			Direction dir = randomDirection();
@@ -31,6 +44,18 @@ public strictfp class Gardener extends RobotBase
 
 			Clock.yield();
 		}*/
+	}
+	
+	/**
+	 * Waters the lowest until the end of time
+	 * At some point, this should be replaced (or wherever it's used) with more
+	 * dynamic code that enables a gardener to run away if it's in danger etc.
+	 */
+	public void lifetimeWaterLowest() throws GameActionException {
+		while(true) {
+			waterLowest();
+			Clock.yield();
+		}
 	}
 	
 	/**
@@ -55,16 +80,19 @@ public strictfp class Gardener extends RobotBase
 		waterLowest();
 		Clock.yield();
 		for(int i = 0; i < 5; i ++) {
+			System.out.println("Trying " + i);
 			while(rc.getTeamBullets() < RobotType.GARDENER.bulletCost) {
 				waterLowest();
 				Clock.yield();
 			}
+			rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(new Direction(cAngle + (i+1) * treeOffsetAngle), 2.0f), 0, 255, 0);
+			System.out.println("Now we have enough bullets!");
 			if(rc.canPlantTree(new Direction(cAngle + (i+1) * treeOffsetAngle))) {
 				planted[i+1] = true;
 				rc.plantTree(new Direction(cAngle + (i+1) * treeOffsetAngle));
 				waterLowest();
 				Clock.yield();
-			}
+			} else {System.out.println("I can't plant though"); }
 		}
 	}
     
