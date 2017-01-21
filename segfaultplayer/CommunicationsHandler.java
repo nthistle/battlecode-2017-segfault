@@ -43,4 +43,41 @@ public final strictfp class CommunicationsHandler
 		int slot = RobotBase.typeToNum(rt);
 		return rc.readBroadcast(100+slot);
 	}
+	
+	
+	
+	// Ordering a unit protocols
+	
+    public static void queueOrder(RobotController rc, RobotType rt) throws GameActionException {
+    	int orderSlot = rc.readBroadcast(600); // number of orders in queue
+    	int val = RobotBase.typeToNum(rt);
+    	rc.broadcast(601 + orderSlot, val);
+    	rc.broadcast(600, orderSlot + 1);
+    	//////System.out.println("Queueing Order for " + val + ", in slot " + orderSlot);
+    }
+    
+    public static RobotType peekOrder(RobotController rc) throws GameActionException {
+    	int numOrders = rc.readBroadcast(600);
+    	if(numOrders == 0)
+    		return null;
+    	return RobotBase.numToType(rc.readBroadcast(601));
+    }
+    
+    public static RobotType popOrder(RobotController rc) throws GameActionException {
+    	int numOrders = rc.readBroadcast(600);
+    	if(numOrders == 0)
+    		return null;
+    	RobotType order = RobotBase.numToType(rc.readBroadcast(601));
+    	// move everything over!
+    	int i = 1;
+    	int nextThing = rc.readBroadcast(601+i);
+    	while(nextThing != 0) {
+    		rc.broadcast(600+i, nextThing);
+    		i++;
+    		nextThing = rc.readBroadcast(601+i);
+    	}
+    	rc.broadcast(600, numOrders - 1);
+    	//////System.out.println("Popping order for " + typeToNum(order) + ", now " + numOrders + " left");
+    	return order;
+    }
 }
