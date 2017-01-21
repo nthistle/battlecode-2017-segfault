@@ -18,8 +18,8 @@ public strictfp class Gardener extends RobotBase
 		if(testOtherStuff) {
 			while(true) {
 				Direction dir = randomDirection();
-				if(rc.canBuildRobot(RobotType.SOLDIER,dir))
-					rc.buildRobot(RobotType.SOLDIER,dir);
+				if(rc.canBuildRobot(RobotType.LUMBERJACK,dir))
+					rc.buildRobot(RobotType.LUMBERJACK,dir);
 
 				Clock.yield();
 			}
