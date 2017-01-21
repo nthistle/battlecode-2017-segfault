@@ -9,3 +9,4 @@ Communications Slots
 151 	-	total number of trees the pathscout has seen
 152 	-	scaled number of trees (rad^2) pathscout has seen
 200-203	-	alpha archon self-assignment
+600+	-	robot type manufacture orders
