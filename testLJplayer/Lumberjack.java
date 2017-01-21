@@ -22,20 +22,15 @@ public strictfp class Lumberjack extends RobotBase
 					rc.shake(nearbyTrees[i].getID());
 			}
 			MapLocation alpha = allyArchons[0];
-			MapLocation enemyAlpha = enemyArchons[0];
 			for(int i=1; i<allyArchons.length; i++) {
 				if(rc.getLocation().distanceTo(alpha)>rc.getLocation().distanceTo(allyArchons[i]))
 					alpha = allyArchons[i];
-			}
-			for(int i=1; i<enemyArchons.length; i++) {
-				if(rc.getLocation().distanceTo(enemyAlpha)>rc.getLocation().distanceTo(enemyArchons[i]))
-					enemyAlpha = enemyArchons[i];
 			}
 			TreeInfo nearest = null;
 			for(int i=0; i<nearbyTrees.length; i++) {
 				//				//if(nearest==null || alpha.distanceTo(nearest.getLocation())+enemyAlpha.distanceTo(nearest.getLocation())>alpha.distanceTo(nearbyTrees[i].getLocation())+enemyAlpha.distanceTo(nearest.getLocation()) && nearest.getContainedRobot()==null && nearbyTrees[i].getContainedRobot()==null || nearest.getContainedRobot()==null && nearbyTrees[i].getContainedRobot()!=null)
 
-				if(nearest==null || alpha.distanceTo(nearest.getLocation())+enemyAlpha.distanceTo(nearest.getLocation())>alpha.distanceTo(nearbyTrees[i].getLocation())+enemyAlpha.distanceTo(nearest.getLocation()))
+				if(nearbyTrees[i].getTeam()!=ally && (nearest==null || alpha.distanceTo(nearest.getLocation())>alpha.distanceTo(nearbyTrees[i].getLocation())))
 					nearest = nearbyTrees[i];
 			}
 			if(nearest!=null) {
@@ -54,7 +49,7 @@ public strictfp class Lumberjack extends RobotBase
 						rc.chop(nearest.getID());
 					else {
 						for(int i=0; i<nearbyTrees.length; i++) {
-							if(rc.canChop(nearbyTrees[i].getID())) {
+							if(nearbyTrees[i].getTeam()!=ally && rc.canChop(nearbyTrees[i].getID())) {
 								rc.chop(nearbyTrees[i].getID());
 								break;
 							}

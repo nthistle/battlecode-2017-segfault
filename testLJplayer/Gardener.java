@@ -22,8 +22,8 @@ public strictfp class Gardener extends RobotBase
 				rc.buildRobot(RobotType.SCOUT, dir);
 				xd = false;
 			}
-			else if(rc.canBuildRobot(RobotType.TANK,dir)) {
-				rc.buildRobot(RobotType.TANK,dir);
+			else if(rc.canBuildRobot(RobotType.LUMBERJACK,dir)) {
+				rc.buildRobot(RobotType.LUMBERJACK,dir);
 			}
 			else if(rc.canPlantTree(dir)) {
 				rc.plantTree(dir);
