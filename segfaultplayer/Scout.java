@@ -42,7 +42,7 @@ public strictfp class Scout extends RobotBase
 			distanceToEnd = thisLoc.distanceTo(endLoc);
 			moves = new ArrayList<Move>();//<Direction>();
 			stride = myStride;
-			totalCost = (moves.size() * stride) + (distanceToEnd*2);
+			totalCost = (moves.size() * stride) + (distanceToEnd*1);//2);
 		}
 		
 		// Constructor 2: When you have previous moves
@@ -51,7 +51,7 @@ public strictfp class Scout extends RobotBase
 			distanceToEnd = thisLoc.distanceTo(endLoc);
 			moves = myMoves;
 			stride = myStride;
-			totalCost = (moves.size() * stride) + (distanceToEnd*2);
+			totalCost = (moves.size() * stride) + (distanceToEnd*1);//2);
 		}
 		
 		/*private void updateList(Direction d) {
@@ -60,7 +60,7 @@ public strictfp class Scout extends RobotBase
 		}*/
 		
 		private float updateCost() {
-			totalCost = (moves.size() * stride) + (distanceToEnd*2);
+			totalCost = (moves.size() * stride) + (distanceToEnd*1);//2);
 			return totalCost;
 		}
 		
@@ -99,7 +99,7 @@ public strictfp class Scout extends RobotBase
 			boolean hasMoved = false;
 			MapLocation myLoc = rc.getLocation();
 			float distance = myLoc.distanceTo(el);
-			TreeInfo[] myTrees = rc.senseNearbyTrees();
+			TreeInfo[] myTrees = rc.senseNearbyTrees(9.0f);//rc.senseNearbyTrees();
 			// add all the new trees
 			/*for (TreeInfo k : myTrees) {
 				if(uniqueTrees.add(k.ID)) {
@@ -316,7 +316,7 @@ public strictfp class Scout extends RobotBase
 			relX = (60.0f/28.0f)*relX + 30.0f;
 			relY = (60.0f/28.0f)*relY + 30.0f;
 			// now they're in range [0,60]
-			float effR = t.radius - 0.5f;
+			float effR = t.radius + 1.0f;
 			// block of effR around center at relX,relY
 			float minX = relX - effR;
 			float minY = relY - effR;
@@ -328,6 +328,7 @@ public strictfp class Scout extends RobotBase
 				}
 			}
 		}
+		System.out.println("Finished base processing");
 		for(int x = 0; x < 70; x ++) {
 			for(int y = 0; y < 70; y ++) {
 				if(aroundMe[x][y]) {
@@ -343,7 +344,11 @@ public strictfp class Scout extends RobotBase
 	public boolean isClear(MapLocation offset, MapLocation thisLoc) {
 		float relX = thisLoc.x - offset.x;
 		float relY = thisLoc.y - offset.y;
-		return aroundMe[(int)(relX+35.5f)][(int)(relY+35.5f)];
+		int indexX = (int)(relX*(60.0f/28.0f)+35.5f);
+		int indexY = (int)(relY*(60.0f/28.0f)+35.5f);
+		if(indexX < 0 || indexY < 0 || indexX > 69 || indexY > 69)
+			return false;
+		return !aroundMe[indexX][indexY];
 	}
 	
 	
