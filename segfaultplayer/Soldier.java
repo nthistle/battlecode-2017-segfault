@@ -14,6 +14,8 @@ public strictfp class Soldier extends RobotBase
 	public void run() throws GameActionException {
 		while(true) {
 
+			Direction dir = rc.getLocation().directionTo(enemyArchons[0]);
+			moveWithoutDodging(dir);
 			shoot();
 
 			//Direction dir = randomDirection();
