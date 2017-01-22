@@ -24,7 +24,6 @@ public strictfp class Gardener extends RobotBase
 			Clock.yield();
 		}
 
-<<<<<<< HEAD
 		boolean testOtherStuff = true;
 
 		if(testOtherStuff) {
@@ -34,7 +33,6 @@ public strictfp class Gardener extends RobotBase
 					rc.buildRobot(RobotType.SCOUT,dir);
 				if(rc.canBuildRobot(RobotType.SCOUT,dir))
 					rc.buildRobot(RobotType.SCOUT,dir);
-=======
 //		TESTING MEME
 //		while(true) {
 //			TreeInfo[] trees = rc.senseNearbyTrees(2.0f,rc.getTeam());
@@ -52,7 +50,6 @@ public strictfp class Gardener extends RobotBase
 //				rc.water(tree.getID());
 //			Clock.yield();
 //		}
->>>>>>> 94102207553ce74194e7b7c962b5a2663c3dead7
 
 		/* OLD MEME
 		else {
