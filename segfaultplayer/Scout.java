@@ -17,7 +17,7 @@ public strictfp class Scout extends RobotBase
 	}
 	
 	public void run() throws GameActionException {
-		
+		Clock.yield();//DEBUGYIELD
 		MapLocation dank = rc.getInitialArchonLocations(enemy)[0];
 		System.out.println(dank);
 		getpath(dank);
@@ -34,17 +34,19 @@ public strictfp class Scout extends RobotBase
 		// and the distanceToEnd*2 == the cost to goal (I multiplied by 2 so it works faster in straight line situations but tbh this is unnecessary)
 		private float stride;
 		private MapLocation location;
-		private ArrayList<Direction> moves;
+		private ArrayList<Move> moves;//<Direction> moves;
+		
 		// Constructor 1: When you have no moves
 		private Move(MapLocation thisLoc, MapLocation endLoc, float myStride) {
 			location = thisLoc;
 			distanceToEnd = thisLoc.distanceTo(endLoc);
-			moves = new ArrayList<Direction>();
+			moves = new ArrayList<Move>();//<Direction>();
 			stride = myStride;
 			totalCost = (moves.size() * stride) + (distanceToEnd*2);
 		}
+		
 		// Constructor 2: When you have previous moves
-		private Move(MapLocation thisLoc, MapLocation endLoc, ArrayList<Direction> myMoves, float myStride) {
+		private Move(MapLocation thisLoc, MapLocation endLoc, ArrayList<Move> myMoves, float myStride) {
 			location = thisLoc;
 			distanceToEnd = thisLoc.distanceTo(endLoc);
 			moves = myMoves;
@@ -52,10 +54,11 @@ public strictfp class Scout extends RobotBase
 			totalCost = (moves.size() * stride) + (distanceToEnd*2);
 		}
 		
-		private void updateList(Direction d) {
+		/*private void updateList(Direction d) {
 			moves.add(d);
 			updateCost();
-		}
+		}*/
+		
 		private float updateCost() {
 			totalCost = (moves.size() * stride) + (distanceToEnd*2);
 			return totalCost;
@@ -84,11 +87,13 @@ public strictfp class Scout extends RobotBase
 		Set<Integer> uniqueTrees = new HashSet<Integer>();
 		float scaledNumTrees = 0;
 		int steps = 0;
-		float sR = rc.getType().sensorRadius;
-		float stride = 1.0f;
+		//float sR = rc.getType().sensorRadius;
+		float stride = 1.25f;
 
 		System.out.println("dank Memes");
 		System.out.println(rc.getLocation().distanceTo(el));
+		
+		Clock.yield();//DEBUGYIELD
 		
 		while (rc.getLocation().distanceTo(el) > 5.0f) {
 			boolean hasMoved = false;
@@ -96,21 +101,29 @@ public strictfp class Scout extends RobotBase
 			float distance = myLoc.distanceTo(el);
 			TreeInfo[] myTrees = rc.senseNearbyTrees();
 			// add all the new trees
-			for (TreeInfo k : myTrees) {
+			/*for (TreeInfo k : myTrees) {
 				if(uniqueTrees.add(k.ID)) {
 					scaledNumTrees+=(k.getRadius()*k.getRadius());
 				}
-			}
+			}*/
+			
+			Clock.yield();//DEBUGYIELD
+			
 			//broadcast tree data
-			rc.broadcast(151, uniqueTrees.size());
-			rc.broadcast(152, (int)scaledNumTrees);
+			//rc.broadcast(151, uniqueTrees.size());
+			//rc.broadcast(152, (int)scaledNumTrees);
+
+			Clock.yield();//DEBUGYIELD
 			
 			//pathfinding
-			Move bestMove = pathMeme(myLoc, el, myTrees, 30f, stride, sR); // A*
+			Move bestMove = neilAStar(myLoc, el, myTrees);//pathMeme(myLoc, el, myTrees, 30f, stride, sR); // A*
 			//Direction myDir = pathFind(myLoc, myLoc, el, myTrees, 30f, stride, sR); // old pathfinding
 			if(bestMove!=null) {
-				if(rc.canMove(bestMove.moves.get(0), stride)) {
-					rc.move(bestMove.moves.get(0), stride);
+				Direction theDir = myLoc.directionTo(bestMove.location);
+				if(rc.canMove(theDir, stride)) {
+					rc.move(theDir, stride);
+				//if(rc.canMove(bestMove.moves.get(0), stride)) {
+				//	rc.move(bestMove.moves.get(0), stride);
 					steps+=1;
 					rc.broadcast(150, steps);
 					Clock.yield();
@@ -123,8 +136,102 @@ public strictfp class Scout extends RobotBase
 			}
 		}
 	}
+	
+	
+	// my attempt at A*
+	public Move neilAStar(MapLocation startLoc, MapLocation endLoc, TreeInfo[] trees) throws GameActionException {
+
+		Clock.yield();
+		PriorityQueue<Move> myMoves = new PriorityQueue<Move>();
+		
+		System.out.println("Testing bytecodes used for this");
+		Clock.yield();
+		Move[] firstMoves = getNextMoves(new Move(startLoc, endLoc, 1.25f), endLoc);
+		Clock.yield();
+		for(Move m : firstMoves) {
+			myMoves.add(m);
+		}
+		
+		Move cur;
+		
+		processTrees(startLoc, trees);
+		
+		while(!myMoves.isEmpty()) {
+			cur = myMoves.poll();
+			// currently considering
+			rc.setIndicatorDot(cur.location, 255, 0, 0);  // RED DOT FOR CURRENTLY CONSIDERING
+			Move[] nextSteps = getNextMoves(cur, endLoc);
+			for(Move possNext : nextSteps) {
+				if(isClear(startLoc, possNext.location)) {
+					// color that crap green, so we know it's going in the PQ
+					rc.setIndicatorLine(cur.location, possNext.location, 0, 255, 0);
+					myMoves.add(possNext);
+				} else {
+					// color it blue so we know it's not going in PQ
+					rc.setIndicatorLine(cur.location, possNext.location, 0, 0, 255);
+				}
+			}
+			
+			Clock.yield(); // kind of temp just so I can watch it work its magic
+		}
+			//Move lastMove = myMoves.remove();
+			//MapLocation myLoc = lastMove.location;
+			//
+			//// ===== END CASE =====
+			//if((startLoc.distanceTo(myLoc) + stride + 1) > rad) {
+			//	// end case -> we've made it this far and we can't sense much further
+			//	System.out.println("IM SO DANK");
+			//	return lastMove;
+			//}
+		return null;
+		
+	}
+	
+	private Move[] getNextMoves(Move cur, MapLocation target) {
+		// stride is 1.25
+		Move[] nextMoves = new Move[5];
+		Direction straightL = cur.location.directionTo(target);
+		
+		
+		//System.out.println("Number 1");
+		ArrayList<Move> newList = new ArrayList<Move>();
+		for(Move m : cur.moves)
+			newList.add(m);
+		newList.add(cur);
+		
+
+		ArrayList<Move> tmpList = new ArrayList<Move>();
+		tmpList.addAll(newList);
+		
+		nextMoves[0] = new Move(cur.location.add(straightL,1.25f),
+				target, tmpList, 1.25f);
+
+
+		//System.out.println("Number 2&3");
+		tmpList = new ArrayList<Move>();
+		tmpList.addAll(newList);
+		nextMoves[1] = new Move(cur.location.add(straightL.rotateRightDegrees(30.0f),1.25f),
+				target, tmpList, 1.25f);
+		tmpList = new ArrayList<Move>();
+		tmpList.addAll(newList);
+		nextMoves[2] = new Move(cur.location.add(straightL.rotateLeftDegrees(30.0f),1.25f),
+				target, tmpList, 1.25f);
+
+		//System.out.println("Number 4&5");
+		tmpList = new ArrayList<Move>();
+		tmpList.addAll(newList);
+		nextMoves[3] = new Move(cur.location.add(straightL.rotateRightDegrees(60.0f),1.25f),
+				target, tmpList, 1.25f);
+		tmpList = new ArrayList<Move>();
+		tmpList.addAll(newList);
+		nextMoves[4] = new Move(cur.location.add(straightL.rotateLeftDegrees(60.0f),1.25f),
+				target, tmpList, 1.25f);
+		
+		return nextMoves;
+	}
+	
 	// A* PathFinding
-	public Move pathMeme(MapLocation startLoc, MapLocation endLoc, TreeInfo[] trees, float theta, float stride, float rad) throws GameActionException {
+	/*public Move pathMeme(MapLocation startLoc, MapLocation endLoc, TreeInfo[] trees, float theta, float stride, float rad) throws GameActionException {
 		
 		PriorityQueue<Move> myMoves = new PriorityQueue<Move>();
 		Move firstMove = new Move(startLoc, endLoc, stride);
@@ -164,36 +271,83 @@ public strictfp class Scout extends RobotBase
 		}
 		return null;
 		
-	}
-	// dfs pathfinding method
-	public Direction pathFind(MapLocation startLoc, MapLocation myLoc, MapLocation endLoc, TreeInfo[] trees, float theta, float stride, float rad) throws GameActionException {
-		if((startLoc.distanceTo(myLoc) + stride + 1) > rad) {
-			// end case -> we've made it this far and we can't sense much further
-			System.out.println("IM SO DANK");
-			return startLoc.directionTo(myLoc);
-		}
-		Direction[] moves = getBestDirections(myLoc, endLoc, theta);
-		for (int i=0; i<moves.length; i++) {
-			MapLocation temploc = myLoc.add(moves[i], stride);
-			rc.setIndicatorLine(myLoc, temploc, 20*i, 0, 0);
-			if(isClear(temploc, trees)) {
-				Direction bestDir = pathFind(startLoc, temploc, endLoc, trees, theta, stride, rad);
-				if(bestDir!=null) {
-					System.out.println("DANKER THAN U");
-					if(startLoc!=myLoc) {
-						return startLoc.directionTo(myLoc);
-					} else {
-						return bestDir;
-					}
+	}*/
+	
+//	// dfs pathfinding method
+//	public Direction pathFind(MapLocation startLoc, MapLocation myLoc, MapLocation endLoc, TreeInfo[] trees, float theta, float stride, float rad) throws GameActionException {
+//		if((startLoc.distanceTo(myLoc) + stride + 1) > rad) {
+//			// end case -> we've made it this far and we can't sense much further
+//			System.out.println("IM SO DANK");
+//			return startLoc.directionTo(myLoc);
+//		}
+//		Direction[] moves = getBestDirections(myLoc, endLoc, theta);
+//		for (int i=0; i<moves.length; i++) {
+//			MapLocation temploc = myLoc.add(moves[i], stride);
+//			rc.setIndicatorLine(myLoc, temploc, 20*i, 0, 0);
+//			if(isClear(temploc, trees)) {
+//				Direction bestDir = pathFind(startLoc, temploc, endLoc, trees, theta, stride, rad);
+//				if(bestDir!=null) {
+//					System.out.println("DANKER THAN U");
+//					if(startLoc!=myLoc) {
+//						return startLoc.directionTo(myLoc);
+//					} else {
+//						return bestDir;
+//					}
+//				}
+//			}
+//		}
+//		return null;
+//		
+//	}
+	
+	
+	
+	private boolean[][] aroundMe = null;
+	
+	// offset should be my location
+	public void processTrees(MapLocation offset, TreeInfo[] trees) throws GameActionException {
+		System.out.println("Starting tree processing");
+		aroundMe = new boolean[70][70];
+		for(TreeInfo t : trees) {
+			MapLocation ml = t.location;
+			float relX = ml.x - offset.x;
+			float relY = ml.y - offset.y;
+			// relX, relY should be in range [-14,+14]
+			relX = (60.0f/28.0f)*relX + 30.0f;
+			relY = (60.0f/28.0f)*relY + 30.0f;
+			// now they're in range [0,60]
+			float effR = t.radius - 0.5f;
+			// block of effR around center at relX,relY
+			float minX = relX - effR;
+			float minY = relY - effR;
+			float maxX = relX + effR;
+			float maxY = relY + effR;
+			for(int a = (int)(minX+0.5); a < maxX; a++) {
+				for(int b = (int)(minY+0.5); b < maxY; b++) {
+					aroundMe[5+a][5+b] = true;
 				}
 			}
 		}
-		return null;
-		
+		for(int x = 0; x < 70; x ++) {
+			for(int y = 0; y < 70; y ++) {
+				if(aroundMe[x][y]) {
+					rc.setIndicatorDot(new MapLocation(offset.x + (x - 35)*28.0f/60.0f, offset.y + (y - 35)*28.0f/60.0f),
+							255, 255, 0);
+				}
+			}
+		}
+		System.out.println("Finished tree processing");
 	}
 	
 	// checks for nearby trees
-	public boolean isClear(MapLocation thisLoc, TreeInfo[] trees) {
+	public boolean isClear(MapLocation offset, MapLocation thisLoc) {
+		float relX = thisLoc.x - offset.x;
+		float relY = thisLoc.y - offset.y;
+		return aroundMe[(int)(relX+35.5f)][(int)(relY+35.5f)];
+	}
+	
+	
+	/*public boolean isClear(MapLocation thisLoc, TreeInfo[] trees) {
 		for (TreeInfo t : trees) {
 			float distance = thisLoc.distanceTo(t.location);
 			if(distance<(t.radius+1.0f)) {
@@ -201,7 +355,7 @@ public strictfp class Scout extends RobotBase
 			}
 		}
 		return true;
-	}
+	}*/
 	
 	// directions rotating around end goal
     public static Direction[] getDirections(MapLocation myLoc, MapLocation otherLoc, float theta) throws GameActionException {
