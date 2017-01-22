@@ -94,11 +94,6 @@ public strictfp class Gardener extends RobotBase
 			} else {System.out.println("I can't plant though"); }
 		}
 	}
-    
-	
-	
-	
-	
 	
 	
     private void waterLowest() throws GameActionException {
