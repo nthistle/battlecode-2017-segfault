@@ -45,29 +45,41 @@ public final strictfp class CommunicationsHandler
 	}
 	
 	
+	// ========== Ordering a unit protocols ==========
 	
-	// Ordering a unit protocols
+	// 42 == tree (arbitrarily)
+	private static final int TREE_VALUE = 42;
 	
-    public static void queueOrder(RobotController rc, RobotType rt) throws GameActionException {
-    	int orderSlot = rc.readBroadcast(600); // number of orders in queue
-    	int val = RobotBase.typeToNum(rt);
-    	rc.broadcast(601 + orderSlot, val);
-    	rc.broadcast(600, orderSlot + 1);
+    public static void queueOrder(RobotController rc, Order o) throws GameActionException {
+    	int orderSlot = rc.readBroadcast(600); // number of orders in queue	
+    	if(o.type == OrderType.TREE) {
+    		// queue a tree order
+    		rc.broadcast(601 + orderSlot, TREE_VALUE);
+    	} else {
+    		// queue a robot order
+    		int val = RobotBase.typeToNum(o.rt);
+    		rc.broadcast(601 + orderSlot, val);
+    		rc.broadcast(600, orderSlot + 1);
+    	}
     	//////System.out.println("Queueing Order for " + val + ", in slot " + orderSlot);
     }
     
-    public static RobotType peekOrder(RobotController rc) throws GameActionException {
+    public static Order peekOrder(RobotController rc) throws GameActionException {
     	int numOrders = rc.readBroadcast(600);
     	if(numOrders == 0)
     		return null;
-    	return RobotBase.numToType(rc.readBroadcast(601));
+    	int orderCode = rc.readBroadcast(601); 
+    	if(orderCode == TREE_VALUE)
+    		return new Order(OrderType.TREE); // tree
+    	else
+    		return new Order(OrderType.ROBOT, RobotBase.numToType(orderCode));
     }
     
-    public static RobotType popOrder(RobotController rc) throws GameActionException {
+    public static Order popOrder(RobotController rc) throws GameActionException {
     	int numOrders = rc.readBroadcast(600);
     	if(numOrders == 0)
     		return null;
-    	RobotType order = RobotBase.numToType(rc.readBroadcast(601));
+    	int orderCode = rc.readBroadcast(601);
     	// move everything over!
     	int i = 1;
     	int nextThing = rc.readBroadcast(601+i);
@@ -78,7 +90,10 @@ public final strictfp class CommunicationsHandler
     	}
     	rc.broadcast(600, numOrders - 1);
     	//////System.out.println("Popping order for " + typeToNum(order) + ", now " + numOrders + " left");
-    	return order;
+    	if(orderCode == TREE_VALUE)
+    		return new Order(OrderType.TREE);
+    	else
+    		return new Order(OrderType.ROBOT, RobotBase.numToType(orderCode));
     }
     
     //
