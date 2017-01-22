@@ -347,7 +347,90 @@ public strictfp abstract class RobotBase
 			ret = true;
 		return ret;
 	}
+	
+	    /**
+     * Computes an approx sense of danger for a given location based on speed and 
+     * power of nearby bullets
+     *
+     * @param ml location in question 
+     * @return relative danger; closer to zero the less danger you are in
+     */
+    public float dangerHeuristic(MapLocation ml){
+        BulletInfo[] bi = rc.senseNearbyBullets(ml, -1); // scan full loc; sorted by distance
+        if(bi.length == 0){
+            return 0; // no bullets around the sense radius 
+        }
+        
+        // compute max and min damages within radius to create a scale and instill a
+        // notion of "how deadly" a given bullet is
+        BulletInfo max_damage = bi[0];
+        BulletInfo min_damage = bi[0];
+        BulletInfo max_speed = bi[0];
+        BulletInfo min_speed = bi[0];
+        BulletInfo max_loc = bi[0];
+        BulletInfo min_loc = bi[0];
+        for(int i = 0; i < bi.length; i++){
+            if(bi[i].damage > max_damage.damage){
+                max_damage = bi[i];
+            }
+            if(bi[i].damage < min_damage.damage){
+                min_damage = bi[i];
+            }
+            if(bi[i].speed > max_speed.speed){
+                max_speed = bi[i];
+            }
+            if(bi[i].speed < min_speed.speed){
+                min_speed = bi[i];
+            }
+            if(bi[i].location.distanceTo(ml) > max_loc.location.distanceTo(ml)){
+                max_loc = bi[i];
+            }
+            if(bi[i].location.distanceTo(ml) < min_loc.location.distanceTo(ml)){
+                min_loc = bi[i];
+            }
+        }
+        
+        // If you want to mess around with more ratios you can use this
+        //float dam_diff = max_damage.damage - min_damage.damage;
+        //float spd_diff = max_speed.speed - min_speed.speed;
+        //float loc_diff = max_loc.location.distanceTo(ml) - min_loc.location.distanceTo(ml);
+        // generate how deadly a bullet is on a scale of  based on speed and damage
+        float[] res = new float[bi.length];
+        for(int i = 0; i < bi.length; i++){
+            res[i] = bi[i].damage / max_damage.damage;
+            res[i] += bi[i].speed / max_speed.speed;
+            res[i] += 1 / (bi[i].location.distanceTo(ml) / max_loc.location.distanceTo(ml));
+        }
+        
+        float sum = 0.0f;
+        for(int i = 0; i < res.length; i++){
+            sum += res[i];
+        }
+        
+        return sum;
+    }	
 
+    /**
+     * Generates an array of floats with the relative danger of each direction with a 
+     * given offset
+     *
+     * @param ml location of interest
+     * @param offset the increment to attempt directions in in degrees
+     * @return array with relative danger potentials of each position with stride of 1
+     */
+    public float[] heatmap(MapLocation ml, float offset){
+        float[] res = new float[(int)(360f/offset)];
+        MapLocation orig = new MapLocation(ml.x, ml.y);
+        float pie = (float)Math.PI;
+        float cur = 0.0f;
+        for(int i = 0; i < res.length; i++){
+            Direction d = new Direction(cur * pie / 180.0f);
+            res[i] = dangerHeuristic(ml.add(d));
+            ml = new MapLocation(orig.x, orig.y);
+            cur += offset;
+        }
+        return res;
+    }
 	
 
 	// =====================================================================================
