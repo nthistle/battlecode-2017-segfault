@@ -80,4 +80,14 @@ public final strictfp class CommunicationsHandler
     	//////System.out.println("Popping order for " + typeToNum(order) + ", now " + numOrders + " left");
     	return order;
     }
+    
+    //
+    // Brick Tree Setup Gardener Helpers
+    
+    public static void addTree(RobotController rc, float x, float y) throws GameActionException {
+    	int curNum = rc.readBroadcast(2000);
+    	// we're putting it in 2001+curNum
+    	
+    	rc.broadcast(2000, curNum + 1);
+    }
 }

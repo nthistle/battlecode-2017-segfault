@@ -10,3 +10,5 @@ Communications Slots
 152 	-	scaled number of trees (rad^2) pathscout has seen
 200-203	-	alpha archon self-assignment
 600+	-	robot type manufacture orders
+2000	-	number of trees
+2001+	-	packed tree coords

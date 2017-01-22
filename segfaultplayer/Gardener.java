@@ -6,6 +6,7 @@ import java.awt.*;
 
 public strictfp class Gardener extends RobotBase
 {
+	public static final float MAJOR_AXIS_CRAD = 76.5f; 
 	
 	public Gardener(RobotController rc, int id) throws GameActionException {
 		super(rc, id);
@@ -18,14 +19,10 @@ public strictfp class Gardener extends RobotBase
 		if(testOtherStuff) {
 			while(true) {
 				Direction dir = randomDirection();
-<<<<<<< Updated upstream
 				if(rc.canBuildRobot(RobotType.LUMBERJACK,dir))
 					rc.buildRobot(RobotType.LUMBERJACK,dir);
-=======
 				if(rc.canBuildRobot(RobotType.SCOUT,dir))
 					rc.buildRobot(RobotType.SCOUT,dir);
->>>>>>> Stashed changes
-
 				Clock.yield();
 			}
 		}
@@ -111,4 +108,6 @@ public strictfp class Gardener extends RobotBase
 			rc.water(myTrees[water].getID());
 		}
     }
+    
+    
 }
