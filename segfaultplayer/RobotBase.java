@@ -36,6 +36,15 @@ public strictfp abstract class RobotBase
 	public abstract void run() throws GameActionException; // implemented by subclass robots
 
 
+	public void checkVPWin() throws GameActionException {
+		int vpNeeded = GameConstants.VICTORY_POINTS_TO_WIN - rc.getTeamVictoryPoints();
+		if(vpNeeded*rc.getVictoryPointCost() < rc.getTeamBullets()) {
+			System.out.println("Hey guys I think we can win");
+			System.out.println("Watch this");
+			rc.donate(rc.getTeamBullets());
+		}
+	}
+	
 	//Srinidi: Add move with dodge.
 	//Parameter: Destination
 	//Moves 1 move without getting hit (dodge) towards destination as best as possible
@@ -52,7 +61,13 @@ public strictfp abstract class RobotBase
 	// =====================================================================================
 	//                              INSTANCE  HELPER  METHODS
 	// =====================================================================================
+
 	
+	public float getDist(float x1, float y1, float x2, float y2) {
+		float dx = x2-x1;
+		float dy = y2-y1;
+		return (float)Math.sqrt(dx*dx+dy*dy); 
+	}
 	
 	// NOTE: if we ever need to cut down bytecodes, they changed the senseNearby
 	// methods to return things in order of nearest, could just take the first one

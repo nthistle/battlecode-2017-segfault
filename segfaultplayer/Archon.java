@@ -24,8 +24,7 @@ public strictfp class Archon extends RobotBase
 
 		int t = 40;
 		while(true) {
-			
-			
+			checkVPWin();
 			//if(rc.getRoundNum() > 200)
 			//	rc.resign(); // temporary for testing to prevent 3000 long games
 			if(testOtherStuff) {
