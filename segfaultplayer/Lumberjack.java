@@ -40,7 +40,7 @@ public strictfp class Lumberjack extends RobotBase
 				}
 				else {
 					Direction toTree = rc.getLocation().directionTo(nearest.getLocation());
-					move(toTree);
+					moveWithoutDodging(toTree);
 //					if (rc.canMove(toTree)) { //replace with proper move lgoic
 //						rc.move(toTree);
 //					} else if (rc.canMove(toTree.rotateRightDegrees(30.0f))) { // try to move perpendicularly, to get around obstacles
@@ -76,7 +76,7 @@ public strictfp class Lumberjack extends RobotBase
 					curdirection -= 2 * (float) Math.PI;
 				}
 				Direction d = new Direction(curdirection);
-				move(d);
+				moveWithDodging(d);
 //				if (rc.canMove(d)) {
 //					rc.move(d);
 //				} else {

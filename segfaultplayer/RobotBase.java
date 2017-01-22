@@ -343,9 +343,30 @@ public strictfp abstract class RobotBase
 		return ret;
 	}
 
+	//Parameters: Intended movement direction, 15 degree intervals
+	//Moves robot as best possible
+	public void moveWithoutDodging(Direction goal) throws GameActionException {
+		if(rc.canMove(goal)) {
+			rc.move(goal);
+			return;
+		}
+		for(int i=1; i<13; i++) {
+			Direction copyRight = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateRightDegrees((float)(i*7.5));
+			Direction copyLeft = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateLeftDegrees((float)(i*7.5));
+			if(rc.canMove(copyRight)) {
+				rc.move(copyRight);
+				return;
+			}
+			else if(rc.canMove(copyLeft)) {
+				rc.move(copyLeft);
+				return;
+			}
+		}
+	}
+
 	//Parameters: Intended movement direction
 	//Moves robot as best possible
-	public void move(Direction goal) throws GameActionException {
+	public void moveWithDodging(Direction goal) throws GameActionException {
 		double[] scores = new double[9]; //41
 		Direction[] moves = new Direction[9]; //41
 
