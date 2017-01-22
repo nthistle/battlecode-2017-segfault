@@ -40,13 +40,14 @@ public strictfp class Lumberjack extends RobotBase
 				}
 				else {
 					Direction toTree = rc.getLocation().directionTo(nearest.getLocation());
-					if (rc.canMove(toTree)) { //replace with proper move lgoic
-						rc.move(toTree);
-					} else if (rc.canMove(toTree.rotateRightDegrees(30.0f))) { // try to move perpendicularly, to get around obstacles
-						rc.move(toTree.rotateRightDegrees(30.0f));
-					} else if (rc.canMove(toTree.rotateLeftDegrees(30.0f))) {
-						rc.move(toTree.rotateLeftDegrees(30.0f));
-					}
+					move(toTree);
+//					if (rc.canMove(toTree)) { //replace with proper move lgoic
+//						rc.move(toTree);
+//					} else if (rc.canMove(toTree.rotateRightDegrees(30.0f))) { // try to move perpendicularly, to get around obstacles
+//						rc.move(toTree.rotateRightDegrees(30.0f));
+//					} else if (rc.canMove(toTree.rotateLeftDegrees(30.0f))) {
+//						rc.move(toTree.rotateLeftDegrees(30.0f));
+//					}
 					if (rc.canChop(nearest.getID())) {
 						rc.chop(nearest.getID());
 						turnsSinceLastChop = 0;
@@ -75,12 +76,13 @@ public strictfp class Lumberjack extends RobotBase
 					curdirection -= 2 * (float) Math.PI;
 				}
 				Direction d = new Direction(curdirection);
-				if (rc.canMove(d)) {
-					rc.move(d);
-				} else {
-					curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
-					curdirection = (float) Math.random() * 2 * (float) Math.PI;
-				}
+				move(d);
+//				if (rc.canMove(d)) {
+//					rc.move(d);
+//				} else {
+//					curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
+//					curdirection = (float) Math.random() * 2 * (float) Math.PI;
+//				}
 				if(rc.canStrike()) {
 					strike();
 					turnsSinceLastChop++;
