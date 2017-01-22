@@ -19,13 +19,17 @@ public strictfp class Archon extends RobotBase
 	}
 	
 	public void run() throws GameActionException {
+		
+		if(alpha) {
+			MapLocation enemyArch = rc.getInitialArchonLocations(enemy)[0];
+			CommunicationsHandler.addTree(rc, enemyArch.x, enemyArch.y);
+		}
 
 		boolean testOtherStuff = true;
 
 		int t = 40;
 		while(true) {
-			
-			
+			checkVPWin();
 			//if(rc.getRoundNum() > 200)
 			//	rc.resign(); // temporary for testing to prevent 3000 long games
 			if(testOtherStuff) {

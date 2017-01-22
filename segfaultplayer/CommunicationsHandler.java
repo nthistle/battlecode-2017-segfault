@@ -80,4 +80,40 @@ public final strictfp class CommunicationsHandler
     	//////System.out.println("Popping order for " + typeToNum(order) + ", now " + numOrders + " left");
     	return order;
     }
+    
+    //
+    // Brick Tree Setup Gardener Helpers
+    
+    public static void addTree(RobotController rc, float x, float y) throws GameActionException {
+    	int curNum = rc.readBroadcast(2000);
+    	// we're putting it in 2001+curNum
+    	rc.broadcast(2001+curNum, pack(x,y));
+    	rc.broadcast(2000, curNum + 1);
+    }
+    
+    public static int getNumTrees(RobotController rc) throws GameActionException {
+    	return rc.readBroadcast(2000);
+    }
+    
+    public static float[][] getTreeLocations(RobotController rc) throws GameActionException {
+    	int curNum = rc.readBroadcast(2000);
+    	float[][] treeLocs = new float[curNum][2];
+    	for(int i = 0; i < curNum; i ++) {
+    		treeLocs[i] = unpack(rc.readBroadcast(2001+i));
+    	}
+    	return treeLocs;
+    }
+    
+    // technically pack and unpack are public, but they really could (should?) be private
+    
+    public static int pack(float x, float y) {
+		return (int)((((int)(x*10))/10.0*100000) + (int)(y*10));
+	}
+    
+	public static float[] unpack(int p) {
+		float[] ret = new float[2];
+		ret[0] = ((p / 10000) / 10.0f);
+		ret[1] = ((p % 10000) / 10.0f);
+		return ret;
+	}
 }
