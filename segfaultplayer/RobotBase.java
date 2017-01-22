@@ -346,8 +346,8 @@ public strictfp abstract class RobotBase
 	//Parameters: Intended movement direction
 	//Moves robot as best possible
 	public void move(Direction goal) throws GameActionException {
-		double[] scores = new double[41];
-		Direction[] moves = new Direction[41];
+		double[] scores = new double[9]; //41
+		Direction[] moves = new Direction[9]; //41
 
 		if(rc.canMove(goal))
 			scores[0] = dangerHeuristic(rc.getLocation().add(goal,rc.getType().strideRadius));
@@ -355,9 +355,9 @@ public strictfp abstract class RobotBase
 			scores[0] = Double.MAX_VALUE;
 		moves[0] = goal;
 
-		for(int i=1; i<21; i++) {
-			Direction copyRight = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateRightDegrees((float)(i*9));
-			Direction copyLeft = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateLeftDegrees((float)(i*9));
+		for(int i=1; i<5; i++) { //21
+			Direction copyRight = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateRightDegrees((float)(i*45)); //9
+			Direction copyLeft = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateLeftDegrees((float)(i*45));
 			moves[i*2-1] = copyRight;
 			if(rc.canMove(copyRight))
 				scores[i*2-1] = dangerHeuristic(rc.getLocation().add(copyRight,rc.getType().strideRadius));
