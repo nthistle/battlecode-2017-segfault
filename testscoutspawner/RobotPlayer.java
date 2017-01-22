@@ -1,5 +1,6 @@
 package testscoutspawner;
 import battlecode.common.*;
+import sun.reflect.generics.tree.Tree;
 
 public strictfp class RobotPlayer {
     static RobotController rc;
@@ -130,8 +131,8 @@ public strictfp class RobotPlayer {
                 Direction dir = randomDirection();
 
                 // Randomly attempt to build a soldier or lumberjack in this direction
-                if (rc.canBuildRobot(RobotType.SCOUT, dir)) {
-                    rc.buildRobot(RobotType.SCOUT, dir);
+                if (rc.canBuildRobot(RobotType.SOLDIER, dir)) {
+                    rc.buildRobot(RobotType.SOLDIER, dir);
                 }
 
                 // Move randomly
@@ -158,21 +159,28 @@ public strictfp class RobotPlayer {
             try {
                 MapLocation myLocation = rc.getLocation();
 
-                // See if there are any nearby enemy robots
-                RobotInfo[] robots = rc.senseNearbyRobots(-1, enemy);
+                MapLocation[] initArchLocs = rc.getInitialArchonLocations(enemy);
+                MapLocation closest = initArchLocs[0];
+                Direction dir = myLocation.directionTo(closest);
+                if(rc.canMove(dir))
+                    rc.move(dir);
+                else if(rc.canMove(dir.rotateRightDegrees(68.3f)))
+                    rc.move(dir.rotateRightDegrees(68.3f));
+                else if(rc.canMove(dir.rotateLeftDegrees(68.3f)))
+                    rc.move(dir.rotateLeftDegrees(68.3f));
+                else if(rc.canMove(dir.rotateRightDegrees(130.0f)))
+                    rc.move(dir.rotateRightDegrees(130.0f));
+                else if(rc.canMove(dir.rotateLeftDegrees(130.0f)))
+                    rc.move(dir.rotateLeftDegrees(130.0f));
 
-                // If there are some...
-                if (robots.length > 0) {
-                    // And we have enough bullets, and haven't attacked yet this turn...
-                    if (rc.canFireSingleShot()) {
-                        // ...Then fire a bullet in the direction of the enemy.
-                        rc.fireSingleShot(rc.getLocation().directionTo(robots[0].location));
-                    }
-                }
-
-                // Move randomly
-                tryMove(randomDirection());
-
+                RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius,rc.getTeam().opponent());
+                if(robots.length>0)
+                    if(rc.canFirePentadShot())
+                        rc.firePentadShot(rc.getLocation().directionTo(robots[0].getLocation()));
+                TreeInfo[] trees = rc.senseNearbyTrees(rc.getType().sensorRadius);
+                if(trees.length>0)
+                    if(rc.canFireSingleShot())
+                        rc.fireSingleShot(rc.getLocation().directionTo(trees[0].getLocation()));
                 // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
                 Clock.yield();
 

@@ -23,19 +23,26 @@ public strictfp class Gardener extends RobotBase
 			//	stepCircleRoutine();
 			Clock.yield();
 		}
-		// sorry for commenting, not going to make a bunch of booleans according to what we're testing
-		/*boolean testOtherStuff = true;
 
-		if(testOtherStuff) {
-			while(true) {
-				Direction dir = randomDirection();
-				if(rc.canBuildRobot(RobotType.LUMBERJACK,dir))
-					rc.buildRobot(RobotType.LUMBERJACK,dir);
-				if(rc.canBuildRobot(RobotType.SCOUT,dir))
-					rc.buildRobot(RobotType.SCOUT,dir);
-				Clock.yield();
-			}
-		}
+//		TESTING MEME
+//		while(true) {
+//			TreeInfo[] trees = rc.senseNearbyTrees(2.0f,rc.getTeam());
+//			Direction dir = randomDirection();
+//			if(rc.canBuildRobot(RobotType.TANK,dir))
+//				rc.buildRobot(RobotType.TANK,dir);
+//			else if(rc.canPlantTree(dir) && trees.length<2)
+//				rc.plantTree(dir);
+//			dir = randomDirection();
+//			TreeInfo tree = null;
+//			for(int i=0; i<trees.length; i++)
+//				if(tree==null || tree.getHealth()>trees[i].getHealth())
+//					tree = trees[i];
+//			if(tree!=null && rc.canWater(tree.getID()))
+//				rc.water(tree.getID());
+//			Clock.yield();
+//		}
+
+		/* OLD MEME
 		else {
 			RobotInfo nearestArchon = getNearest(RobotType.ARCHON, ally);
 			Direction dir = nearestArchon.getLocation().directionTo(rc.getLocation());
