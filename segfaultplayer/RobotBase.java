@@ -152,11 +152,6 @@ public strictfp abstract class RobotBase
 		}
 		return nearest;
 	}
-	
-	
-	// TODO: (big one)
-	// rework checking if a shot is clear to instead assess amount of collateral damage (cost)
-	// (and possibly also add one to check the possible benefit)
 
 	public boolean isSingleShotClearScout(Direction tDir) throws GameActionException {
 		return isSingleShotClearScout(tDir, false);
@@ -347,8 +342,47 @@ public strictfp abstract class RobotBase
 			ret = true;
 		return ret;
 	}
+
+	//Parameters: Intended movement direction
+	//Moves robot as best possible
+	public void move(Direction goal) throws GameActionException {
+		double[] scores = new double[359];
+		Direction[] moves = new Direction[359];
+
+		if(rc.canMove(goal))
+			scores[0] = dangerHeuristic(rc.getLocation().add(goal,rc.getType().strideRadius));
+		else
+			scores[0] = Double.MAX_VALUE;
+		moves[0] = goal;
+
+		for(int i=1; i<180; i++) {
+			Direction copyRight = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateRightDegrees((float)i);
+			Direction copyLeft = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateLeftDegrees((float)i);
+			moves[i*2-1] = copyRight;
+			if(rc.canMove(copyRight))
+				scores[i*2-1] = dangerHeuristic(rc.getLocation().add(copyRight,rc.getType().strideRadius));
+			else
+				scores[i*2-1] = Double.MAX_VALUE;
+			moves[i*2] = copyLeft;
+			if(rc.canMove(copyLeft))
+				scores[i*2] = dangerHeuristic(rc.getLocation().add(copyLeft,rc.getType().strideRadius));
+			else
+				scores[i*2] =  Double.MAX_VALUE;
+		}
+		int ideal = 0;
+		for(int i=0; i<scores.length; i++)
+			if(scores[ideal]>scores[i])
+				ideal = i;
+		if(scores[ideal] != Double.MAX_VALUE)
+			if(rc.canMove(moves[ideal]))
+				rc.move(moves[ideal]);
+	}
+
+	public float degreesToRadians(double angle) {
+		return (float)(angle/180.0*Math.PI);
+	}
 	
-	    /**
+	/**
      * Computes an approx sense of danger for a given location based on speed and 
      * power of nearby bullets
      *
