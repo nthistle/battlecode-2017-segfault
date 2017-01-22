@@ -56,27 +56,37 @@ public strictfp class Soldier extends RobotBase
 		}
 	}
 
-	public void move(Direction goal) {
-		double[] scores = new double[360];
-		double degrees = goal.getAngleDegrees();
+	public void move(Direction goal) throws GameActionException {
+		double[] scores = new double[359];
+		Direction[] moves = new Direction[359];
+
 		if(rc.canMove(goal))
 			scores[0] = predict(rc.getLocation().add(goal,rc.getType().strideRadius));
 		else
-			scores[0] = 999999.0;
-		for(int i=0; i<359; i++) {
-			if(i%2==1)
-				degrees*=-1;
+			scores[0] = Double.MAX_VALUE;
+		moves[0] = goal;
+
+		for(int i=1; i<180; i++) {
+			Direction copyRight = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateRightDegrees((float)i);
+			Direction copyLeft = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateLeftDegrees((float)i);
+			moves[i*2-1] = copyRight;
+			if(rc.canMove(copyRight))
+				scores[i*2-1] = predict(rc.getLocation().add(copyRight,rc.getType().strideRadius));
 			else
-				degrees=Math.abs(degrees)+1;
-			if(rc.canMove(new Direction(degreesToRadians(degrees))))
-				scores[i] = predict(rc.getLocation().add(new Direction(degreesToRadians(degrees)),rc.getType().strideRadius));
+				scores[i*2-1] = Double.MAX_VALUE;
+			moves[i*2] = copyLeft;
+			if(rc.canMove(copyLeft))
+				scores[i*2] = predict(rc.getLocation().add(copyLeft,rc.getType().strideRadius));
 			else
-				scores[i] = -1.0;
+				scores[i*2] =  Double.MAX_VALUE;
 		}
 		int ideal = 0;
 		for(int i=0; i<scores.length; i++)
 			if(scores[ideal]>scores[i])
 				ideal = i;
+		if(scores[ideal] != Double.MAX_VALUE)
+			if(rc.canMove(moves[ideal]))
+				rc.move(moves[ideal]);
 	}
 
 	public float degreesToRadians(double angle) {
