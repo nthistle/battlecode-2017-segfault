@@ -9,7 +9,7 @@ public strictfp abstract class RobotBase
 	protected final RobotController rc;
 	private int myID;
 	private static final int randSeed = 10383;
-	private static Random rand = new Random(randSeed);
+	public static Random rand = new Random(randSeed);
 	public final Team enemy;
 	public final Team ally;
 	MapLocation[] enemyArchons;
@@ -63,6 +63,20 @@ public strictfp abstract class RobotBase
 	// =====================================================================================
 
 	
+	public void setIndicatorPlus(MapLocation ml, int r, int g, int b) throws GameActionException {
+		rc.setIndicatorLine(ml.add(new Direction(0),1.0f),
+				ml.add(new Direction((float)Math.PI),1.0f), r, g, b);
+		rc.setIndicatorLine(ml.add(new Direction((float)Math.PI/2.0f),1.0f),
+				ml.add(new Direction(3.0f*(float)Math.PI/2.0f),1.0f), r, g, b);
+	}
+	
+	public void setIndicatorX(MapLocation ml, int r, int g, int b) throws GameActionException {
+		rc.setIndicatorLine(ml.add(new Direction((float)Math.PI/4.0f),1.0f),
+				ml.add(new Direction(5.0f*(float)Math.PI/4.0f),1.0f), r, g, b);
+		rc.setIndicatorLine(ml.add(new Direction(3.0f*(float)Math.PI/4.0f),1.0f),
+				ml.add(new Direction(7.0f*(float)Math.PI/4.0f),1.0f), r, g, b);
+	}
+	
 	public float getDist(float x1, float y1, float x2, float y2) {
 		float dx = x2-x1;
 		float dy = y2-y1;
@@ -72,6 +86,10 @@ public strictfp abstract class RobotBase
 	
 	public boolean moveTowards(MapLocation cur, MapLocation goal) throws GameActionException {
 		return moveTowards(cur, goal, (float)Math.PI/16.0f, 8);
+	}
+	
+	public Direction moveInDir(Direction ideal) throws GameActionException {
+		return moveInDir(ideal, (float)Math.PI/16.0f, 8);
 	}
 	
 	/**
@@ -91,22 +109,26 @@ public strictfp abstract class RobotBase
 			rc.move(ideal);
 			return true;
 		} else {
-			Direction dir;
-			for(int i = 1; i < max; i ++) {
-				dir = ideal.rotateRightRads(offset * i);
-				if(rc.canMove(dir)) {
-					rc.move(dir);
-					return true;
-				}
-				dir = ideal.rotateLeftRads(offset * i);
-				if(rc.canMove(dir)) {
-					rc.move(dir);
-					return true;
-				}
-			}
-			return false;
-			// unable to move
+			return moveInDir(ideal, offset, max) != null;
 		}
+	}
+	
+	public Direction moveInDir(Direction ideal, float offset, int max) throws GameActionException {
+		Direction dir;
+		for(int i = 1; i < max; i ++) {
+			dir = ideal.rotateRightRads(offset * i);
+			if(rc.canMove(dir)) {
+				rc.move(dir);
+				return dir;
+			}
+			dir = ideal.rotateLeftRads(offset * i);
+			if(rc.canMove(dir)) {
+				rc.move(dir);
+				return dir;
+			}
+		}
+		return null;
+		// unable to move
 	}
 	
 	// NOTE: if we ever need to cut down bytecodes, they changed the senseNearby
@@ -333,6 +355,24 @@ public strictfp abstract class RobotBase
 	// =====================================================================================
 	
 	// consider moving to a static class later
+	
+	public static Direction averageDirection(Direction a, Direction b) {
+		float adeg = a.radians;
+		float bdeg = b.radians;
+		if(bdeg > adeg) {
+			float tmp = adeg;
+			adeg = bdeg;
+			bdeg = tmp;
+		}
+		if((adeg - bdeg) > (float)Math.PI) {
+			bdeg += (float)Math.PI;
+		}
+		// just return the average
+		float avg = (adeg + bdeg)/2.0f;
+		if(avg > 2.0f*(float)Math.PI)
+			avg -= 2.0f*(float)Math.PI;
+		return new Direction(avg);
+	}
 	
     public static Direction[] getDirections(Direction startDir, float theta) throws GameActionException {
     	float initialtheta = theta;

@@ -7,15 +7,20 @@ import java.awt.*;
 public strictfp class Gardener extends RobotBase
 {
 	public static final float MAJOR_AXIS_CRAD = 76.5f; // eventually int, or do millirads 
-	public static final float SPACING_DISTANCE = 3.5f;
+	public static final float SPACING_DISTANCE = 4.5f;
 	
 	public Gardener(RobotController rc, int id) throws GameActionException {
 		super(rc, id);
 	}
 	
 	public void run() throws GameActionException {
+		addToGrid();
+		addToGrid();
 		while(true) {
-			addToGrid();
+			//if(rc.getRoundNum() % 50 == 0)
+				addToGrid();
+			//else
+			//	stepCircleRoutine();
 			Clock.yield();
 		}
 		// sorry for commenting, not going to make a bunch of booleans according to what we're testing
@@ -59,9 +64,10 @@ public strictfp class Gardener extends RobotBase
 			float[] current = trees[0];
 			MapLocation myLoc = rc.getLocation();
 			
-			// color where we think there are trees blue, for visualization purposes
+			// draw blue + where we think are trees, for visualization purposes
 			for(float[] t : trees) {
-				rc.setIndicatorDot(new MapLocation(t[0],t[1]), 0, 0, 255);
+				//setIndicatorPlus(new MapLocation(t[0],t[1]), 0, 0, 255);
+				//rc.setIndicatorDot(new MapLocation(t[0],t[1]), 0, 0, 255);
 			}
 			
 			for(int i = 1; i < trees.length; i ++) {
@@ -73,36 +79,56 @@ public strictfp class Gardener extends RobotBase
 			rc.setIndicatorDot(new MapLocation(current[0],current[1]), 255, 0, 0);
 			// red means the nearest planted tree, now we extrapolate closer
 			MapLocation[] neighbors;
-			MapLocation best = null;
-			System.out.println("Current dist is " + getDist(current[0],current[1],myLoc.x,myLoc.y));
-			while(getDist(current[0],current[1],myLoc.x,myLoc.y) < withinDist) {
-				System.out.println(" -> Current dist is " + getDist(current[0],current[1],myLoc.x,myLoc.y));
+			MapLocation best;
+			
+
+			neighbors = getNeighborTreeLocs(new MapLocation(current[0],current[1]));
+			// this is basically findClosest here, but with a stipulation that it has to
+			// satisfy cellHelperIsValid, which checks to make sure there's not already a tree
+			// there (more efficient than going through float[][] trees), and that it's on
+			// the map (for now)
+			best = null;
+			for(int i = 0; i < neighbors.length; i ++) {
+				if(best == null) {
+					if(cellHelperIsValid(neighbors[i]))
+						best = neighbors[i];
+				}
+				else if(neighbors[i].distanceSquaredTo(myLoc) < best.distanceSquaredTo(myLoc)) {
+					if(cellHelperIsValid(neighbors[i]))
+						best = neighbors[i];
+				}
+			}
+			
+			if(best == null) {
+				best = new MapLocation(current[0],current[1]);
+			}
+			
+			current[0] = best.x;
+			current[1] = best.y;
+
+			//rc.setIndicatorDot(best, 0, 255, 0); // green means extrapolation point
+			
+			//System.out.println("Current dist is " + getDist(current[0],current[1],myLoc.x,myLoc.y));
+			while(getDist(current[0],current[1],myLoc.x,myLoc.y) > withinDist) {
+				//System.out.println(" -> Current dist is " + getDist(current[0],current[1],myLoc.x,myLoc.y));
 				
 				
 				neighbors = getNeighborTreeLocs(new MapLocation(current[0],current[1]));
 				
-				
+
 				// this is basically findClosest here, but with a stipulation that it has to
-				// be on the map if we can see it
+				// satisfy cellHelperIsValid, which checks to make sure there's not already a tree
+				// there (more efficient than going through float[][] trees), and that it's on
+				// the map (for now)
 				best = null;
 				for(int i = 0; i < neighbors.length; i ++) {
 					if(best == null) {
-						if(neighbors[i].distanceTo(myLoc) < rc.getType().sensorRadius) {
-							if(rc.onTheMap(neighbors[i])) {
-								best = neighbors[i];
-							}
-						} else {
+						if(cellHelperIsValid(neighbors[i]))
 							best = neighbors[i];
-						}
 					}
 					else if(neighbors[i].distanceSquaredTo(myLoc) < best.distanceSquaredTo(myLoc)) {
-						if(neighbors[i].distanceTo(myLoc) < rc.getType().sensorRadius) {
-							if(rc.onTheMap(neighbors[i])) {
-								best = neighbors[i];
-							}
-						} else {
+						if(cellHelperIsValid(neighbors[i]))
 							best = neighbors[i];
-						}
 					}
 				}
 
@@ -113,19 +139,29 @@ public strictfp class Gardener extends RobotBase
 				current[0] = best.x;
 				current[1] = best.y;
 			}
+
 			if(best == null) {
 				best = new MapLocation(current[0],current[1]);
 			}
+
+
+			rc.setIndicatorLine(myLoc, best, 255, 255, 0);
 			
 			// alright, now let's move towards this point, capped at 20 turns of movement (give up)
 			for(int mt = 0; mt < 20 && myLoc.distanceTo(best) > 2.5f; mt ++) {
-				rc.setIndicatorDot(best, 0, 0, 0);
+				//rc.setIndicatorDot(best, 0, 0, 0);
 				myLoc = rc.getLocation();
+				rc.setIndicatorLine(myLoc, best, 255, 255, 0);
 				if(!moveTowards(myLoc, best))
 					moveTowards(best, myLoc); // attempt to reverse 1 step
+				waterLowest();
 				Clock.yield();
 			}
+			
+			//setIndicatorX(best, 0, 0, 0);
+			
 			myLoc = rc.getLocation();
+			
 			// hopefully we're within 2.5 units of best now
 			// we want to be exactly 2.0 units away
 			if(myLoc.distanceTo(best) > 2.0f) {
@@ -160,20 +196,36 @@ public strictfp class Gardener extends RobotBase
 		}
 	}
 	
+	private boolean cellHelperIsValid(MapLocation ml) throws GameActionException {
+		MapLocation myLoc = rc.getLocation();
+		if(ml.distanceTo(myLoc) < rc.getType().sensorRadius) {
+			return rc.onTheMap(ml) && rc.senseNearbyTrees(ml,1.0f,null).length == 0 && rc.senseNearbyRobots(ml, 1.0f, null).length == 0;
+		} else {
+			return true;
+		}
+	}
+	
 	
 	public MapLocation[] getNeighborTreeLocs(MapLocation m) {
+		
+		Direction[] dirs = new Direction[4];
+		dirs[0] = new Direction(MAJOR_AXIS_CRAD/100.0f);
+		dirs[1] = new Direction(((float)Math.PI/2.0f) + MAJOR_AXIS_CRAD/100.0f);
+		dirs[2] = new Direction(((float)Math.PI) + MAJOR_AXIS_CRAD/100.0f);
+		dirs[3] = new Direction((3.0f*(float)Math.PI/2.0f) + MAJOR_AXIS_CRAD/100.0f);
+		
 		MapLocation[] neighbors = new MapLocation[8];
 		// 1 off neighbors
-		neighbors[0] = m.add(new Direction(1*MAJOR_AXIS_CRAD/100.0f), SPACING_DISTANCE);
-		neighbors[1] = m.add(new Direction(2*MAJOR_AXIS_CRAD/100.0f), SPACING_DISTANCE);
-		neighbors[2] = m.add(new Direction(3*MAJOR_AXIS_CRAD/100.0f), SPACING_DISTANCE);
-		neighbors[3] = m.add(new Direction(4*MAJOR_AXIS_CRAD/100.0f), SPACING_DISTANCE);
+		neighbors[0] = m.add(dirs[0], SPACING_DISTANCE);
+		neighbors[1] = m.add(dirs[1], SPACING_DISTANCE);
+		neighbors[2] = m.add(dirs[2], SPACING_DISTANCE);
+		neighbors[3] = m.add(dirs[3], SPACING_DISTANCE);
 
 		// in-between neighbors (SPACING_DISTANCE * sqrt(2) away)
-		neighbors[4] = neighbors[0].add(new Direction(2*MAJOR_AXIS_CRAD/100.0f), SPACING_DISTANCE);
-		neighbors[5] = neighbors[1].add(new Direction(3*MAJOR_AXIS_CRAD/100.0f), SPACING_DISTANCE);
-		neighbors[6] = neighbors[2].add(new Direction(4*MAJOR_AXIS_CRAD/100.0f), SPACING_DISTANCE);
-		neighbors[7] = neighbors[3].add(new Direction(1*MAJOR_AXIS_CRAD/100.0f), SPACING_DISTANCE);
+		neighbors[4] = neighbors[0].add(dirs[1], SPACING_DISTANCE);
+		neighbors[5] = neighbors[1].add(dirs[2], SPACING_DISTANCE);
+		neighbors[6] = neighbors[2].add(dirs[3], SPACING_DISTANCE);
+		neighbors[7] = neighbors[3].add(dirs[0], SPACING_DISTANCE);
 		
 		return neighbors;
 	}

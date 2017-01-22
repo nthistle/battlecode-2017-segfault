@@ -12,3 +12,4 @@ Communications Slots
 600+	-	robot type manufacture orders
 2000	-	number of trees
 2001+	-	packed tree coords
+2201+	-	last round a tree was watered 
