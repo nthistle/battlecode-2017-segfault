@@ -24,16 +24,8 @@ public strictfp class Gardener extends RobotBase
 			Clock.yield();
 		}
 
-		boolean testOtherStuff = true;
 
-		if(testOtherStuff) {
-			while(true) {
-				Direction dir = randomDirection();
-				if(rc.canBuildRobot(RobotType.SCOUT,dir))
-					rc.buildRobot(RobotType.SCOUT,dir);
-				if(rc.canBuildRobot(RobotType.SCOUT,dir))
-					rc.buildRobot(RobotType.SCOUT,dir);
-//		TESTING MEME
+//		TESTING CODE: Comment in for testing stuff
 //		while(true) {
 //			TreeInfo[] trees = rc.senseNearbyTrees(2.0f,rc.getTeam());
 //			Direction dir = randomDirection();

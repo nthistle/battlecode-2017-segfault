@@ -55,4 +55,35 @@ public strictfp class Soldier extends RobotBase
 				rc.fireSingleShot(tDir);
 		}
 	}
+
+	public void move(Direction goal) {
+		double[] scores = new double[360];
+		double degrees = goal.getAngleDegrees();
+		if(rc.canMove(goal))
+			scores[0] = predict(rc.getLocation().add(goal,rc.getType().strideRadius));
+		else
+			scores[0] = 999999.0;
+		for(int i=0; i<359; i++) {
+			if(i%2==1)
+				degrees*=-1;
+			else
+				degrees=Math.abs(degrees)+1;
+			if(rc.canMove(new Direction(degreesToRadians(degrees))))
+				scores[i] = predict(rc.getLocation().add(new Direction(degreesToRadians(degrees)),rc.getType().strideRadius));
+			else
+				scores[i] = -1.0;
+		}
+		int ideal = 0;
+		for(int i=0; i<scores.length; i++)
+			if(scores[ideal]>scores[i])
+				ideal = i;
+	}
+
+	public float degreesToRadians(double angle) {
+		return (float)(angle/180.0*Math.PI);
+	}
+
+	public double predict(MapLocation ml) {
+		return -1.0;
+	}
 }
