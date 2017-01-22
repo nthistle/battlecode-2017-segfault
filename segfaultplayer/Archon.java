@@ -19,6 +19,11 @@ public strictfp class Archon extends RobotBase
 	}
 	
 	public void run() throws GameActionException {
+		
+		if(alpha) {
+			MapLocation enemyArch = rc.getInitialArchonLocations(enemy)[0];
+			CommunicationsHandler.addTree(rc, enemyArch.x, enemyArch.y);
+		}
 
 		boolean testOtherStuff = true;
 

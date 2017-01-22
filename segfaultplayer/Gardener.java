@@ -14,8 +14,12 @@ public strictfp class Gardener extends RobotBase
 	}
 	
 	public void run() throws GameActionException {
-
-		boolean testOtherStuff = true;
+		while(true) {
+			addToGrid();
+			Clock.yield();
+		}
+		// sorry for commenting, not going to make a bunch of booleans according to what we're testing
+		/*boolean testOtherStuff = true;
 
 		if(testOtherStuff) {
 			while(true) {
@@ -40,18 +44,26 @@ public strictfp class Gardener extends RobotBase
 			}
 			makeHexPod();
 			lifetimeWaterLowest();
-		}
+		}*/
 	}
 	
 	public void addToGrid() throws GameActionException {
 		int ntrees = CommunicationsHandler.getNumTrees(rc);
 		if(ntrees == 0) {
 			// this is a whole nother case bud
+			return; // TODO: make it plant the initial tree
+			
 		} else {
 			float[][] trees = CommunicationsHandler.getTreeLocations(rc);
 			float withinDist = SPACING_DISTANCE * (float)Math.sqrt(2.0);
 			float[] current = trees[0];
 			MapLocation myLoc = rc.getLocation();
+			
+			// color where we think there are trees blue, for visualization purposes
+			for(float[] t : trees) {
+				rc.setIndicatorDot(new MapLocation(t[0],t[1]), 0, 0, 255);
+			}
+			
 			for(int i = 1; i < trees.length; i ++) {
 				if(getDist(trees[i][0], trees[i][1], myLoc.x, myLoc.y) <
 						getDist(current[0], current[1], myLoc.x, myLoc.y)) {
@@ -59,6 +71,92 @@ public strictfp class Gardener extends RobotBase
 				}
 			}
 			rc.setIndicatorDot(new MapLocation(current[0],current[1]), 255, 0, 0);
+			// red means the nearest planted tree, now we extrapolate closer
+			MapLocation[] neighbors;
+			MapLocation best = null;
+			System.out.println("Current dist is " + getDist(current[0],current[1],myLoc.x,myLoc.y));
+			while(getDist(current[0],current[1],myLoc.x,myLoc.y) < withinDist) {
+				System.out.println(" -> Current dist is " + getDist(current[0],current[1],myLoc.x,myLoc.y));
+				
+				
+				neighbors = getNeighborTreeLocs(new MapLocation(current[0],current[1]));
+				
+				
+				// this is basically findClosest here, but with a stipulation that it has to
+				// be on the map if we can see it
+				best = null;
+				for(int i = 0; i < neighbors.length; i ++) {
+					if(best == null) {
+						if(neighbors[i].distanceTo(myLoc) < rc.getType().sensorRadius) {
+							if(rc.onTheMap(neighbors[i])) {
+								best = neighbors[i];
+							}
+						} else {
+							best = neighbors[i];
+						}
+					}
+					else if(neighbors[i].distanceSquaredTo(myLoc) < best.distanceSquaredTo(myLoc)) {
+						if(neighbors[i].distanceTo(myLoc) < rc.getType().sensorRadius) {
+							if(rc.onTheMap(neighbors[i])) {
+								best = neighbors[i];
+							}
+						} else {
+							best = neighbors[i];
+						}
+					}
+				}
+
+				//best = RobotBase.findClosest(myLoc, neighbors);
+				
+				
+				rc.setIndicatorDot(best, 0, 255, 0); // green means extrapolation point
+				current[0] = best.x;
+				current[1] = best.y;
+			}
+			if(best == null) {
+				best = new MapLocation(current[0],current[1]);
+			}
+			
+			// alright, now let's move towards this point, capped at 20 turns of movement (give up)
+			for(int mt = 0; mt < 20 && myLoc.distanceTo(best) > 2.5f; mt ++) {
+				rc.setIndicatorDot(best, 0, 0, 0);
+				myLoc = rc.getLocation();
+				if(!moveTowards(myLoc, best))
+					moveTowards(best, myLoc); // attempt to reverse 1 step
+				Clock.yield();
+			}
+			myLoc = rc.getLocation();
+			// hopefully we're within 2.5 units of best now
+			// we want to be exactly 2.0 units away
+			if(myLoc.distanceTo(best) > 2.0f) {
+				if(rc.canMove(myLoc.directionTo(best), myLoc.distanceTo(best)-2.0f))
+					rc.move(myLoc.directionTo(best), myLoc.distanceTo(best)-2.0f);
+			}
+			Clock.yield();
+			// hopefully now we're exactly 2.0 units away
+			myLoc = rc.getLocation();
+			if(myLoc.distanceTo(best) < 2.2f) { // 0.2 is tolerable
+				for(int mt = 0; mt < 30 && rc.getTeamBullets() < 50.0f; mt ++) { // wait up to 30 rounds
+					waterLowest();
+					Clock.yield();
+					// waterLowest might not hit anything, but better than completely stalling
+				}
+				myLoc = rc.getLocation();
+				if(rc.getTeamBullets() >= 50.0f) {
+					// whoopdiedoo, build
+					if(rc.canPlantTree(myLoc.directionTo(best))) {
+						rc.plantTree(myLoc.directionTo(best));
+						System.out.println("Building a tree, extending stuff");
+						// even though 0.2 is fine, we don't want it to propagate, so we're broadcasting
+						// the ideal coords of this tree
+						CommunicationsHandler.addTree(rc, best.x, best.y);
+					} else {
+						// nice waste of time, TODO: blacklist this point or something,
+						// so we don't try to build here again (for a while?)
+					}
+				} else return;
+			}
+			
 		}
 	}
 	

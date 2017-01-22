@@ -69,6 +69,46 @@ public strictfp abstract class RobotBase
 		return (float)Math.sqrt(dx*dx+dy*dy); 
 	}
 	
+	
+	public boolean moveTowards(MapLocation cur, MapLocation goal) throws GameActionException {
+		return moveTowards(cur, goal, (float)Math.PI/16.0f, 8);
+	}
+	
+	/**
+	 * Trys to move from the current location towards the given goal location (just used for direction)
+	 * while slowly tweaking angle in either direction, according to offset and max
+	 * 
+	 * @param cur current location you're at
+	 * @param goal goal location you want to get to
+	 * @param offset the increment to attempt directions in, maximum offset used is offset*max
+	 * @param max maximum number of "offset"s away you are willing to try to move
+	 * @return whether or not this was successfully able to move
+	 * @throws GameActionException
+	 */
+	public boolean moveTowards(MapLocation cur, MapLocation goal, float offset, int max) throws GameActionException {
+		Direction ideal = cur.directionTo(goal);
+		if(rc.canMove(ideal)) {
+			rc.move(ideal);
+			return true;
+		} else {
+			Direction dir;
+			for(int i = 1; i < max; i ++) {
+				dir = ideal.rotateRightRads(offset * i);
+				if(rc.canMove(dir)) {
+					rc.move(dir);
+					return true;
+				}
+				dir = ideal.rotateLeftRads(offset * i);
+				if(rc.canMove(dir)) {
+					rc.move(dir);
+					return true;
+				}
+			}
+			return false;
+			// unable to move
+		}
+	}
+	
 	// NOTE: if we ever need to cut down bytecodes, they changed the senseNearby
 	// methods to return things in order of nearest, could just take the first one
 	// that matches appropriate type
@@ -311,7 +351,7 @@ public strictfp abstract class RobotBase
 			return null;
 		MapLocation closest = poss[0];
 		for(int i = 1; i < poss.length; i ++) {
-			if(poss[i].distanceSquaredTo(to) < closest.distanceSquaredTo(closest))
+			if(poss[i].distanceSquaredTo(to) < closest.distanceSquaredTo(to))
 				closest = poss[i];
 		}
 		return closest;
