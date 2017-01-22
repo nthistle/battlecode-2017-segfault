@@ -117,34 +117,21 @@ public strictfp class RobotPlayer {
         System.out.println("I'm a gardener!");
 
         // The code you want your robot to perform every round should be in this loop
-        while (true) {
-
-            // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
-            try {
-
-                // Listen for home archon's location
-                int xPos = rc.readBroadcast(0);
-                int yPos = rc.readBroadcast(1);
-                MapLocation archonLoc = new MapLocation(xPos,yPos);
-
-                // Generate a random direction
-                Direction dir = randomDirection();
-
-                // Randomly attempt to build a soldier or lumberjack in this direction
-                if (rc.canBuildRobot(RobotType.SOLDIER, dir)) {
-                    rc.buildRobot(RobotType.SOLDIER, dir);
-                }
-
-                // Move randomly
-                tryMove(randomDirection());
-
-                // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
-                Clock.yield();
-
-            } catch (Exception e) {
-                System.out.println("Gardener Exception");
-                e.printStackTrace();
-            }
+        while(true) {
+            TreeInfo[] trees = rc.senseNearbyTrees(2.0f,rc.getTeam());
+            Direction dir = randomDirection();
+            if(rc.canBuildRobot(RobotType.SOLDIER,dir)) // was tank
+                rc.buildRobot(RobotType.SOLDIER,dir);
+            else if(rc.canPlantTree(dir) && trees.length<2)
+                rc.plantTree(dir);
+            dir = randomDirection();
+            TreeInfo tree = null;
+            for(int i=0; i<trees.length; i++)
+                if(tree==null || tree.getHealth()>trees[i].getHealth())
+                    tree = trees[i];
+            if(tree!=null && rc.canWater(tree.getID()))
+                rc.water(tree.getID());
+            Clock.yield();
         }
     }
 
