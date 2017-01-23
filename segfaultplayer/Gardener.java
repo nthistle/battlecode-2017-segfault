@@ -16,6 +16,35 @@ public strictfp class Gardener extends RobotBase
 	public void run() throws GameActionException {
 		
 		
+		/*
+		// MAIN GARDENER CODE
+		int myBuildCooldown = 0;
+		Order nextOrder;
+		while(true) {
+			// check if we can build something and if we can 
+			if(myBuildCooldown <= 0) {
+				nextOrder = CommunicationsHandler.peekOrder(rc);
+				if(nextOrder.type == OrderType.TREE) {
+					CommunicationsHandler.popOrder(rc);
+					if(!addToGrid()) System.out.println("Problem adding a tree to grid, although received order");
+					myBuildCooldown = 11;
+				} else {
+					if(rc.getTeamBullets() > nextOrder.rt.bulletCost) {
+						Direction dir = randomDirection();
+						for(int attempt = 0; attempt < 20 && !rc.canBuildRobot(nextOrder.rt, dir); attempt ++)
+							dir = randomDirection();
+						if(rc.canBuildRobot(nextOrder.rt, dir)) {
+							CommunicationsHandler.popOrder(rc);
+							rc.buildRobot(nextOrder.rt, dir);
+							myBuildCooldown = 11;
+						}
+					}
+				}
+			} else
+				myBuildCooldown --;
+			// some kind of watering protocol here
+		}
+		*/
 		
 		//addToGrid();
 		//addToGrid();
