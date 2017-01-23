@@ -1,7 +1,6 @@
 package segfaultplayer;
 import battlecode.common.*;
 
-
 public strictfp class Tank extends RobotBase
 {
 	
@@ -27,8 +26,20 @@ public strictfp class Tank extends RobotBase
 	//Does fire action
 	public void shoot() throws GameActionException {
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
-		if(robots.length==0)
+			TreeInfo[] trees = rc.senseNearbyTrees(rc.getType().sensorRadius);
+		if(robots.length==0) {
+			if(trees.length>0 && trees[0].getTeam()!=ally) {
+				Direction tDir = rc.getLocation().directionTo(trees[0].getLocation());
+				if (rc.canFirePentadShot()) {
+					rc.firePentadShot(tDir);
+				}
+				else if (rc.canFireTriadShot())
+					rc.fireTriadShot(tDir);
+				else if (rc.canFireSingleShot())
+					rc.fireSingleShot(tDir);
+			}
 			return;
+		}
 		RobotType[] priority = {RobotType.ARCHON, RobotType.SCOUT, RobotType.TANK, RobotType.SOLDIER, RobotType.GARDENER, RobotType.LUMBERJACK};
 		RobotInfo target = null;
 		int z = 0;
