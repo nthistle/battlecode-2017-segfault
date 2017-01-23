@@ -55,6 +55,7 @@ public final strictfp class CommunicationsHandler
     	if(o.type == OrderType.TREE) {
     		// queue a tree order
     		rc.broadcast(601 + orderSlot, TREE_VALUE);
+    		rc.broadcast(600, orderSlot + 1);
     	} else {
     		// queue a robot order
     		int val = RobotBase.typeToNum(o.rt);

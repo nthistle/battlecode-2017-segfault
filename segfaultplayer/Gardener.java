@@ -2,6 +2,8 @@ package segfaultplayer;
 import battlecode.common.*;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 
 public strictfp class Gardener extends RobotBase
@@ -16,14 +18,16 @@ public strictfp class Gardener extends RobotBase
 	public void run() throws GameActionException {
 		
 		
-		/*
+		
 		// MAIN GARDENER CODE
 		int myBuildCooldown = 0;
 		Order nextOrder;
 		while(true) {
+			checkVPWin(); // boilerplate
 			// check if we can build something and if we can 
-			if(myBuildCooldown <= 0) {
-				nextOrder = CommunicationsHandler.peekOrder(rc);
+			nextOrder = CommunicationsHandler.peekOrder(rc);
+			if(myBuildCooldown <= 0 && nextOrder != null) {
+				System.out.println("Trying order!");
 				if(nextOrder.type == OrderType.TREE) {
 					CommunicationsHandler.popOrder(rc);
 					if(!addToGrid()) System.out.println("Problem adding a tree to grid, although received order");
@@ -43,8 +47,10 @@ public strictfp class Gardener extends RobotBase
 			} else
 				myBuildCooldown --;
 			// some kind of watering protocol here
+			gridStepFunction();
+			Clock.yield();
 		}
-		*/
+		
 		
 		//addToGrid();
 		//addToGrid();
@@ -58,28 +64,28 @@ public strictfp class Gardener extends RobotBase
 		
 
 
-		//TESTING CODE: Comment in for testing stuff
-		int ctr = 0;
-		while(true) {
-			TreeInfo[] trees = rc.senseNearbyTrees(2.0f,rc.getTeam());
-			Direction dir = randomDirection();
-			if(rc.canBuildRobot(RobotType.LUMBERJACK,dir)&&ctr<1) {
-				rc.buildRobot(RobotType.LUMBERJACK, dir);
-				ctr++;
-			}
-			if(rc.canBuildRobot(RobotType.TANK,dir)) // was tank
-				rc.buildRobot(RobotType.TANK,dir);
-			else if(rc.canPlantTree(dir) && trees.length<2)
-				rc.plantTree(dir);
-			dir = randomDirection();
-			TreeInfo tree = null;
-			for(int i=0; i<trees.length; i++)
-				if(tree==null || tree.getHealth()>trees[i].getHealth())
-					tree = trees[i];
-			if(tree!=null && rc.canWater(tree.getID()))
-				rc.water(tree.getID());
-			Clock.yield();
-		}
+//		//TESTING CODE: Comment in for testing stuff
+//		int ctr = 0;
+//		while(true) {
+//			TreeInfo[] trees = rc.senseNearbyTrees(2.0f,rc.getTeam());
+//			Direction dir = randomDirection();
+//			if(rc.canBuildRobot(RobotType.LUMBERJACK,dir)&&ctr<1) {
+//				rc.buildRobot(RobotType.LUMBERJACK, dir);
+//				ctr++;
+//			}
+//			if(rc.canBuildRobot(RobotType.TANK,dir)) // was tank
+//				rc.buildRobot(RobotType.TANK,dir);
+//			else if(rc.canPlantTree(dir) && trees.length<2)
+//				rc.plantTree(dir);
+//			dir = randomDirection();
+//			TreeInfo tree = null;
+//			for(int i=0; i<trees.length; i++)
+//				if(tree==null || tree.getHealth()>trees[i].getHealth())
+//					tree = trees[i];
+//			if(tree!=null && rc.canWater(tree.getID()))
+//				rc.water(tree.getID());
+//			Clock.yield();
+//		}
 		
 //		while(true) {
 //			TreeInfo[] trees = rc.senseNearbyTrees(2.0f,rc.getTeam());
@@ -115,11 +121,80 @@ public strictfp class Gardener extends RobotBase
 		}*/
 	}
 	
-	public void addToGrid() throws GameActionException {
+	
+	public void gridStepFunction() throws GameActionException {
+		TreeInfo[] myTrees = rc.senseNearbyTrees(rc.getType().sensorRadius, rc.getTeam());
+
+		if (myTrees.length > 0) {
+			
+			RobotInfo[] nRobots = rc.senseNearbyRobots(rc.getType().sensorRadius, rc.getTeam());
+			
+			ArrayList<TreeInfo> trees = new ArrayList<TreeInfo>();
+			for(TreeInfo ti : myTrees)
+				trees.add(ti);
+			ArrayList<TreeInfo> lowerPriority = new ArrayList<TreeInfo>();
+			
+			for(RobotInfo ri : nRobots) {
+				if(ri.getType() == RobotType.GARDENER) {
+					// pretend all trees within 4.5 of friendly gardeners don't exist,
+					// so as to prevent us from bumping into them
+					Iterator<TreeInfo> it = trees.iterator();
+					while(it.hasNext()) {
+						TreeInfo t = it.next();
+						if(t.getLocation().distanceTo(ri.getLocation()) < 4.5) {
+							it.remove();
+							lowerPriority.add(t);
+							//
+							rc.setIndicatorLine(t.getLocation(), ri.getLocation(), 150, 50, 0);
+							//
+						}
+					}
+				}
+			}
+			
+			// now, among the trees that remain, find lowest
+			
+			if(trees.size() > 0) {
+				TreeInfo lowest = trees.get(0);
+				for(int i = 1; i < trees.size(); i ++) {
+					if(trees.get(i).getHealth() < lowest.getHealth())
+						lowest = trees.get(i);
+				}
+				rc.setIndicatorLine(rc.getLocation(), lowest.getLocation(), 255, 0, 150);
+				moveTowards(rc.getLocation(), lowest.getLocation());
+				waterLowest();
+			} else if(lowerPriority.size() > 0) {
+				TreeInfo lowest = lowerPriority.get(0);
+				for(int i = 1; i < lowerPriority.size(); i ++) {
+					if(lowerPriority.get(i).getHealth() < lowest.getHealth())
+						lowest = lowerPriority.get(i);
+				}
+				rc.setIndicatorLine(rc.getLocation(), lowest.getLocation(), 255, 0, 150);
+				moveTowards(rc.getLocation(), lowest.getLocation());
+				waterLowest();
+			} else {
+				waterLowest();
+			}
+			
+		} else {
+			// we don't see any friendly trees? really?
+			// okay just move towards our alpha archon then
+			float[] aArch = CommunicationsHandler.unpack(rc.readBroadcast(1));
+			MapLocation target = new MapLocation(aArch[0], aArch[1]);
+			// but only if we're further than 7 away, otherwise we're probably just 
+			// supposed to wait for build orders (hopefully?)
+			if(rc.getLocation().distanceTo(target) < 7.0f)
+				if(!moveTowards(rc.getLocation(), target))
+					if(rc.canMove(target.directionTo(rc.getLocation())))
+						rc.move(target.directionTo(rc.getLocation()));
+		}
+	}
+	
+	public boolean addToGrid() throws GameActionException {
 		int ntrees = CommunicationsHandler.getNumTrees(rc);
 		if(ntrees == 0) {
 			// this is a whole nother case bud
-			return; // TODO: make it plant the initial tree
+			return false; // TODO: make it plant the initial tree
 			
 		} else {
 			float[][] trees = CommunicationsHandler.getTreeLocations(rc);
@@ -128,10 +203,10 @@ public strictfp class Gardener extends RobotBase
 			MapLocation myLoc = rc.getLocation();
 			
 			// draw blue + where we think are trees, for visualization purposes
-			for(float[] t : trees) {
+			//for(float[] t : trees) {
 				//setIndicatorPlus(new MapLocation(t[0],t[1]), 0, 0, 255);
 				//rc.setIndicatorDot(new MapLocation(t[0],t[1]), 0, 0, 255);
-			}
+			//}
 			
 			for(int i = 1; i < trees.length; i ++) {
 				if(getDist(trees[i][0], trees[i][1], myLoc.x, myLoc.y) <
@@ -172,7 +247,12 @@ public strictfp class Gardener extends RobotBase
 			//rc.setIndicatorDot(best, 0, 255, 0); // green means extrapolation point
 			
 			//System.out.println("Current dist is " + getDist(current[0],current[1],myLoc.x,myLoc.y));
+			
 			while(getDist(current[0],current[1],myLoc.x,myLoc.y) > withinDist) {
+				// I'm not really sure what I was smoking when I made this while loop condition
+				// TODO: make it so that as long as dist is decreasing we're good
+				// for now we're relying on the break below in that case
+				
 				//System.out.println(" -> Current dist is " + getDist(current[0],current[1],myLoc.x,myLoc.y));
 				
 				
@@ -194,10 +274,16 @@ public strictfp class Gardener extends RobotBase
 							best = neighbors[i];
 					}
 				}
+				
+				if(getDist(current[0],current[1],myLoc.x,myLoc.y) < best.distanceTo(myLoc)) {
+					// we're just oscillating, the "best" one we found is worse than current
+					best = new MapLocation(current[0],current[1]);
+					break;
+				}
 
 				//best = RobotBase.findClosest(myLoc, neighbors);
 				
-				
+				rc.setIndicatorLine(myLoc, best, 255, 255, 255);
 				rc.setIndicatorDot(best, 0, 255, 0); // green means extrapolation point
 				current[0] = best.x;
 				current[1] = best.y;
@@ -249,14 +335,16 @@ public strictfp class Gardener extends RobotBase
 						// even though 0.2 is fine, we don't want it to propagate, so we're broadcasting
 						// the ideal coords of this tree
 						CommunicationsHandler.addTree(rc, best.x, best.y);
+						return true;
 					} else {
 						// nice waste of time, TODO: blacklist this point or something,
 						// so we don't try to build here again (for a while?)
 					}
-				} else return;
+				} else return false;
 			}
 			
 		}
+		return false; // not sure why we'd ever get here though
 	}
 	
 	private boolean cellHelperIsValid(MapLocation ml) throws GameActionException {

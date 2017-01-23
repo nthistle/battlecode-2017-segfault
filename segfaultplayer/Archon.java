@@ -15,17 +15,24 @@ public strictfp class Archon extends RobotBase
 	public Archon(RobotController rc, int id) throws GameActionException {
 		super(rc, id);
 		this.rank = CommunicationsHandler.assignAlphaArchonProtocol(this, true);
-		this.alpha = this.rank == 0;
+		this.alpha = (this.rank == 0);
 	}
 	
 	public void run() throws GameActionException {
 		
 		if(alpha) {
+			System.out.println("I am the alpha");
+			rc.broadcast(1, CommunicationsHandler.pack(rc.getLocation().x, rc.getLocation().y));
+			
 			MapLocation enemyArch = rc.getInitialArchonLocations(enemy)[0];
 			CommunicationsHandler.addTree(rc, enemyArch.x, enemyArch.y);
+
+			CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+			CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+			System.out.println("Queued two trees");
 		}
 
-		boolean testOtherStuff = true;
+		boolean testOtherStuff = false;
 
 		int t = 40;
 		while(true) {
@@ -46,6 +53,10 @@ public strictfp class Archon extends RobotBase
 				}
 				Clock.yield();
 				t++;
+			}
+			if(t%17 == 0) {
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+				System.out.println("Queued a tree");
 			}
 		}
 	}
