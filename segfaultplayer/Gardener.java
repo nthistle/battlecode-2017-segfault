@@ -125,6 +125,9 @@ public strictfp class Gardener extends RobotBase
 	public void gridStepFunction() throws GameActionException {
 		TreeInfo[] myTrees = rc.senseNearbyTrees(rc.getType().sensorRadius, rc.getTeam());
 
+		float[] aArch = CommunicationsHandler.unpack(rc.readBroadcast(1));
+		MapLocation alphaLoc = new MapLocation(aArch[0],aArch[1]);
+		
 		if (myTrees.length > 0) {
 			
 			RobotInfo[] nRobots = rc.senseNearbyRobots(rc.getType().sensorRadius, rc.getTeam());
@@ -135,9 +138,11 @@ public strictfp class Gardener extends RobotBase
 			ArrayList<TreeInfo> lowerPriority = new ArrayList<TreeInfo>();
 			
 			for(RobotInfo ri : nRobots) {
-				if(ri.getType() == RobotType.GARDENER) {
+				if(ri.getType() == RobotType.GARDENER &&
+						ri.getLocation().distanceTo(alphaLoc) < rc.getLocation().distanceTo(alphaLoc)) {
 					// pretend all trees within 4.5 of friendly gardeners don't exist,
 					// so as to prevent us from bumping into them
+					// but ONLY if they're closer to alpha than us
 					Iterator<TreeInfo> it = trees.iterator();
 					while(it.hasNext()) {
 						TreeInfo t = it.next();
@@ -179,7 +184,6 @@ public strictfp class Gardener extends RobotBase
 		} else {
 			// we don't see any friendly trees? really?
 			// okay just move towards our alpha archon then
-			float[] aArch = CommunicationsHandler.unpack(rc.readBroadcast(1));
 			MapLocation target = new MapLocation(aArch[0], aArch[1]);
 			// but only if we're further than 7 away, otherwise we're probably just 
 			// supposed to wait for build orders (hopefully?)

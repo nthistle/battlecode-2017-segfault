@@ -29,7 +29,8 @@ public strictfp class Archon extends RobotBase
 
 			CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 			CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-			System.out.println("Queued two trees");
+			CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+			System.out.println("Queued three trees");
 		}
 
 		boolean testOtherStuff = false;
@@ -48,8 +49,13 @@ public strictfp class Archon extends RobotBase
 			else {
 				Direction dir = randomDirection();
 				if (rc.canBuildRobot(RobotType.GARDENER, dir) && t > 30) {// && rc.getTeamBullets()>200)
-					rc.buildRobot(RobotType.GARDENER, dir);
-					t = 0;
+					// do we actually need another gardener though?
+					if(2.5f * rc.readBroadcast(101) < rc.readBroadcast(2000)) {
+						// only if we have more trees than 2.5 * [num gardeners made]
+						// do we decide that we need more gardeners
+						rc.buildRobot(RobotType.GARDENER, dir);
+						t = 0;
+					}
 				}
 				Clock.yield();
 				t++;
