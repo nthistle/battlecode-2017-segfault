@@ -147,6 +147,7 @@ public strictfp class Scout extends RobotBase
 		System.out.println("Testing bytecodes used for this");
 		Clock.yield();
 		Move[] firstMoves = getNextMoves(new Move(startLoc, endLoc, 1.25f), endLoc);
+		
 		Clock.yield();
 		for(Move m : firstMoves) {
 			myMoves.add(m);
@@ -161,6 +162,7 @@ public strictfp class Scout extends RobotBase
 			// currently considering
 			rc.setIndicatorDot(cur.location, 255, 0, 0);  // RED DOT FOR CURRENTLY CONSIDERING
 			Move[] nextSteps = getNextMoves(cur, endLoc);
+			
 			for(Move possNext : nextSteps) {
 				if(isClear(startLoc, possNext.location)) {
 					// color that crap green, so we know it's going in the PQ
@@ -229,9 +231,9 @@ public strictfp class Scout extends RobotBase
 		
 		return nextMoves;
 	}
-	
+	/*
 	// A* PathFinding
-	/*public Move pathMeme(MapLocation startLoc, MapLocation endLoc, TreeInfo[] trees, float theta, float stride, float rad) throws GameActionException {
+	public Move pathMeme(MapLocation startLoc, MapLocation endLoc, TreeInfo[] trees, float theta, float stride, float rad) throws GameActionException {
 		
 		PriorityQueue<Move> myMoves = new PriorityQueue<Move>();
 		Move firstMove = new Move(startLoc, endLoc, stride);
@@ -256,7 +258,7 @@ public strictfp class Scout extends RobotBase
 			Direction[] possibleDirections = getDirections(myLoc, endLoc, theta);
 			for(Direction k : possibleDirections) {
 				MapLocation newLoc = myLoc.add(k, stride);
-				if(isClear(newLoc, trees)) {
+				if(isClear(startLoc, trees)) {
 					//rc.setIndicatorLine(startLoc, newLoc, 0, 0, 255);
 					rc.setIndicatorLine(myLoc, newLoc, 0, 255, 0);
 					ArrayList<Direction> newList = new ArrayList<Direction>(lastMove.moves);
