@@ -8,6 +8,10 @@ public strictfp class Archon extends RobotBase
 	private boolean alpha;
 	
 	private int[][] grid;
+	
+	private float[] treeMassByDirection;
+	private static final float TREE_BLOCKED_THRESHOLD = 10.0f;
+	
 	int xoffset;		// x-offset of grid
 	int yoffset;		// y-offset of grid
 	int resolution = 2; // grid resolution
@@ -16,6 +20,77 @@ public strictfp class Archon extends RobotBase
 		super(rc, id);
 		this.rank = CommunicationsHandler.assignAlphaArchonProtocol(this, true);
 		this.alpha = (this.rank == 0);
+	}
+	
+	public void calculateDensity() throws GameActionException {
+    	treeMassByDirection = new float[16];
+    	TreeInfo[] nearbyTrees  = rc.senseNearbyTrees();
+    	// tree mass by direction represents roughly area of a tree in a given direction,
+    	// giving additional weight to closer trees (think inverse of a moment of inertia)
+    	Direction dir;
+    	MapLocation myLocation = rc.getLocation();
+    	float inDeg, dist;
+    	int realDir;
+    	for(TreeInfo ti : nearbyTrees) {
+    		dir = myLocation.directionTo(ti.getLocation());
+    		inDeg = dir.getAngleDegrees() + 11.25f;
+    		while(inDeg < 360f) inDeg += 360f;
+    		while(inDeg > 360f) inDeg -= 360f;
+    		realDir = (int)(inDeg/22.5f);
+    		dist = myLocation.distanceTo(ti.getLocation());
+    		treeMassByDirection[realDir] += (ti.radius * ti.radius) * (10.0f-dist)*(10.0f-dist);
+    		if(ti.radius > (dist * (float)Math.PI/8.0f)) {
+        		treeMassByDirection[(realDir+1)%16] += (0.25f * ti.radius * ti.radius) * (10.0f-dist)*(10.0f-dist);
+        		treeMassByDirection[(realDir+15)%16] += (0.25f * ti.radius * ti.radius) * (10.0f-dist)*(10.0f-dist);
+    		}
+    	}
+    	float totalTreeMassFactor = 0.0f;
+    	for(int i = 0; i < 16; i ++) {
+    		totalTreeMassFactor += treeMassByDirection[i];
+    	}
+    	////System.out.println("Total Tree Mass Factor: " + totalTreeMassFactor);
+    	for(int i = 0; i < 16; i ++) {
+    		dir = new Direction(i*(float)Math.PI/8.0f);
+    		for(dist = 2.49f; dist < 10.0f; dist += 2.49f) {
+    			if(!rc.onTheMap(myLocation.add(dir,dist))) {
+    				// boundary in this direction, pretend it's a huge tree
+    				treeMassByDirection[i] += 35 * (10.0f-dist)*(10.0f-dist);
+    			}
+    		}
+    	}
+	}
+	
+	public int getBlockedFactor() {
+		if(treeMassByDirection != null) {
+			// can either be 0, blocking pretty insignificant (< 8 blocked)
+			// 1, we're fairly obstructed here (8-12 blocked)
+			// 2, please don't pick me to build stuff unless you have to (12+ blocked)
+			int nBlocked = 0;
+			boolean[] blocked = new boolean[16]; // just for debugging/visualization
+			for(int i = 0; i < 16; i ++) {
+				if(treeMassByDirection[i] > TREE_BLOCKED_THRESHOLD) {
+					blocked[i] = true;
+					nBlocked ++;
+				}
+			}
+			System.out.println("Here's what I think is blocked:");
+			
+			// I know this is kind of bad, but it looks really nice I promise
+			System.out.println("     " + (blocked[4]?"X":" ") + " " + (blocked[3]?"X":" ") + "     ");
+			System.out.println("   " + (blocked[5]?"X":" ") + "     " + (blocked[2]?"X":" ") + "   ");
+			System.out.println("  " + (blocked[6]?"X":" ") + "       " + (blocked[1]?"X":" ") + "  ");
+			System.out.println("             ");
+			System.out.println(" " + (blocked[7]?"X":" ") + "         " + (blocked[0]?"X":" ") + " ");
+			System.out.println(" " + (blocked[8]?"X":" ") + "         " + (blocked[15]?"X":" ") + " ");
+			System.out.println("             ");
+			System.out.println("  " + (blocked[9]?"X":" ") + "       " + (blocked[14]?"X":" ") + "  ");
+			System.out.println("   " + (blocked[10]?"X":" ") + "     " + (blocked[13]?"X":" ") + "   ");
+			System.out.println("     " + (blocked[11]?"X":" ") + " " + (blocked[12]?"X":" ") + "     ");
+			
+			if(nBlocked < 8) return 0;
+			if(nBlocked <= 12) return 1;
+			return 2;
+		} else return 0;
 	}
 	
 	public void run() throws GameActionException {
@@ -27,8 +102,10 @@ public strictfp class Archon extends RobotBase
 			MapLocation enemyArch = rc.getInitialArchonLocations(enemy)[0];
 			CommunicationsHandler.addTree(rc, enemyArch.x, enemyArch.y);
 
-			CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-			CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+			CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+			CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 			CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 			System.out.println("Queued three trees");
 		}
@@ -60,9 +137,11 @@ public strictfp class Archon extends RobotBase
 				Clock.yield();
 				t++;
 			}
-			if(t%17 == 0) {
+			if(t%5 == 0) {
 				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 				System.out.println("Queued a tree");
+			} else if(t%19 == 1) {
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
 			}
 		}
 	}
