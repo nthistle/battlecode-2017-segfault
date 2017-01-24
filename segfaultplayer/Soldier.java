@@ -14,6 +14,7 @@ public strictfp class Soldier extends RobotBase
 		float curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
 		float curdirection = (float) Math.random() * 2 * (float) Math.PI;
 		while(true) {
+			checkVPWin();
 			TreeInfo[] nearbyTrees = rc.senseNearbyTrees();
 			for(int i=0; i<nearbyTrees.length; i++) {
 				if(rc.canShake(nearbyTrees[i].getID())) {
