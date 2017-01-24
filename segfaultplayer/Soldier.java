@@ -22,7 +22,7 @@ public strictfp class Soldier extends RobotBase
 					break;
 				}
 			}
-			boolean attack = true;
+			boolean attack = false;
 			if(attack || steps<15) {
 				if(ctr>=enemyArchons.length) {
 					if (Math.random() < 0.05) {
@@ -70,7 +70,7 @@ public strictfp class Soldier extends RobotBase
 			if (robots.length == 0) {
 				if(trees.length>0 && trees[0].getTeam()!=ally) {
 					Direction tDir = rc.getLocation().directionTo(trees[0].getLocation());
-					if(goal!=null && tDir.equals(goal,(float)(Math.PI/2.0)) && rc.getLocation().distanceTo(trees[0].getLocation())<3.0) {
+					if(goal!=null && tDir.equals(goal,(float)(Math.PI/4.0)) && rc.getLocation().distanceTo(trees[0].getLocation())<3.0) {
 						if (rc.canFirePentadShot()) {
 							rc.firePentadShot(tDir);
 						} else if (rc.canFireTriadShot())
