@@ -36,11 +36,8 @@ public strictfp class Soldier extends RobotBase
 				}
 				steps++;
 			}
-			System.out.println(ctr);
 			if(ctr<enemyArchons.length && rc.getLocation().distanceTo(enemyArchons[ctr])<4 && isArchonDead())
 				ctr++;
-			System.out.println(enemyArchons.length+" "+rc.getLocation().distanceTo(enemyArchons[ctr])+" "+isArchonDead());
-			System.out.println("2 " + ctr);
 			shoot();
 			Clock.yield();
 		}

@@ -24,7 +24,7 @@ public strictfp class Gardener extends RobotBase
 
 		aArch = CommunicationsHandler.unpack(rc.readBroadcast(1));
 		alphaLoc = new MapLocation(aArch[0],aArch[1]);
-		/*
+
 		// MAIN GARDENER CODE
 		int myBuildCooldown = 0;
 		int timeSinceSeenFurther = 50;
@@ -65,7 +65,7 @@ public strictfp class Gardener extends RobotBase
 			gridStepFunction();
 			Clock.yield();
 		}
-		
+
 		
 		//addToGrid();
 		//addToGrid();
@@ -76,10 +76,11 @@ public strictfp class Gardener extends RobotBase
 			//	stepCircleRoutine();
 		//	Clock.yield();
 		//}
-		*/
+
 
 
 		//TESTING CODE: Comment in for testing stuff
+		/*
 		int ctr = 0;
 		while(true) {
 			TreeInfo[] trees = rc.senseNearbyTrees(2.0f,rc.getTeam());
@@ -100,7 +101,7 @@ public strictfp class Gardener extends RobotBase
 			if(tree!=null && rc.canWater(tree.getID()))
 				rc.water(tree.getID());
 			Clock.yield();
-		}
+		} */
 		
 //		while(true) {
 //			TreeInfo[] trees = rc.senseNearbyTrees(2.0f,rc.getTeam());
