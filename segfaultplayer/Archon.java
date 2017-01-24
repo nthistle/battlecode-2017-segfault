@@ -110,33 +110,90 @@ public strictfp class Archon extends RobotBase
 			CommunicationsHandler.addTree(rc, enemyArch.x, enemyArch.y);
 			
 			// testing for trees :))
-			for(int i = 0; i < 10; i ++) {
-				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-			} // end testing for trees
+			//for(int i = 0; i < 10; i ++) {
+			//	CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+			//} // end testing for trees
 			
-			// HELLO UNCOMMENT HERE
-			/*
+			
 			
 			
 			float closestDist = rc.getLocation().distanceTo(enemyArch);
 			
 			// alright now we consider cases
 			if(closestDist < 20.0f) {
+				System.out.println("Case: BLITZ");
 				// we're really close, let's try to blitz
 
 				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
 				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
 				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
-				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
 				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
 				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
 				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+				
+				// make two gardeners, then wait until order queue is empty
+				int gardenerCount = 0;
+				int gardenerCooldown = 0;
+				// end "blitz" at 800 if it's "failed"
+				while(CommunicationsHandler.peekOrder(rc) != null || rc.getRoundNum() < 800) {
+					checkVPWin();
+					if(gardenerCount < 2 && gardenerCooldown <= 0 &&
+							rc.getTeamBullets() > RobotType.GARDENER.bulletCost) {
+						Direction dir = randomDirection();
+						for(int j = 0; j < 20 && !rc.canBuildRobot(RobotType.GARDENER, dir); j++)
+							dir = randomDirection();
+						if(rc.canBuildRobot(RobotType.GARDENER, dir)) {
+							rc.buildRobot(RobotType.GARDENER, dir);
+							gardenerCooldown = 30;
+							gardenerCount ++;
+						}
+					} else if(gardenerCooldown > 0) {
+						gardenerCooldown --;
+					}
+					if(CommunicationsHandler.peekOrder(rc) == null) {
+						if(RobotBase.rand.nextBoolean())
+							CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.TANK));
+						else
+							CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+					}
+					Clock.yield();
+				}
+				// now it's turn 800, what are we going to do?
+				// well blitz failed, so try lumberjacks and trees, I guess?
+				while(true) {
+					if(gardenerCooldown <= 0 &&	rc.getTeamBullets() > RobotType.GARDENER.bulletCost
+							&& 2.5f * rc.readBroadcast(101) < rc.readBroadcast(2000)) {
+						Direction dir = randomDirection();
+						for(int j = 0; j < 20 && !rc.canBuildRobot(RobotType.GARDENER, dir); j++)
+							dir = randomDirection();
+						if(rc.canBuildRobot(RobotType.GARDENER, dir)) {
+							rc.buildRobot(RobotType.GARDENER, dir);
+							gardenerCooldown = 50;
+							gardenerCount ++;
+						}
+					} else if(gardenerCooldown > 0) {
+						gardenerCooldown --;
+					}
+					if(CommunicationsHandler.peekOrder(rc) == null) {
+						CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+						CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+						CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+						CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+						CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+						CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+						CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+					}
+					Clock.yield();
+				}
 			}
 			
-			// HELLO UNCOMMENT HERE
-			*/
+			
 			
 			
 
@@ -160,7 +217,7 @@ public strictfp class Archon extends RobotBase
 		}
 
 		
-		boolean testOtherStuff = false;
+		/*boolean testOtherStuff = false;
 
 		int t = 40;
 		while(true) {
@@ -193,7 +250,7 @@ public strictfp class Archon extends RobotBase
 			}// else if(t%19 == 1) {
 			//	CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
 			//}
-		}
+		}*/
 	}
 	
 	public void createGrid() throws GameActionException {
