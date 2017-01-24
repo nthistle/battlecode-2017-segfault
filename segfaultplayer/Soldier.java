@@ -22,7 +22,7 @@ public strictfp class Soldier extends RobotBase
 					break;
 				}
 			}
-			boolean attack = false;
+			boolean attack = true;
 			if(attack || steps<15) {
 				if(ctr>=enemyArchons.length) {
 					if (Math.random() < 0.05) {
@@ -108,6 +108,7 @@ public strictfp class Soldier extends RobotBase
 			}
 		} catch(Exception e) {
 			System.out.println("Shooting error");
+			setIndicatorPlus(rc.getLocation(),255,0,0);
 		}
 	}
 }

@@ -105,6 +105,7 @@ public strictfp class Tank extends RobotBase
 			}
 		} catch(Exception e) {
 			System.out.println("Shooting error");
+			setIndicatorPlus(rc.getLocation(),255,0,0);
 		}
 	}
 }
