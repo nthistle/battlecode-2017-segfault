@@ -1,4 +1,5 @@
 package segfaultplayer;
+import java.util.HashMap;
 import java.util.Random;
 
 import battlecode.common.*;
@@ -350,7 +351,7 @@ public strictfp abstract class RobotBase
 	//Parameters: Intended movement direction, 15 degree intervals
 	//Moves robot as best possible
 	public void moveWithoutDodging(Direction goal, boolean debug) throws GameActionException {
-		if(rc.canMove(goal)) {
+		if(rc.canMove(goal) && canTankMove(rc.getLocation().add(goal,rc.getType().strideRadius)) ) {
 			rc.move(goal);
 			if(debug)
 				System.out.println("Move straight");
@@ -359,13 +360,13 @@ public strictfp abstract class RobotBase
 		for(int i=1; i<25; i++) {
 			Direction copyRight = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateRightDegrees((float)(i*7.5));
 			Direction copyLeft = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateLeftDegrees((float)(i*7.5));
-			if(rc.canMove(copyRight)) {
+			if(rc.canMove(copyRight) && canTankMove(rc.getLocation().add(copyRight,rc.getType().strideRadius)) ) {
 				rc.move(copyRight);
 				if(debug)
 					System.out.println("Move Right");
 				return;
 			}
-			else if(rc.canMove(copyLeft)) {
+			else if(rc.canMove(copyLeft) && canTankMove(rc.getLocation().add(copyLeft,rc.getType().strideRadius))) {
 				rc.move(copyLeft);
 				if(debug)
 					System.out.println("Move Right");
@@ -374,6 +375,16 @@ public strictfp abstract class RobotBase
 		}
 		if(debug)
 			System.out.println("NO move");
+	}
+
+	public boolean canTankMove(MapLocation ml) {
+		TreeInfo[] trees = rc.senseNearbyTrees(rc.getType().sensorRadius,ally);
+		for(int i=0; i<trees.length; i++) {
+			if(ml.distanceTo(trees[i].getLocation())<trees[i].getRadius()+rc.getType().bodyRadius)
+				return false;
+			System.out.println(ml.distanceTo(trees[i].getLocation())+" "+trees[i].getRadius());
+		}
+		return true;
 	}
 
 	//Parameters: Intended movement direction
