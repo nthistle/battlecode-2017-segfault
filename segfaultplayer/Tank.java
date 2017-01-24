@@ -16,7 +16,6 @@ public strictfp class Tank extends RobotBase
 		while(true) {
 			boolean attack = true;
 			if(attack || steps<15) {
-				System.out.println(ctr);
 				if(ctr>=enemyArchons.length) {
 					if (Math.random() < 0.05) {
 						curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
@@ -26,6 +25,9 @@ public strictfp class Tank extends RobotBase
 						curdirection -= 2 * (float) Math.PI;
 					}
 					Direction d = new Direction(curdirection);
+					RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
+					if(robots.length>0)
+						d = rc.getLocation().directionTo(robots[0].getLocation());
 					moveWithoutDodging(d);
 				}
 				else {
@@ -34,8 +36,11 @@ public strictfp class Tank extends RobotBase
 				}
 				steps++;
 			}
-			if(ctr<enemyArchons.length && rc.getLocation().distanceTo(enemyArchons[ctr])<5 && isArchonDead())
+			System.out.println(ctr);
+			if(ctr<enemyArchons.length && rc.getLocation().distanceTo(enemyArchons[ctr])<4 && isArchonDead())
 				ctr++;
+			System.out.println(enemyArchons.length+" "+rc.getLocation().distanceTo(enemyArchons[ctr])+" "+isArchonDead());
+			System.out.println("2 " + ctr);
 			shoot();
 			Clock.yield();
 		}
@@ -66,7 +71,7 @@ public strictfp class Tank extends RobotBase
 			}
 			return;
 		}
-		RobotType[] priority = {RobotType.ARCHON, RobotType.SCOUT, RobotType.TANK, RobotType.SOLDIER, RobotType.GARDENER, RobotType.LUMBERJACK};
+		RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.ARCHON, RobotType.SCOUT};
 		RobotInfo target = null;
 		int z = 0;
 		while(target==null) {
