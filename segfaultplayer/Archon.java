@@ -114,6 +114,11 @@ public strictfp class Archon extends RobotBase
 			//	CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 			//} // end testing for trees
 			
+			// testing some lumbejacks 8)
+
+			CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+			
+			// alright
 			
 			
 			
@@ -190,6 +195,35 @@ public strictfp class Archon extends RobotBase
 						CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
 					}
 					Clock.yield();
+				}
+			} else {
+				// NOT VERY GOOD
+				for(int i = 0; i < 5; i ++) {
+					CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+				}
+				int t = 40;
+				while(true) {
+					checkVPWin();
+					//if(rc.getRoundNum() > 200)
+					//	rc.resign(); // temporary for testing to prevent 3000 long games
+					Direction dir = randomDirection();
+					if (rc.canBuildRobot(RobotType.GARDENER, dir) && t > 30) {// && rc.getTeamBullets()>200)
+						// do we actually need another gardener though?
+						if(2.5f * rc.readBroadcast(101) < rc.readBroadcast(2000)) {
+							// only if we have more trees than 2.5 * [num gardeners made]
+							// do we decide that we need more gardeners
+							rc.buildRobot(RobotType.GARDENER, dir);
+							t = 0;
+						}
+					}
+					Clock.yield();
+					t++;
+					if(t%5 == 0) {
+						CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+						//System.out.println("Queued a tree");
+					} else if(t%5 == 1) {
+						CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+					}
 				}
 			}
 			

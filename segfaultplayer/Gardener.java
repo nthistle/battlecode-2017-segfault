@@ -13,6 +13,8 @@ public strictfp class Gardener extends RobotBase
 	public static final float VALID_ANGLE_THRESH = 15.0f; // in degrees
 	public static final float BUFFER_DIST = 2.5f; // if you must know what this does, ask me
 	
+	public static final boolean DOES_BROADCAST_INFO = true;
+	
 	private float[] aArch;
 	private MapLocation alphaLoc;
 	
@@ -38,6 +40,33 @@ public strictfp class Gardener extends RobotBase
 			// only consider orders if we're close to fringe, i.e.,
 			// one or fewer fellow gardeners further from alpha arch
 			if(timeSinceSeenFurther > 15) {//numFurtherGardeners == 0) {//<= 1) {
+				// this case we consider ourself a frontier gardener
+				
+				if(DOES_BROADCAST_INFO && (rc.getRoundNum() % 50 == 0)) {
+					// count friendly lumberjacks and neutral trees
+					RobotInfo[] friendlies = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
+					int numFLJs = 0;
+					for(RobotInfo ri : friendlies) {
+						if(ri.getType() == RobotType.LUMBERJACK) {
+							numFLJs ++;
+						}
+					}
+					int numNTrees = rc.senseNearbyTrees(rc.getType().sensorRadius, Team.NEUTRAL).length;
+					
+					if(rc.readBroadcast(400) != rc.getRoundNum()) {
+						// nobody has reset yet
+						rc.broadcast(400, rc.getRoundNum());
+						rc.broadcast(401, numFLJs);
+						rc.broadcast(402, numNTrees);
+					} else {
+						// okay we just add ours
+						rc.broadcast(401, numFLJs + rc.readBroadcast(401));
+						rc.broadcast(402, numNTrees + rc.readBroadcast(402));
+					}
+				}
+				
+				
+				
 				// check if we can build something and if we can
 				nextOrder = CommunicationsHandler.peekOrder(rc);
 				if(myBuildCooldown <= 0 && nextOrder != null) {
@@ -48,14 +77,23 @@ public strictfp class Gardener extends RobotBase
 						myBuildCooldown = 11;
 					} else {
 						if(rc.getTeamBullets() > nextOrder.rt.bulletCost) {
-							Direction dir = randomDirection();
-							for(int attempt = 0; attempt < 20 && !rc.canBuildRobot(nextOrder.rt, dir); attempt ++)
-								dir = randomDirection();
-							if(rc.canBuildRobot(nextOrder.rt, dir)) {
-								CommunicationsHandler.popOrder(rc);
-								rc.buildRobot(nextOrder.rt, dir);
-								myBuildCooldown = 11;
+							Direction[] buildDirs = getGoodBuildDirections(alphaLoc.directionTo(rc.getLocation()));
+							for(Direction d : buildDirs) {
+								if(rc.canBuildRobot(nextOrder.rt, d)) {
+									CommunicationsHandler.popOrder(rc);
+									rc.buildRobot(nextOrder.rt, d);
+									myBuildCooldown = 11;
+									break;
+								}
 							}
+							//Direction dir = randomDirection();
+							//for(int attempt = 0; attempt < 20 && !rc.canBuildRobot(nextOrder.rt, dir); attempt ++)
+							//	dir = randomDirection();
+							//if(rc.canBuildRobot(nextOrder.rt, dir)) {
+							//	CommunicationsHandler.popOrder(rc);
+							//	rc.buildRobot(nextOrder.rt, dir);
+							//	myBuildCooldown = 11;
+							//}
 						}
 					}
 				} else
@@ -135,6 +173,17 @@ public strictfp class Gardener extends RobotBase
 			lifetimeWaterLowest();
 		}*/
 	}
+	
+	public Direction[] getGoodBuildDirections(Direction intended) {
+		Direction[] buildDirs = new Direction[17];
+		buildDirs[0] = intended;
+		for(int i = 0; i < 8; i ++) {
+			buildDirs[1+(2*i)] = intended.rotateRightDegrees(11.25f * (i+1));
+			buildDirs[2+(2*i)] = intended.rotateLeftDegrees(11.25f * (i+1));
+		}
+		return buildDirs;
+	}
+	
 	
 	public boolean areFurtherGardeners() throws GameActionException {
 		RobotInfo[] ri = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
@@ -231,68 +280,31 @@ public strictfp class Gardener extends RobotBase
 			return false; // TODO: make it plant the initial tree
 			
 		} else {
-			float[][] trees = CommunicationsHandler.getTreeLocations(rc);
-			float withinDist = SPACING_DISTANCE * (float)Math.sqrt(2.0);
-			float[] current = trees[0];
-			MapLocation myLoc = rc.getLocation();
-			
-			// draw blue + where we think are trees, for visualization purposes
-			//for(float[] t : trees) {
-				//setIndicatorPlus(new MapLocation(t[0],t[1]), 0, 0, 255);
-				//rc.setIndicatorDot(new MapLocation(t[0],t[1]), 0, 0, 255);
-			//}
-			
-			for(int i = 1; i < trees.length; i ++) {
-				if(getDist(trees[i][0], trees[i][1], myLoc.x, myLoc.y) <
-						getDist(current[0], current[1], myLoc.x, myLoc.y)) {
-					current = trees[i];
-				}
-			}
-			rc.setIndicatorDot(new MapLocation(current[0],current[1]), 255, 0, 0);
-			// red means the nearest planted tree, now we extrapolate closer
-			MapLocation[] neighbors;
-			MapLocation best;
-			
-
-			neighbors = getNeighborTreeLocs(new MapLocation(current[0],current[1]));
-			// this is basically findClosest here, but with a stipulation that it has to
-			// satisfy cellHelperIsValid, which checks to make sure there's not already a tree
-			// there (more efficient than going through float[][] trees), and that it's on
-			// the map (for now)
-			best = null;
-			for(int i = 0; i < neighbors.length; i ++) {
-				if(best == null) {
-					if(cellHelperIsValid(neighbors[i]))
-						best = neighbors[i];
-				}
-				else if(neighbors[i].distanceSquaredTo(myLoc) < best.distanceSquaredTo(myLoc)) {
-					if(cellHelperIsValid(neighbors[i]))
-						best = neighbors[i];
-				}
-			}
-			
-			if(best == null) {
-				best = new MapLocation(current[0],current[1]);
-			}
-			
-			current[0] = best.x;
-			current[1] = best.y;
-
-			//rc.setIndicatorDot(best, 0, 255, 0); // green means extrapolation point
-			
-			//System.out.println("Current dist is " + getDist(current[0],current[1],myLoc.x,myLoc.y));
-			
-			while(getDist(current[0],current[1],myLoc.x,myLoc.y) > withinDist) {
-				// I'm not really sure what I was smoking when I made this while loop condition
-				// TODO: make it so that as long as dist is decreasing we're good
-				// for now we're relying on the break below in that case
+			for(int attempt = 0; attempt < 3; attempt ++) { // 3 attempts 
+				float[][] trees = CommunicationsHandler.getTreeLocations(rc);
+				float withinDist = SPACING_DISTANCE * (float)Math.sqrt(2.0);
+				float[] current = trees[0];
+				MapLocation myLoc = rc.getLocation();
 				
-				//System.out.println(" -> Current dist is " + getDist(current[0],current[1],myLoc.x,myLoc.y));
+				// draw blue + where we think are trees, for visualization purposes
+				//for(float[] t : trees) {
+					//setIndicatorPlus(new MapLocation(t[0],t[1]), 0, 0, 255);
+					//rc.setIndicatorDot(new MapLocation(t[0],t[1]), 0, 0, 255);
+				//}
 				
+				for(int i = 1; i < trees.length; i ++) {
+					if(getDist(trees[i][0], trees[i][1], myLoc.x, myLoc.y) <
+							getDist(current[0], current[1], myLoc.x, myLoc.y)) {
+						current = trees[i];
+					}
+				}
+				rc.setIndicatorDot(new MapLocation(current[0],current[1]), 255, 0, 0);
+				// red means the nearest planted tree, now we extrapolate closer
+				MapLocation[] neighbors;
+				MapLocation best;
 				
+	
 				neighbors = getNeighborTreeLocs(new MapLocation(current[0],current[1]));
-				
-
 				// this is basically findClosest here, but with a stipulation that it has to
 				// satisfy cellHelperIsValid, which checks to make sure there's not already a tree
 				// there (more efficient than going through float[][] trees), and that it's on
@@ -309,72 +321,126 @@ public strictfp class Gardener extends RobotBase
 					}
 				}
 				
-				if(getDist(current[0],current[1],myLoc.x,myLoc.y) < best.distanceTo(myLoc)) {
-					// we're just oscillating, the "best" one we found is worse than current
+				if(best == null) {
 					best = new MapLocation(current[0],current[1]);
-					break;
 				}
-
-				//best = RobotBase.findClosest(myLoc, neighbors);
 				
-				rc.setIndicatorLine(myLoc, best, 255, 255, 255);
-				rc.setIndicatorDot(best, 0, 255, 0); // green means extrapolation point
 				current[0] = best.x;
 				current[1] = best.y;
-			}
-
-			if(best == null) {
-				best = new MapLocation(current[0],current[1]);
-			}
-
-
-			rc.setIndicatorLine(myLoc, best, 255, 255, 0);
-			
-			// alright, now let's move towards this point, capped at 20 turns of movement (give up)
-			for(int mt = 0; mt < 20 && myLoc.distanceTo(best) > 2.5f; mt ++) {
-				//rc.setIndicatorDot(best, 0, 0, 0);
-				myLoc = rc.getLocation();
+	
+				//rc.setIndicatorDot(best, 0, 255, 0); // green means extrapolation point
+				
+				//System.out.println("Current dist is " + getDist(current[0],current[1],myLoc.x,myLoc.y));
+				
+				while(getDist(current[0],current[1],myLoc.x,myLoc.y) > withinDist) {
+					// I'm not really sure what I was smoking when I made this while loop condition
+					// TODO: make it so that as long as dist is decreasing we're good
+					// for now we're relying on the break below in that case
+					
+					//System.out.println(" -> Current dist is " + getDist(current[0],current[1],myLoc.x,myLoc.y));
+					
+					
+					neighbors = getNeighborTreeLocs(new MapLocation(current[0],current[1]));
+					
+	
+					// this is basically findClosest here, but with a stipulation that it has to
+					// satisfy cellHelperIsValid, which checks to make sure there's not already a tree
+					// there (more efficient than going through float[][] trees), and that it's on
+					// the map (for now)
+					best = null;
+					for(int i = 0; i < neighbors.length; i ++) {
+						if(best == null) {
+							if(cellHelperIsValid(neighbors[i]))
+								best = neighbors[i];
+						}
+						else if(neighbors[i].distanceSquaredTo(myLoc) < best.distanceSquaredTo(myLoc)) {
+							if(cellHelperIsValid(neighbors[i]))
+								best = neighbors[i];
+						}
+					}
+					
+					if(getDist(current[0],current[1],myLoc.x,myLoc.y) < best.distanceTo(myLoc)) {
+						// we're just oscillating, the "best" one we found is worse than current
+						best = new MapLocation(current[0],current[1]);
+						break;
+					}
+	
+					//best = RobotBase.findClosest(myLoc, neighbors);
+					
+					rc.setIndicatorLine(myLoc, best, 255, 255, 255);
+					rc.setIndicatorDot(best, 0, 255, 0); // green means extrapolation point
+					current[0] = best.x;
+					current[1] = best.y;
+				}
+	
+				if(best == null) {
+					best = new MapLocation(current[0],current[1]);
+				}
+	
+	
 				rc.setIndicatorLine(myLoc, best, 255, 255, 0);
-				if(!moveTowards(myLoc, best))
-					moveTowards(best, myLoc); // attempt to reverse 1 step
-				waterLowest();
-				Clock.yield();
-			}
-			
-			//setIndicatorX(best, 0, 0, 0);
-			
-			myLoc = rc.getLocation();
-			
-			// hopefully we're within 2.5 units of best now
-			// we want to be exactly 2.0 units away
-			if(myLoc.distanceTo(best) > 2.0f) {
-				if(rc.canMove(myLoc.directionTo(best), myLoc.distanceTo(best)-2.0f))
-					rc.move(myLoc.directionTo(best), myLoc.distanceTo(best)-2.0f);
-			}
-			Clock.yield();
-			// hopefully now we're exactly 2.0 units away
-			myLoc = rc.getLocation();
-			if(myLoc.distanceTo(best) < 2.2f) { // 0.2 is tolerable
-				for(int mt = 0; mt < 30 && rc.getTeamBullets() < 50.0f; mt ++) { // wait up to 30 rounds
+				
+				boolean tryAgain = false;
+				
+				// alright, now let's move towards this point, capped at 20 turns of movement (give up)
+				for(int mt = 0; mt < 20 && myLoc.distanceTo(best) > 2.5f; mt ++) {
+					//rc.setIndicatorDot(best, 0, 0, 0);
+					if(!cellHelperIsValid(best)) {
+						if(!rc.onTheMap(best))
+							return false;
+						tryAgain = true;
+						break;
+					}
+					myLoc = rc.getLocation();
+					rc.setIndicatorLine(myLoc, best, 255, 255, 0);
+					if(!moveTowards(myLoc, best))
+						moveTowards(best, myLoc); // attempt to reverse 1 step
 					waterLowest();
 					Clock.yield();
-					// waterLowest might not hit anything, but better than completely stalling
 				}
+				
+				if(tryAgain) continue;
+				
+				//setIndicatorX(best, 0, 0, 0);
+				
 				myLoc = rc.getLocation();
-				if(rc.getTeamBullets() >= 50.0f) {
-					// whoopdiedoo, build
-					if(rc.canPlantTree(myLoc.directionTo(best))) {
-						rc.plantTree(myLoc.directionTo(best));
-						System.out.println("Building a tree, extending stuff");
-						// even though 0.2 is fine, we don't want it to propagate, so we're broadcasting
-						// the ideal coords of this tree
-						CommunicationsHandler.addTree(rc, best.x, best.y);
-						return true;
-					} else {
-						// nice waste of time, TODO: blacklist this point or something,
-						// so we don't try to build here again (for a while?)
+				
+				// hopefully we're within 2.5 units of best now
+				// we want to be exactly 2.0 units away
+				float tdist = myLoc.distanceTo(best);
+				if(tdist > 2.0f) {
+					if(rc.canMove(myLoc.directionTo(best), tdist-2.0f))
+						rc.move(myLoc.directionTo(best), tdist-2.0f);
+				} else {
+					// that means we're actually probably too close
+					if(rc.canMove(best.directionTo(myLoc), 2.0f-tdist))
+						rc.move(best.directionTo(myLoc), 2.0f-tdist);
+				}
+				Clock.yield();
+				// hopefully now we're exactly 2.0 units away
+				myLoc = rc.getLocation();
+				if(myLoc.distanceTo(best) < 2.15f && myLoc.distanceTo(best) > 1.85f) { // 0.15 is tolerable
+					for(int mt = 0; mt < 30 && rc.getTeamBullets() < 50.0f; mt ++) { // wait up to 30 rounds
+						waterLowest();
+						Clock.yield();
+						// waterLowest might not hit anything, but better than completely stalling
 					}
-				} else return false;
+					myLoc = rc.getLocation();
+					if(rc.getTeamBullets() >= 50.0f) {
+						// whoopdiedoo, build
+						if(rc.canPlantTree(myLoc.directionTo(best))) {
+							rc.plantTree(myLoc.directionTo(best));
+							System.out.println("Building a tree, extending stuff");
+							// even though 0.2 is fine, we don't want it to propagate, so we're broadcasting
+							// the ideal coords of this tree
+							CommunicationsHandler.addTree(rc, best.x, best.y);
+							return true;
+						} else {
+							// nice waste of time, TODO: blacklist this point or something,
+							// so we don't try to build here again (for a while?)
+						}
+					} else return false;
+				}
 			}
 			
 		}
