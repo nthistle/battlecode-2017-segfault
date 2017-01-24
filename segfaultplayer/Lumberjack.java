@@ -118,4 +118,12 @@ public strictfp class Lumberjack extends RobotBase
 			if(rc.canStrike())
 				rc.strike();
 	}
+	
+	public void setOutOfWork() throws GameActionException {
+		// do nothing yet
+	}
+	
+	public void setBackToWork() throws GameActionException {
+		// do nothing yet
+	}
 }

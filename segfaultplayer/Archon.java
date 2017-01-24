@@ -100,17 +100,38 @@ public strictfp class Archon extends RobotBase
 			System.out.println("I am the alpha");
 			rc.broadcast(1, CommunicationsHandler.pack(rc.getLocation().x, rc.getLocation().y));
 			
-			MapLocation enemyArch = rc.getInitialArchonLocations(enemy)[0];
-			CommunicationsHandler.addTree(rc, enemyArch.x, enemyArch.y);
+			MapLocation enemyArch = null;
+			for(MapLocation ml : rc.getInitialArchonLocations(enemy)) {
+				if(enemyArch == null ||
+						ml.distanceTo(rc.getLocation()) < enemyArch.distanceTo(rc.getLocation()))
+					enemyArch = ml;
+			}
 
-			CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
-			CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+			CommunicationsHandler.addTree(rc, enemyArch.x, enemyArch.y);
+			
+			// alright now we consider cases
+			
+			
+
+			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
 			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-			CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-			System.out.println("Queued three trees");
+			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+			//System.out.println("Queued three trees");
+		} else {
+			while(true) {
+				// draw some pretty lines
+				Direction dir = randomDirection();
+				for(int i = 0; i < 5; i ++) {
+					rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dir, 4.0f),
+							RobotBase.rand.nextInt(255), RobotBase.rand.nextInt(255), RobotBase.rand.nextInt(255));
+				}
+				Clock.yield();
+			}
 		}
 
+		/*
 		boolean testOtherStuff = true;
 
 		int t = 40;
@@ -144,7 +165,7 @@ public strictfp class Archon extends RobotBase
 			} else if(t%19 == 1) {
 				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
 			}
-		}
+		}*/
 	}
 	
 	public void createGrid() throws GameActionException {
