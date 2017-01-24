@@ -325,25 +325,6 @@ public strictfp abstract class RobotBase
 		return ret;
 	}
 
-	//checks if close enough for pentad shot
-	public boolean checkPenta(RobotInfo target) {
-		double distance = rc.getLocation().distanceTo(target.getLocation());
-		boolean ret = false;
-		if(target.getType()==RobotType.SCOUT && distance<6.0)
-			ret = true;
-		else if(target.getType()==RobotType.ARCHON && distance<7.0)
-			ret = true;
-		else if(target.getType()==RobotType.GARDENER && distance<7.0)
-			ret = true;
-		else if(target.getType()==RobotType.LUMBERJACK && distance<7.0)
-			ret = true;
-		else if(target.getType()==RobotType.SOLDIER && distance<7.0)
-			ret = true;
-		else if(target.getType()==RobotType.TANK && distance<7.0)
-			ret = true;
-		return ret;
-	}
-
 	public void moveWithoutDodging(Direction goal) throws GameActionException {
 		moveWithoutDodging(goal, false);
 	}
