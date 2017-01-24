@@ -32,75 +32,80 @@ public strictfp class Gardener extends RobotBase
 		int timeSinceSeenFurther = 50;
 		Order nextOrder;
 		while(true) {
-			checkVPWin(); // boilerplate
-			if(areFurtherGardeners()) {
-				setIndicatorX(rc.getLocation(), 0, 0, 0);
-				timeSinceSeenFurther = 0;
-			} else timeSinceSeenFurther ++;
-			// only consider orders if we're close to fringe, i.e.,
-			// one or fewer fellow gardeners further from alpha arch
-			if(timeSinceSeenFurther > 15) {//numFurtherGardeners == 0) {//<= 1) {
-				// this case we consider ourself a frontier gardener
-
-				if(DOES_BROADCAST_INFO && (rc.getRoundNum() % 50 == 0)) {
-					// count friendly lumberjacks and neutral trees
-					RobotInfo[] friendlies = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
-					int numFLJs = 0;
-					for(RobotInfo ri : friendlies) {
-						if(ri.getType() == RobotType.LUMBERJACK) {
-							numFLJs ++;
-						}
-					}
-					int numNTrees = rc.senseNearbyTrees(rc.getType().sensorRadius, Team.NEUTRAL).length;
-
-					if(rc.readBroadcast(400) != rc.getRoundNum()) {
-						// nobody has reset yet
-						rc.broadcast(400, rc.getRoundNum());
-						rc.broadcast(401, numFLJs);
-						rc.broadcast(402, numNTrees);
-					} else {
-						// okay we just add ours
-						rc.broadcast(401, numFLJs + rc.readBroadcast(401));
-						rc.broadcast(402, numNTrees + rc.readBroadcast(402));
-					}
-				}
-
-
-
-				// check if we can build something and if we can
-				nextOrder = CommunicationsHandler.peekOrder(rc);
-				if(myBuildCooldown <= 0 && nextOrder != null) {
-					System.out.println("Trying order!");
-					if(nextOrder.type == OrderType.TREE) {
-						CommunicationsHandler.popOrder(rc);
-						if(!addToGrid()) System.out.println("Problem adding a tree to grid, although received order");
-						myBuildCooldown = 11;
-					} else {
-						if(rc.getTeamBullets() > nextOrder.rt.bulletCost) {
-							Direction[] buildDirs = getGoodBuildDirections(alphaLoc.directionTo(rc.getLocation()));
-							for(Direction d : buildDirs) {
-								if(rc.canBuildRobot(nextOrder.rt, d)) {
-									CommunicationsHandler.popOrder(rc);
-									rc.buildRobot(nextOrder.rt, d);
-									myBuildCooldown = 11;
-									break;
-								}
+			try {
+				checkVPWin(); // boilerplate
+				if(areFurtherGardeners()) {
+					setIndicatorX(rc.getLocation(), 0, 0, 0);
+					timeSinceSeenFurther = 0;
+				} else timeSinceSeenFurther ++;
+				// only consider orders if we're close to fringe, i.e.,
+				// one or fewer fellow gardeners further from alpha arch
+				if(timeSinceSeenFurther > 15) {//numFurtherGardeners == 0) {//<= 1) {
+					// this case we consider ourself a frontier gardener
+	
+					if(DOES_BROADCAST_INFO && (rc.getRoundNum() % 50 == 0)) {
+						// count friendly lumberjacks and neutral trees
+						RobotInfo[] friendlies = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
+						int numFLJs = 0;
+						for(RobotInfo ri : friendlies) {
+							if(ri.getType() == RobotType.LUMBERJACK) {
+								numFLJs ++;
 							}
-							//Direction dir = randomDirection();
-							//for(int attempt = 0; attempt < 20 && !rc.canBuildRobot(nextOrder.rt, dir); attempt ++)
-							//	dir = randomDirection();
-							//if(rc.canBuildRobot(nextOrder.rt, dir)) {
-							//	CommunicationsHandler.popOrder(rc);
-							//	rc.buildRobot(nextOrder.rt, dir);
-							//	myBuildCooldown = 11;
-							//}
+						}
+						int numNTrees = rc.senseNearbyTrees(rc.getType().sensorRadius, Team.NEUTRAL).length;
+	
+						if(rc.readBroadcast(400) != rc.getRoundNum()) {
+							// nobody has reset yet
+							rc.broadcast(400, rc.getRoundNum());
+							rc.broadcast(401, numFLJs);
+							rc.broadcast(402, numNTrees);
+						} else {
+							// okay we just add ours
+							rc.broadcast(401, numFLJs + rc.readBroadcast(401));
+							rc.broadcast(402, numNTrees + rc.readBroadcast(402));
 						}
 					}
-				} else
-					myBuildCooldown --;
+	
+	
+	
+					// check if we can build something and if we can
+					nextOrder = CommunicationsHandler.peekOrder(rc);
+					if(myBuildCooldown <= 0 && nextOrder != null) {
+						System.out.println("Trying order!");
+						if(nextOrder.type == OrderType.TREE) {
+							CommunicationsHandler.popOrder(rc);
+							if(!addToGrid()) System.out.println("Problem adding a tree to grid, although received order");
+							myBuildCooldown = 11;
+						} else {
+							if(rc.getTeamBullets() > nextOrder.rt.bulletCost) {
+								Direction[] buildDirs = getGoodBuildDirections(alphaLoc.directionTo(rc.getLocation()));
+								for(Direction d : buildDirs) {
+									if(rc.canBuildRobot(nextOrder.rt, d)) {
+										CommunicationsHandler.popOrder(rc);
+										rc.buildRobot(nextOrder.rt, d);
+										myBuildCooldown = 11;
+										break;
+									}
+								}
+								//Direction dir = randomDirection();
+								//for(int attempt = 0; attempt < 20 && !rc.canBuildRobot(nextOrder.rt, dir); attempt ++)
+								//	dir = randomDirection();
+								//if(rc.canBuildRobot(nextOrder.rt, dir)) {
+								//	CommunicationsHandler.popOrder(rc);
+								//	rc.buildRobot(nextOrder.rt, dir);
+								//	myBuildCooldown = 11;
+								//}
+							}
+						}
+					} else
+						myBuildCooldown --;
+				}
+				// some kind of watering protocol here
+				gridStepFunction();
+			} catch(Exception e) {
+				e.printStackTrace();
+				setIndicatorPlus(rc.getLocation(), 255, 0, 0);
 			}
-			// some kind of watering protocol here
-			gridStepFunction();
 			Clock.yield();
 		}
 

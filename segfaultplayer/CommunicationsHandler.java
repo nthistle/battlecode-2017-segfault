@@ -136,6 +136,14 @@ public final strictfp class CommunicationsHandler
     	return treeLocs;
     }
     
+    public static int getSoldierStrategy(RobotController rc) throws GameActionException {
+    	return rc.readBroadcast(2);
+    }
+    
+    public static void setSoldierStrategy(RobotController rc, int newStrat) throws GameActionException {
+    	rc.broadcast(2, newStrat);
+    }
+    
     // technically pack and unpack are public, but they really could (should?) be private
     
     public static int pack(float x, float y) {
