@@ -27,10 +27,18 @@ public strictfp class Lumberjack extends RobotBase
 				if(rc.getLocation().distanceTo(alpha)>rc.getLocation().distanceTo(allyArchons[i]))
 					alpha = allyArchons[i];
 			}
+			MapLocation enemyAlpha = enemyArchons[0];
+			for(int i=1; i<enemyArchons.length; i++) {
+				if(rc.getLocation().distanceTo(enemyAlpha)>rc.getLocation().distanceTo(enemyArchons[i]))
+					enemyAlpha = enemyArchons[i];
+			}
 			TreeInfo nearest = null;
 			for(int i=0; i<nearbyTrees.length; i++) {
 				//TODO: Prioritze contained units?
-				if(nearbyTrees[i].getTeam()!=ally && (nearest==null || alpha.distanceTo(nearest.getLocation())>alpha.distanceTo(nearbyTrees[i].getLocation())))
+				//if(nearbyTrees[i].getTeam()!=ally && (nearest==null || alpha.distanceTo(nearest.getLocation())>alpha.distanceTo(nearbyTrees[i].getLocation())))
+				if(nearest!=null)
+					System.out.println(alpha.distanceTo(nearest.getLocation())+" "+enemyAlpha.distanceTo(nearest.getLocation())+" "+alpha.distanceTo(nearbyTrees[i].getLocation())+" "+enemyAlpha.distanceTo(nearbyTrees[i].getLocation()));
+				if(nearbyTrees[i].getTeam()!=ally && (nearest==null || 1.5*alpha.distanceTo(nearest.getLocation())+enemyAlpha.distanceTo(nearest.getLocation())>1.5*alpha.distanceTo(nearbyTrees[i].getLocation())+enemyAlpha.distanceTo(nearbyTrees[i].getLocation())))
 					nearest = nearbyTrees[i];
 			}
 			if(nearest!=null) {
@@ -41,13 +49,6 @@ public strictfp class Lumberjack extends RobotBase
 				else {
 					Direction toTree = rc.getLocation().directionTo(nearest.getLocation());
 					moveWithoutDodging(toTree);
-//					if (rc.canMove(toTree)) { //replace with proper move lgoic
-//						rc.move(toTree);
-//					} else if (rc.canMove(toTree.rotateRightDegrees(30.0f))) { // try to move perpendicularly, to get around obstacles
-//						rc.move(toTree.rotateRightDegrees(30.0f));
-//					} else if (rc.canMove(toTree.rotateLeftDegrees(30.0f))) {
-//						rc.move(toTree.rotateLeftDegrees(30.0f));
-//					}
 					if (rc.canChop(nearest.getID())) {
 						rc.chop(nearest.getID());
 						turnsSinceLastChop = 0;

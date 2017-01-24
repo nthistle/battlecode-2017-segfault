@@ -120,10 +120,10 @@ public strictfp class RobotPlayer {
         while(true) {
             TreeInfo[] trees = rc.senseNearbyTrees(2.0f,rc.getTeam());
             Direction dir = randomDirection();
-            if(rc.canBuildRobot(RobotType.SOLDIER,dir)) // was tank
-                rc.buildRobot(RobotType.SOLDIER,dir);
-            else if(rc.canPlantTree(dir) && trees.length<2)
+            if(rc.canPlantTree(dir) && trees.length<2)
                 rc.plantTree(dir);
+            else if(rc.canBuildRobot(RobotType.SOLDIER,dir)) // was tank
+                rc.buildRobot(RobotType.SOLDIER,dir);
             dir = randomDirection();
             TreeInfo tree = null;
             for(int i=0; i<trees.length; i++)
