@@ -9,7 +9,8 @@ Communications Slots
 151 	-	total number of trees the pathscout has seen
 152 	-	scaled number of trees (rad^2) pathscout has seen
 200-203	-	alpha archon self-assignment
-300-303	-	also alpha archon self-assignment
+210-213	-	also alpha archon self-assignment
+220-223	-	alpha archon self-assignment tiebreaking
 400 	-	current round number as reported by reporting frontier gardeners (every 50)
 401 	-	total number of friendly lumberjacks seen by frontier gardeners (every 50)
 402 	-	total number of neutral trees seen by frontier gardeners (every 50)

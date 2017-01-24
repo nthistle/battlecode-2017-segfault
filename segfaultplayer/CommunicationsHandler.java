@@ -25,7 +25,8 @@ public final strictfp class CommunicationsHandler
 			System.out.println("[ID" + a.getID() + "] found my distance as " + myDist); 
 		a.rc.broadcast(200 + a.getID(), (int)(100*myDist));
 		int myBlocked = a.getBlockedFactor();
-		a.rc.broadcast(300 + a.getID(), myBlocked);
+		a.rc.broadcast(210 + a.getID(), myBlocked);
+		a.rc.broadcast(220 + a.getID(), a.rc.getID());
 		Clock.yield();
 		int numAlphas = getNumMade(a.rc, RobotType.ARCHON);
 		int rank = 0;
@@ -36,11 +37,16 @@ public final strictfp class CommunicationsHandler
 		for(int i = 0; i < numAlphas; i ++) {
 			if(i == a.getID())
 				continue;
-			if(myBlocked > a.rc.readBroadcast(300 + i)) {
+			if(myBlocked > a.rc.readBroadcast(210 + i)) {
 				rank ++; // we're more boxed in than him, we can't be better alpha
-			} else if(myBlocked == a.rc.readBroadcast(300 + i)) {
+			} else if(myBlocked == a.rc.readBroadcast(210 + i)) {
 				if((100*myDist) > a.rc.readBroadcast(200 + i))
-					rank ++; // we're as boxed in, but he's closer				
+					rank ++; // we're as boxed in, but he's closer	
+				else if((int)(100*myDist) == a.rc.readBroadcast(200+i)) {
+					// we're really tied
+					if(a.rc.getID() > a.rc.readBroadcast(220 + i))
+						rank ++;
+				}
 			}
 		}
 		if(debugPrint)

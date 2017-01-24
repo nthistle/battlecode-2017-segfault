@@ -17,7 +17,7 @@ public strictfp class Soldier extends RobotBase
 			checkVPWin();
 			TreeInfo[] nearbyTrees = rc.senseNearbyTrees();
 			for(int i=0; i<nearbyTrees.length; i++) {
-				if(rc.canShake(nearbyTrees[i].getID())) {
+				if(nearbyTrees[i].getContainedBullets() > 0 && rc.canShake(nearbyTrees[i].getID())) {
 					rc.shake(nearbyTrees[i].getID());
 					break;
 				}

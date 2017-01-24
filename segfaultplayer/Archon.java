@@ -25,7 +25,9 @@ public strictfp class Archon extends RobotBase
 	
 	public void calculateDensity() throws GameActionException {
     	treeMassByDirection = new float[16];
-    	TreeInfo[] nearbyTrees  = rc.senseNearbyTrees();
+    	//TreeInfo[] nearbyTrees  = rc.senseNearbyTrees();
+    	float lookDist = 4.5f;
+    	TreeInfo[] nearbyTrees  = rc.senseNearbyTrees(lookDist, Team.NEUTRAL);
     	// tree mass by direction represents roughly area of a tree in a given direction,
     	// giving additional weight to closer trees (think inverse of a moment of inertia)
     	Direction dir;
@@ -52,7 +54,7 @@ public strictfp class Archon extends RobotBase
     	////System.out.println("Total Tree Mass Factor: " + totalTreeMassFactor);
     	for(int i = 0; i < 16; i ++) {
     		dir = new Direction(i*(float)Math.PI/8.0f);
-    		for(dist = 2.49f; dist < 10.0f; dist += 2.49f) {
+    		for(dist = 2.01f; dist < lookDist; dist += (lookDist/4.0f)) {
     			if(!rc.onTheMap(myLocation.add(dir,dist))) {
     				// boundary in this direction, pretend it's a huge tree
     				treeMassByDirection[i] += 35 * (10.0f-dist)*(10.0f-dist);
@@ -251,7 +253,7 @@ public strictfp class Archon extends RobotBase
 		}
 
 		
-		boolean testOtherStuff = false;
+		/*boolean testOtherStuff = false;
 
 		int t = 40;
 		while(true) {
@@ -284,7 +286,7 @@ public strictfp class Archon extends RobotBase
 			}// else if(t%19 == 1) {
 			//	CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
 			//}
-		}
+		}*/
 	}
 	
 	public void createGrid() throws GameActionException {
