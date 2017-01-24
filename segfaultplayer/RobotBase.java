@@ -483,15 +483,15 @@ public strictfp abstract class RobotBase
         }
         
         // If you want to mess around with more ratios you can use this
-        //float dam_diff = max_damage.damage - min_damage.damage;
-        //float spd_diff = max_speed.speed - min_speed.speed;
-        //float loc_diff = max_loc.location.distanceTo(ml) - min_loc.location.distanceTo(ml);
+        float dam_diff = max_damage.damage - min_damage.damage;
+        float spd_diff = max_speed.speed - min_speed.speed;
+        float loc_diff = max_loc.location.distanceTo(ml) - min_loc.location.distanceTo(ml);
         // generate how deadly a bullet is on a scale of  based on speed and damage
         float[] res = new float[bi.length];
         for(int i = 0; i < bi.length; i++){
-            res[i] = bi[i].damage / max_damage.damage;
-            res[i] += bi[i].speed / max_speed.speed;
-            res[i] += 1 / (bi[i].location.distanceTo(ml) / max_loc.location.distanceTo(ml));
+            res[i] = (bi[i].damage - min_damage.damage) / dam_diff;
+            res[i] += (bi[i].speed - min_speed.speed) / spd_diff;
+            res[i] += 1 / ((bi[i].location.distanceTo(ml) - min_loc.location.distanceTo(ml)) / loc_diff);
         }
         
         float sum = 0.0f;
@@ -528,11 +528,72 @@ public strictfp abstract class RobotBase
         return hm;
     }
     
-    public void moveWithDodging(Direction goal) throws GameActionException{
-	    // call heatmap here and decide where you wanna go
-	    // heat map gives back hashmap with all directions and associated danger values of each
-	
+    /*
+    
+     Ok mihir.  NOTEES
+     =====================================================
+     
+     The idea for this is that you take the max and min danger values [the float] from the hashmap returned by the heatmap function (denoted by max and min)
+     You also get the danger value for the closest angle to "goal" that is in the hashmap (call the danger value d) (you need to find the angle urself)
+     So then u have:
+     
+     min<---------|x|---->max
+     
+     and you are given a threshold
+     
+     you find (x - min) / (max - min)
+     and see if its greater than the threshold.
+     if greater:moveInDir(for that direction)
+     else: moveInDir(safest one) [min danger value]
+     
+     
+     I sorta tried to do it. But it became a meme.
+     
+    public void moveWithDodging(Direction goal, float off, int dept, float dete, double tolerance) throws GameActionException{
+        // find the closest direction
+        HashMap map = heatmap(rc.getLocation(), off, dept, dete);
+        float curgoel = goal.radians;
+        HashMap<Float, Direction[]> surf = new HashMap<Float, Direction[]>();
+        
+        for(Direction entry : map.keySet()) {
+            float r1 = entry.radians;
+            surf.put(new Float(Math.abs(r1 - curgoel)), new Direction[]{entry, goal});
+        }
+        
+        Map.Entry<Float, Direction[]> min = null;
+        for (Map.Entry<Float, Direction[]> entry : surf.entrySet()) {
+            if (min == null || min.getKey() > entry.getKey()) {
+                min = entry;
+            }
+        }
+        
+        Direction imtryna = min.getValue()[0];
+        float res_danger = map.get(imtryna).floatValue();
+        
+        Map.Entry<Direction, Float> min_danger = null;
+        Map.Entry<Direction, Float> max_danger = null;
+
+        for (Map.Entry<Direction, Float> entry : map.entrySet()) {
+            if (min_danger == null || min_danger.getKey().radians > entry.getKey().radians) {
+                min_danger = entry;
+            }
+            if (max_danger == null || max_danger.getKey().radians < entry.getKey().radians) {
+                max_danger = entry;
+            }
+        }
+        
+        float isOkay = (res_danger - min_danger.getValue())/ (max_danger.getValue() - min_danger.getValue());
+        if(isOkay > tolerance){
+            moveInDir(imtryna);
+        } else {
+            moveInDir(min_danger.getKey());
+        }
+    }*/
+    
+    public void moveWithDodging(Direction goal){
+            //to keep it compiling
     }
+	
 	
 
 	// =====================================================================================
