@@ -101,7 +101,7 @@ public strictfp class Archon extends RobotBase
 		if(alpha) {
 			System.out.println("I am the alpha");
 			rc.broadcast(1, CommunicationsHandler.pack(rc.getLocation().x, rc.getLocation().y));
-			
+
 			MapLocation enemyArch = null;
 			for(MapLocation ml : rc.getInitialArchonLocations(enemy)) {
 				if(enemyArch == null ||
@@ -110,22 +110,22 @@ public strictfp class Archon extends RobotBase
 			}
 
 			CommunicationsHandler.addTree(rc, enemyArch.x, enemyArch.y);
-			
+
 			// testing for trees :))
 			//for(int i = 0; i < 10; i ++) {
 			//	CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 			//} // end testing for trees
-			
+
 			// testing some lumbejacks 8)
 
 			CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
-			
+
 			// alright
-			
-			
-			
+
+
+
 			float closestDist = rc.getLocation().distanceTo(enemyArch);
-			
+
 			// alright now we consider cases
 			if(closestDist < 20.0f) {
 				System.out.println("Case: BLITZ");
@@ -143,7 +143,7 @@ public strictfp class Archon extends RobotBase
 				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
 				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-				
+
 				// make two gardeners, then wait until order queue is empty
 				int gardenerCount = 0;
 				int gardenerCooldown = 0;
@@ -228,10 +228,10 @@ public strictfp class Archon extends RobotBase
 					}
 				}
 			}
-			
-			
-			
-			
+
+
+
+
 
 			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
 			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));

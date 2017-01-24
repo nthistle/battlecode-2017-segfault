@@ -363,7 +363,10 @@ public strictfp abstract class RobotBase
 		for(int i=0; i<trees.length; i++) {
 			if(ml.distanceTo(trees[i].getLocation())<trees[i].getRadius()+rc.getType().bodyRadius)
 				return false;
+<<<<<<< HEAD
 			//System.out.println(ml.distanceTo(trees[i].getLocation())+" "+trees[i].getRadius());
+=======
+>>>>>>> 4aff491404b36abe06d5a8fe16d06a6b819f0088
 		}
 		return true;
 	}

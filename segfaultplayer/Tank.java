@@ -61,45 +61,50 @@ public strictfp class Tank extends RobotBase
 
 	//Does fire action
 	public void shoot() throws GameActionException {
-		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
+		try {
+			RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
 			TreeInfo[] trees = rc.senseNearbyTrees(rc.getType().sensorRadius);
-		if(robots.length==0) {
-			if(trees.length>0 && trees[0].getTeam()!=ally) {
-				Direction tDir = rc.getLocation().directionTo(trees[0].getLocation());
-				if (rc.canFirePentadShot()) {
-					rc.firePentadShot(tDir);
+			if(robots.length==0) {
+				if (trees.length > 0 && trees[0].getTeam() != ally) {
+					Direction tDir = rc.getLocation().directionTo(trees[0].getLocation());
+					double[] vPentad = isPentadShotClear(tDir);
+					double[] vTriad = isTriadShotClear(tDir);
+					if (rc.canFirePentadShot() && vPentad[1] > vPentad[0] && vPentad[0] == 0)
+						rc.firePentadShot(tDir);
+					else if (rc.canFireTriadShot() && vTriad[0] == 0)
+						rc.fireTriadShot(tDir);
+					else if (rc.canFireSingleShot() && isSingleShotClear(tDir))
+						rc.fireSingleShot(tDir);
 				}
-				else if (rc.canFireTriadShot())
+				return;
+			}
+			RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.ARCHON, RobotType.SCOUT};
+			RobotInfo target = null;
+			int z = 0;
+			while(target==null) {
+				for (int i = 0; i < robots.length; i++) {
+					if (robots[i].getType() == priority[z] && isSingleShotClear(rc.getLocation().directionTo(robots[i].getLocation()))) {
+						target = robots[i];
+						break;
+					}
+				}
+				z++;
+				if(z>priority.length-1)
+					break;
+			}
+			if(target!=null) {
+				Direction tDir = rc.getLocation().directionTo(target.getLocation());
+				double[] vPentad = isPentadShotClear(tDir);
+				double[] vTriad = isTriadShotClear(tDir);
+				if (rc.canFirePentadShot() && vPentad[1]>vPentad[0])
+					rc.firePentadShot(tDir);
+				else if (rc.canFireTriadShot() && vTriad[0]==0)
 					rc.fireTriadShot(tDir);
-				else if (rc.canFireSingleShot())
+				else if (rc.canFireSingleShot() && isSingleShotClear(tDir))
 					rc.fireSingleShot(tDir);
 			}
-			return;
-		}
-		RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.ARCHON, RobotType.SCOUT};
-		RobotInfo target = null;
-		int z = 0;
-		while(target==null) {
-			for (int i = 0; i < robots.length; i++) {
-				if (robots[i].getType() == priority[z] && isSingleShotClear(rc.getLocation().directionTo(robots[i].getLocation()))) {
-					target = robots[i];
-					break;
-				}
-			}
-			z++;
-			if(z>priority.length-1)
-				break;
-		}
-		if(target!=null) {
-			Direction tDir = rc.getLocation().directionTo(target.getLocation());
-			double[] vPentad = isPentadShotClear(tDir);
-			double[] vTriad = isTriadShotClear(tDir);
-			if (rc.canFirePentadShot() && vPentad[1]>vPentad[0])
-				rc.firePentadShot(tDir);
-			else if (rc.canFireTriadShot() && vTriad[0]==0)
-				rc.fireTriadShot(tDir);
-			else if (rc.canFireSingleShot() && isSingleShotClear(tDir))
-				rc.fireSingleShot(tDir);
+		} catch(Exception e) {
+			System.out.println("Shooting error");
 		}
 	}
 }

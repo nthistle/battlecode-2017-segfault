@@ -41,7 +41,7 @@ public strictfp class Gardener extends RobotBase
 			// one or fewer fellow gardeners further from alpha arch
 			if(timeSinceSeenFurther > 15) {//numFurtherGardeners == 0) {//<= 1) {
 				// this case we consider ourself a frontier gardener
-				
+
 				if(DOES_BROADCAST_INFO && (rc.getRoundNum() % 50 == 0)) {
 					// count friendly lumberjacks and neutral trees
 					RobotInfo[] friendlies = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
@@ -52,7 +52,7 @@ public strictfp class Gardener extends RobotBase
 						}
 					}
 					int numNTrees = rc.senseNearbyTrees(rc.getType().sensorRadius, Team.NEUTRAL).length;
-					
+
 					if(rc.readBroadcast(400) != rc.getRoundNum()) {
 						// nobody has reset yet
 						rc.broadcast(400, rc.getRoundNum());
@@ -64,9 +64,9 @@ public strictfp class Gardener extends RobotBase
 						rc.broadcast(402, numNTrees + rc.readBroadcast(402));
 					}
 				}
-				
-				
-				
+
+
+
 				// check if we can build something and if we can
 				nextOrder = CommunicationsHandler.peekOrder(rc);
 				if(myBuildCooldown <= 0 && nextOrder != null) {
