@@ -1,6 +1,5 @@
 package testscoutspawner;
 import battlecode.common.*;
-import sun.reflect.generics.tree.Tree;
 
 public strictfp class RobotPlayer {
     static RobotController rc;
