@@ -10,11 +10,13 @@ public strictfp class Tank extends RobotBase
 
 	public void run() throws GameActionException {
 		int ctr = 0;
+		int steps = 0;
 		while(true) {
-			boolean attack = true;
-			if(attack) {
+			boolean attack = false;
+			if(attack || steps<15) {
 				Direction goal = rc.getLocation().directionTo(enemyArchons[ctr]);
 				moveWithoutDodging(goal);
+				steps++;
 			}
 			if(rc.getLocation().distanceTo(enemyArchons[ctr])<7 && isArchonDead())
 				ctr++;
