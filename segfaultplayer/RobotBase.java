@@ -1,4 +1,5 @@
 package segfaultplayer;
+import java.util.HashMap;
 import java.util.Random;
 
 import battlecode.common.*;
@@ -343,29 +344,52 @@ public strictfp abstract class RobotBase
 		return ret;
 	}
 
+	public void moveWithoutDodging(Direction goal) throws GameActionException {
+		moveWithoutDodging(goal, false);
+	}
+
 	//Parameters: Intended movement direction, 15 degree intervals
 	//Moves robot as best possible
-	public void moveWithoutDodging(Direction goal) throws GameActionException {
-		if(rc.canMove(goal)) {
+	public void moveWithoutDodging(Direction goal, boolean debug) throws GameActionException {
+		if(rc.canMove(goal) && canTankMove(rc.getLocation().add(goal,rc.getType().strideRadius)) ) {
 			rc.move(goal);
+			if(debug)
+				System.out.println("Move straight");
 			return;
 		}
-		for(int i=1; i<13; i++) {
+		for(int i=1; i<25; i++) {
 			Direction copyRight = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateRightDegrees((float)(i*7.5));
 			Direction copyLeft = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateLeftDegrees((float)(i*7.5));
-			if(rc.canMove(copyRight)) {
+			if(rc.canMove(copyRight) && canTankMove(rc.getLocation().add(copyRight,rc.getType().strideRadius)) ) {
 				rc.move(copyRight);
+				if(debug)
+					System.out.println("Move Right");
 				return;
 			}
-			else if(rc.canMove(copyLeft)) {
+			else if(rc.canMove(copyLeft) && canTankMove(rc.getLocation().add(copyLeft,rc.getType().strideRadius))) {
 				rc.move(copyLeft);
+				if(debug)
+					System.out.println("Move Right");
 				return;
 			}
 		}
+		if(debug)
+			System.out.println("NO move");
+	}
+
+	public boolean canTankMove(MapLocation ml) {
+		TreeInfo[] trees = rc.senseNearbyTrees(rc.getType().sensorRadius,ally);
+		for(int i=0; i<trees.length; i++) {
+			if(ml.distanceTo(trees[i].getLocation())<trees[i].getRadius()+rc.getType().bodyRadius)
+				return false;
+			System.out.println(ml.distanceTo(trees[i].getLocation())+" "+trees[i].getRadius());
+		}
+		return true;
 	}
 
 	//Parameters: Intended movement direction
 	//Moves robot as best possible
+	/*
 	public void moveWithDodging(Direction goal) throws GameActionException {
 		double[] scores = new double[9]; //41
 		Direction[] moves = new Direction[9]; //41
@@ -397,12 +421,41 @@ public strictfp abstract class RobotBase
 		if(scores[ideal] != Double.MAX_VALUE)
 			if(rc.canMove(moves[ideal]))
 				rc.move(moves[ideal]);
-	}
+	}*/
 
 	public float degreesToRadians(double angle) {
 		return (float)(angle/180.0*Math.PI);
 	}
 	
+    /**
+     * Computes the BulletInfos for a given set of bullets in the range of current bullet sight radius
+     *
+     * @param depth depth of how many turns of lookahead
+     * @param dt duration of each non-continuous step (the smaller the more accurate)
+     * @return locations of all the bullets after a given time dt; ex output[bulletnumber][depth] is a given bullet at a given depth
+     */
+    public BulletInfo[][] muchDoge(int depth, float dt) throws GameActionException{
+        BulletInfo[] bi = rc.senseNearbyBullets(rc.getLocation(), -1); // scan full loc; sorted by distance
+        BulletInfo[][] res = new BulletInfo[bi.length][depth];
+        for(int i = 0; i < res.length; i++){
+            res[i][0] = bi[i];
+        }
+        for(int i = 0; i < res.length; i++){
+            BulletInfo cur = bi[i];
+            for(int j = 1; j < res[0].length; j++){
+                MapLocation np = new MapLocation(cur.location.x, cur.location.y);
+                float deex = res[i][j-1].getSpeed() * dt;
+                np = np.add(cur.dir, deex);
+                if(rc.isLocationOccupied(np)){
+                    BulletInfo add = new BulletInfo(cur.getID(), np, cur.getDir(), cur.getSpeed(), cur.getDamage());
+                } else{
+                    BulletInfo add = new BulletInfo(cur.getID(), np, cur.getDir(), -1, -1);
+                }
+            }
+        }
+        return res;
+    }
+    
 	/**
      * Computes an approx sense of danger for a given location based on speed and 
      * power of nearby bullets
@@ -410,10 +463,13 @@ public strictfp abstract class RobotBase
      * @param ml location in question 
      * @return relative danger; closer to zero the less danger you are in
      */
-    public float dangerHeuristic(MapLocation ml){
-        BulletInfo[] bi = rc.senseNearbyBullets(ml, -1); // scan full loc; sorted by distance
+    public float dangerHeuristic(BulletInfo[] bi, MapLocation ml){
+        // scan full loc; sorted by distance
         if(bi.length == 0){
-            return 0; // no bullets around the sense radius 
+            bi = rc.senseNearbyBullets(ml, -1);
+            if(bi.length == 0){
+                return 0;
+            }
         }
         
         // compute max and min damages within radius to create a scale and instill a
@@ -465,7 +521,7 @@ public strictfp abstract class RobotBase
         return sum;
     }	
 
-    /**
+    /** OLD
      * Generates an array of floats with the relative danger of each direction with a 
      * given offset
      *
@@ -473,18 +529,28 @@ public strictfp abstract class RobotBase
      * @param offset the increment to attempt directions in in degrees
      * @return array with relative danger potentials of each position with stride of 1
      */
-    public float[] heatmap(MapLocation ml, float offset){
+    public HashMap<Direction, Float> heatmap(MapLocation ml, float offset, int depth, float deetee) throws GameActionException{
         float[] res = new float[(int)(360f/offset)];
+        HashMap hm = new HashMap<Direction, Float>();
         MapLocation orig = new MapLocation(ml.x, ml.y);
         float pie = (float)Math.PI;
         float cur = 0.0f;
-        for(int i = 0; i < res.length; i++){
-            Direction d = new Direction(cur * pie / 180.0f);
-            res[i] = dangerHeuristic(ml.add(d));
-            ml = new MapLocation(orig.x, orig.y);
-            cur += offset;
+        BulletInfo[][] doge = muchDoge(depth, deetee);
+        for(int g = 0; g < doge.length; g++){
+            for(int i = 0; i < res.length; i++){
+                Direction d = new Direction(cur * pie / 180.0f);
+                hm.put(d, dangerHeuristic(doge[g], ml.add(d)));
+                ml = new MapLocation(orig.x, orig.y);
+                cur += offset;
+            }
         }
-        return res;
+        return hm;
+    }
+    
+    public void moveWithDodging(Direction goal) throws GameActionException{
+	    // call heatmap here and decide where you wanna go
+	    // heat map gives back hashmap with all directions and associated danger values of each
+	
     }
 	
 

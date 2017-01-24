@@ -9,18 +9,28 @@ public strictfp class Tank extends RobotBase
 	}
 
 	public void run() throws GameActionException {
+		int ctr = 0;
+		int steps = 0;
 		while(true) {
-
-			Direction dir = rc.getLocation().directionTo(enemyArchons[0]);
-			moveWithoutDodging(dir);
+			boolean attack = true; // Always leave as true, do not check on communication
+			if(attack || steps<15) {
+				Direction goal = rc.getLocation().directionTo(enemyArchons[ctr]);
+				moveWithoutDodging(goal);
+				steps++;
+			}
+			if(rc.getLocation().distanceTo(enemyArchons[ctr])<7 && isArchonDead() && ctr!=enemyArchons.length-1)
+				ctr++;
 			shoot();
-
-			//Direction dir = randomDirection();
-			//if(rc.canMove(dir))
-			//	rc.move(dir);
-
 			Clock.yield();
 		}
+	}
+
+	public boolean isArchonDead() throws GameActionException {
+		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
+		for(int i=0; i<robots.length; i++)
+			if(robots[i].getType() == RobotType.ARCHON)
+				return true;
+		return false;
 	}
 
 	//Does fire action

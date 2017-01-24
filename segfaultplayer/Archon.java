@@ -110,7 +110,7 @@ public strictfp class Archon extends RobotBase
 			System.out.println("Queued three trees");
 		}
 
-		boolean testOtherStuff = false;
+		boolean testOtherStuff = true;
 
 		int t = 40;
 		while(true) {
