@@ -18,6 +18,7 @@ public strictfp class Archon extends RobotBase
 	
 	public Archon(RobotController rc, int id) throws GameActionException {
 		super(rc, id);
+		this.calculateDensity();
 		this.rank = CommunicationsHandler.assignAlphaArchonProtocol(this, true);
 		this.alpha = (this.rank == 0);
 	}
@@ -76,16 +77,16 @@ public strictfp class Archon extends RobotBase
 			System.out.println("Here's what I think is blocked:");
 			
 			// I know this is kind of bad, but it looks really nice I promise
-			System.out.println("     " + (blocked[4]?"X":" ") + " " + (blocked[3]?"X":" ") + "     ");
-			System.out.println("   " + (blocked[5]?"X":" ") + "     " + (blocked[2]?"X":" ") + "   ");
-			System.out.println("  " + (blocked[6]?"X":" ") + "       " + (blocked[1]?"X":" ") + "  ");
+			System.out.println("     " + (blocked[4]?"X":"O") + " " + (blocked[3]?"X":"O") + "     ");
+			System.out.println("   " + (blocked[5]?"X":"O") + "     " + (blocked[2]?"X":"O") + "   ");
+			System.out.println("  " + (blocked[6]?"X":"O") + "       " + (blocked[1]?"X":"O") + "  ");
 			System.out.println("             ");
-			System.out.println(" " + (blocked[7]?"X":" ") + "         " + (blocked[0]?"X":" ") + " ");
-			System.out.println(" " + (blocked[8]?"X":" ") + "         " + (blocked[15]?"X":" ") + " ");
+			System.out.println(" " + (blocked[7]?"X":"O") + "         " + (blocked[0]?"X":"O") + " ");
+			System.out.println(" " + (blocked[8]?"X":"O") + "         " + (blocked[15]?"X":"O") + " ");
 			System.out.println("             ");
-			System.out.println("  " + (blocked[9]?"X":" ") + "       " + (blocked[14]?"X":" ") + "  ");
-			System.out.println("   " + (blocked[10]?"X":" ") + "     " + (blocked[13]?"X":" ") + "   ");
-			System.out.println("     " + (blocked[11]?"X":" ") + " " + (blocked[12]?"X":" ") + "     ");
+			System.out.println("  " + (blocked[9]?"X":"O") + "       " + (blocked[14]?"X":"O") + "  ");
+			System.out.println("   " + (blocked[10]?"X":"O") + "     " + (blocked[13]?"X":"O") + "   ");
+			System.out.println("     " + (blocked[11]?"X":"O") + " " + (blocked[12]?"X":"O") + "     ");
 			
 			if(nBlocked < 8) return 0;
 			if(nBlocked <= 12) return 1;

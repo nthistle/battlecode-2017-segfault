@@ -9,7 +9,7 @@ Communications Slots
 151 	-	total number of trees the pathscout has seen
 152 	-	scaled number of trees (rad^2) pathscout has seen
 200-203	-	alpha archon self-assignment
+300-303	-	also alpha archon self-assignment
 600+	-	gardener orders (robots and trees)
 2000	-	number of trees
 2001+	-	packed tree coords
-2201+	-	last round a tree was watered 

@@ -24,14 +24,24 @@ public final strictfp class CommunicationsHandler
 		if(debugPrint)
 			System.out.println("[ID" + a.getID() + "] found my distance as " + myDist); 
 		a.rc.broadcast(200 + a.getID(), (int)(100*myDist));
+		int myBlocked = a.getBlockedFactor();
+		a.rc.broadcast(300 + a.getID(), myBlocked);
 		Clock.yield();
 		int numAlphas = getNumMade(a.rc, RobotType.ARCHON);
 		int rank = 0;
+		// our rank is lower (+1) than a given other archon iff
+		//  - our blocked factor is higher
+		//  - OR our blocked factors are the same AND
+		//        my distance is higher
 		for(int i = 0; i < numAlphas; i ++) {
 			if(i == a.getID())
 				continue;
-			if((100*myDist) > a.rc.readBroadcast(200 + i))
-				rank ++;
+			if(myBlocked > a.rc.readBroadcast(300 + i)) {
+				rank ++; // we're more boxed in than him, we can't be better alpha
+			} else if(myBlocked == a.rc.readBroadcast(300 + i)) {
+				if((100*myDist) > a.rc.readBroadcast(200 + i))
+					rank ++; // we're as boxed in, but he's closer				
+			}
 		}
 		if(debugPrint)
 			System.out.println("[ID" + a.getID() + "] self assigned as rank " + rank);
