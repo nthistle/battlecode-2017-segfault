@@ -12,7 +12,7 @@ public strictfp class Tank extends RobotBase
 		int ctr = 0;
 		int steps = 0;
 		while(true) {
-			boolean attack = true;
+			boolean attack = true; // Always leave as true, do not check on communication
 			if(attack || steps<15) {
 				Direction goal = rc.getLocation().directionTo(enemyArchons[ctr]);
 				moveWithoutDodging(goal);
