@@ -18,7 +18,7 @@ public strictfp class Soldier extends RobotBase
 				moveWithoutDodging(goal);
 				steps++;
 			}
-			if(rc.getLocation().distanceTo(enemyArchons[ctr])<7 && isArchonDead())
+			if(rc.getLocation().distanceTo(enemyArchons[ctr])<7 && isArchonDead() && ctr!=enemyArchons.length-1)
 				ctr++;
 			shoot();
 			Clock.yield();
