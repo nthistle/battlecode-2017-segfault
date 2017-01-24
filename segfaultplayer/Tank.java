@@ -14,6 +14,13 @@ public strictfp class Tank extends RobotBase
 		float curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
 		float curdirection = (float) Math.random() * 2 * (float) Math.PI;
 		while(true) {
+			TreeInfo[] nearbyTrees = rc.senseNearbyTrees();
+			for(int i=0; i<nearbyTrees.length; i++) {
+				if(rc.canShake(nearbyTrees[i].getID())) {
+					rc.shake(nearbyTrees[i].getID());
+					break;
+				}
+			}
 			boolean attack = true;
 			if(attack || steps<15) {
 				if(ctr>=enemyArchons.length) {

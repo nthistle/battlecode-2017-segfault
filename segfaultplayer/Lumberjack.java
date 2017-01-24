@@ -19,8 +19,10 @@ public strictfp class Lumberjack extends RobotBase
 		while(true) {
 			TreeInfo[] nearbyTrees = rc.senseNearbyTrees();
 			for(int i=0; i<nearbyTrees.length; i++) {
-				if(rc.canShake(nearbyTrees[i].getID()))
+				if(rc.canShake(nearbyTrees[i].getID())) {
 					rc.shake(nearbyTrees[i].getID());
+					break;
+				}
 			}
 			MapLocation alpha = allyArchons[0];
 			for(int i=1; i<allyArchons.length; i++) {
