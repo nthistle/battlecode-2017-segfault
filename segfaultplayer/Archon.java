@@ -109,7 +109,34 @@ public strictfp class Archon extends RobotBase
 
 			CommunicationsHandler.addTree(rc, enemyArch.x, enemyArch.y);
 			
+			// testing for trees :))
+			for(int i = 0; i < 10; i ++) {
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+			} // end testing for trees
+			
+			// HELLO UNCOMMENT HERE
+			/*
+			
+			
+			float closestDist = rc.getLocation().distanceTo(enemyArch);
+			
 			// alright now we consider cases
+			if(closestDist < 20.0f) {
+				// we're really close, let's try to blitz
+
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+			}
+			
+			// HELLO UNCOMMENT HERE
+			*/
 			
 			
 
@@ -122,8 +149,9 @@ public strictfp class Archon extends RobotBase
 		} else {
 			while(true) {
 				// draw some pretty lines
-				Direction dir = randomDirection();
-				for(int i = 0; i < 5; i ++) {
+				Direction dir;
+				for(int i = 0; i < 15; i ++) {
+					dir = randomDirection();
 					rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dir, 4.0f),
 							RobotBase.rand.nextInt(255), RobotBase.rand.nextInt(255), RobotBase.rand.nextInt(255));
 				}
@@ -131,8 +159,8 @@ public strictfp class Archon extends RobotBase
 			}
 		}
 
-		/*
-		boolean testOtherStuff = true;
+		
+		boolean testOtherStuff = false;
 
 		int t = 40;
 		while(true) {
@@ -162,10 +190,10 @@ public strictfp class Archon extends RobotBase
 			if(t%5 == 0) {
 				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 				System.out.println("Queued a tree");
-			} else if(t%19 == 1) {
-				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
-			}
-		}*/
+			}// else if(t%19 == 1) {
+			//	CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+			//}
+		}
 	}
 	
 	public void createGrid() throws GameActionException {
