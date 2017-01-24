@@ -1,5 +1,6 @@
 Communications Slots
 1   	-	alpha archon starting location
+2		-	soldier game plan (1=blitz,2=patrol,3=swarm)
 101 	-	total number of gardeners created (id of new gardener)
 102 	-	total number of scouts created (id of new scout)
 103 	-	total number of soldiers created (id of new soldier)
