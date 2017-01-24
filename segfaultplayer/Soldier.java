@@ -46,7 +46,10 @@ public strictfp class Soldier extends RobotBase
 			}
 			if(ctr<enemyArchons.length && rc.getLocation().distanceTo(enemyArchons[ctr])<4 && isArchonDead())
 				ctr++;
-			shoot();
+			if(ctr>=enemyArchons.length)
+				shoot(null);
+			else
+				shoot(rc.getLocation().directionTo(enemyArchons[ctr]));
 			Clock.yield();
 		}
 	}
@@ -60,47 +63,51 @@ public strictfp class Soldier extends RobotBase
 	}
 
 	//Does fire action
-	public void shoot() throws GameActionException {
-		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
-		TreeInfo[] trees = rc.senseNearbyTrees(rc.getType().sensorRadius);
-		if(robots.length==0) {
-			if(trees.length>0 && trees[0].getTeam()!=ally) {
-				Direction tDir = rc.getLocation().directionTo(trees[0].getLocation());
+	public void shoot(Direction goal) throws GameActionException {
+		try {
+			RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
+			TreeInfo[] trees = rc.senseNearbyTrees(rc.getType().sensorRadius);
+			if (robots.length == 0) {
+				if(trees.length>0 && trees[0].getTeam()!=ally) {
+					Direction tDir = rc.getLocation().directionTo(trees[0].getLocation());
+					if(goal!=null && tDir.equals(goal,(float)(Math.PI/2.0)) && rc.getLocation().distanceTo(trees[0].getLocation())<3.0) {
+						if (rc.canFirePentadShot()) {
+							rc.firePentadShot(tDir);
+						} else if (rc.canFireTriadShot())
+							rc.fireTriadShot(tDir);
+						else if (rc.canFireSingleShot())
+							rc.fireSingleShot(tDir);
+					}
+				}
+				return;
+			}
+			RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.ARCHON, RobotType.SCOUT};
+			RobotInfo target = null;
+			int z = 0;
+			while (target == null) {
+				for (int i = 0; i < robots.length; i++) {
+					if (robots[i].getType() == priority[z] && isSingleShotClear(rc.getLocation().directionTo(robots[i].getLocation()))) {
+						target = robots[i];
+						break;
+					}
+				}
+				z++;
+				if (z > priority.length - 1)
+					break;
+			}
+			if (target != null) {
+				Direction tDir = rc.getLocation().directionTo(target.getLocation());
 				double[] vPentad = isPentadShotClear(tDir);
 				double[] vTriad = isTriadShotClear(tDir);
-				if (rc.canFirePentadShot() && vPentad[1]>vPentad[0])
+				if (rc.canFirePentadShot() && vPentad[1] > vPentad[0])
 					rc.firePentadShot(tDir);
-				else if (rc.canFireTriadShot() && vTriad[0]==0)
+				else if (rc.canFireTriadShot() && vTriad[0] == 0)
 					rc.fireTriadShot(tDir);
 				else if (rc.canFireSingleShot() && isSingleShotClear(tDir))
 					rc.fireSingleShot(tDir);
 			}
-			return;
-		}
-		RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.ARCHON, RobotType.SCOUT};
-		RobotInfo target = null;
-		int z = 0;
-		while(target==null) {
-			for (int i = 0; i < robots.length; i++) {
-				if (robots[i].getType() == priority[z] && isSingleShotClear(rc.getLocation().directionTo(robots[i].getLocation()))) {
-					target = robots[i];
-					break;
-				}
-			}
-			z++;
-			if(z>priority.length-1)
-				break;
-		}
-		if(target!=null) {
-			Direction tDir = rc.getLocation().directionTo(target.getLocation());
-			double[] vPentad = isPentadShotClear(tDir);
-			double[] vTriad = isTriadShotClear(tDir);
-			if (rc.canFirePentadShot() && vPentad[1]>vPentad[0])
-				rc.firePentadShot(tDir);
-			else if (rc.canFireTriadShot() && vTriad[0]==0)
-				rc.fireTriadShot(tDir);
-			else if (rc.canFireSingleShot() && isSingleShotClear(tDir))
-				rc.fireSingleShot(tDir);
+		} catch(Exception e) {
+			System.out.println("Shooting error");
 		}
 	}
 }
