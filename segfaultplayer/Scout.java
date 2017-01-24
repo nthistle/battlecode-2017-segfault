@@ -26,7 +26,7 @@ public strictfp class Scout extends RobotBase
 		int steps = 0;
 		float sR = rc.getType().sensorRadius;
 		float stride = 1.25f;
-
+		int broadcast = 3000;
 		System.out.println("dank Memes");
 		System.out.println(rc.getLocation().distanceTo(el));
 
@@ -38,7 +38,14 @@ public strictfp class Scout extends RobotBase
 			TreeInfo[] myTrees = rc.senseNearbyTrees(sR);
 			Direction dir = myLoc.directionTo(el);
 			for (TreeInfo k : myTrees) {
-				uniqueTrees.add(k.ID);
+				float q = k.radius;
+				if(uniqueTrees.add(k.ID)) {
+					if(k.containedRobot!=null) {
+						rc.broadcast(broadcast, CommunicationsHandler.pack(k.location.x, k.location.y));
+						broadcast++;
+					}
+					scaledNumTrees += (q*q);
+				}
 				if(k.containedBullets!=0) {
 					if(rc.canShake(k.ID)){
 						rc.shake(k.ID);
@@ -53,7 +60,7 @@ public strictfp class Scout extends RobotBase
 			
 			//broadcast tree data
 			rc.broadcast(151, uniqueTrees.size());
-			//rc.broadcast(152, (int)scaledNumTrees);
+			rc.broadcast(152, (int)scaledNumTrees);
 			//pathfinding
 			if(rc.canMove(dir, stride)) {
 				rc.move(dir, stride);
