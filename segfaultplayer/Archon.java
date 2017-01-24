@@ -251,7 +251,7 @@ public strictfp class Archon extends RobotBase
 		}
 
 		
-		/*boolean testOtherStuff = false;
+		boolean testOtherStuff = false;
 
 		int t = 40;
 		while(true) {
@@ -284,7 +284,7 @@ public strictfp class Archon extends RobotBase
 			}// else if(t%19 == 1) {
 			//	CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
 			//}
-		}*/
+		}
 	}
 	
 	public void createGrid() throws GameActionException {

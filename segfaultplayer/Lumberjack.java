@@ -17,10 +17,13 @@ public strictfp class Lumberjack extends RobotBase
 		float curdirection = (float) Math.random() * 2 * (float) Math.PI;
 
 		while(true) {
+			checkVPWin();
 			TreeInfo[] nearbyTrees = rc.senseNearbyTrees();
 			for(int i=0; i<nearbyTrees.length; i++) {
-				if(rc.canShake(nearbyTrees[i].getID()))
+				if(rc.canShake(nearbyTrees[i].getID())) {
 					rc.shake(nearbyTrees[i].getID());
+					break;
+				}
 			}
 			MapLocation alpha = allyArchons[0];
 			for(int i=1; i<allyArchons.length; i++) {
@@ -77,7 +80,7 @@ public strictfp class Lumberjack extends RobotBase
 					curdirection -= 2 * (float) Math.PI;
 				}
 				Direction d = new Direction(curdirection);
-				moveWithDodging(d);
+				moveWithoutDodging(d);
 //				if (rc.canMove(d)) {
 //					rc.move(d);
 //				} else {

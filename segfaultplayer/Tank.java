@@ -11,14 +11,40 @@ public strictfp class Tank extends RobotBase
 	public void run() throws GameActionException {
 		int ctr = 0;
 		int steps = 0;
+		float curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
+		float curdirection = (float) Math.random() * 2 * (float) Math.PI;
 		while(true) {
-			boolean attack = true; // Always leave as true, do not check on communication
+			checkVPWin();
+			TreeInfo[] nearbyTrees = rc.senseNearbyTrees();
+			for(int i=0; i<nearbyTrees.length; i++) {
+				if(rc.canShake(nearbyTrees[i].getID())) {
+					rc.shake(nearbyTrees[i].getID());
+					break;
+				}
+			}
+			boolean attack = true;
 			if(attack || steps<15) {
-				Direction goal = rc.getLocation().directionTo(enemyArchons[ctr]);
-				moveWithoutDodging(goal);
+				if(ctr>=enemyArchons.length) {
+					if (Math.random() < 0.05) {
+						curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
+					}
+					curdirection += curdiff + 2 * (float) Math.PI;
+					while (curdirection > 2 * (float) Math.PI) {
+						curdirection -= 2 * (float) Math.PI;
+					}
+					Direction d = new Direction(curdirection);
+					RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
+					if(robots.length>0)
+						d = rc.getLocation().directionTo(robots[0].getLocation());
+					moveWithoutDodging(d);
+				}
+				else {
+					Direction goal = rc.getLocation().directionTo(enemyArchons[ctr]);
+					moveWithoutDodging(goal);
+				}
 				steps++;
 			}
-			if(rc.getLocation().distanceTo(enemyArchons[ctr])<7 && isArchonDead() && ctr!=enemyArchons.length-1)
+			if(ctr<enemyArchons.length && rc.getLocation().distanceTo(enemyArchons[ctr])<4 && isArchonDead())
 				ctr++;
 			shoot();
 			Clock.yield();
@@ -29,8 +55,8 @@ public strictfp class Tank extends RobotBase
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
 		for(int i=0; i<robots.length; i++)
 			if(robots[i].getType() == RobotType.ARCHON)
-				return true;
-		return false;
+				return false;
+		return true;
 	}
 
 	//Does fire action
@@ -50,7 +76,7 @@ public strictfp class Tank extends RobotBase
 			}
 			return;
 		}
-		RobotType[] priority = {RobotType.ARCHON, RobotType.SCOUT, RobotType.TANK, RobotType.SOLDIER, RobotType.GARDENER, RobotType.LUMBERJACK};
+		RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.ARCHON, RobotType.SCOUT};
 		RobotInfo target = null;
 		int z = 0;
 		while(target==null) {
@@ -68,7 +94,7 @@ public strictfp class Tank extends RobotBase
 			Direction tDir = rc.getLocation().directionTo(target.getLocation());
 			double[] vPentad = isPentadShotClear(tDir);
 			double[] vTriad = isTriadShotClear(tDir);
-			if (rc.canFirePentadShot() && vPentad[1]>vPentad[0] && checkPenta(target))
+			if (rc.canFirePentadShot() && vPentad[1]>vPentad[0])
 				rc.firePentadShot(tDir);
 			else if (rc.canFireTriadShot() && vTriad[0]==0)
 				rc.fireTriadShot(tDir);
