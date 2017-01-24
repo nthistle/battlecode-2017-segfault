@@ -62,8 +62,21 @@ public strictfp class Soldier extends RobotBase
 	//Does fire action
 	public void shoot() throws GameActionException {
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
-		if(robots.length==0)
+		TreeInfo[] trees = rc.senseNearbyTrees(rc.getType().sensorRadius);
+		if(robots.length==0) {
+			if(trees.length>0 && trees[0].getTeam()!=ally) {
+				Direction tDir = rc.getLocation().directionTo(trees[0].getLocation());
+				double[] vPentad = isPentadShotClear(tDir);
+				double[] vTriad = isTriadShotClear(tDir);
+				if (rc.canFirePentadShot() && vPentad[1]>vPentad[0])
+					rc.firePentadShot(tDir);
+				else if (rc.canFireTriadShot() && vTriad[0]==0)
+					rc.fireTriadShot(tDir);
+				else if (rc.canFireSingleShot() && isSingleShotClear(tDir))
+					rc.fireSingleShot(tDir);
+			}
 			return;
+		}
 		RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.ARCHON, RobotType.SCOUT};
 		RobotInfo target = null;
 		int z = 0;

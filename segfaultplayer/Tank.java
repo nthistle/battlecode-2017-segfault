@@ -62,7 +62,7 @@ public strictfp class Tank extends RobotBase
 	//Does fire action
 	public void shoot() throws GameActionException {
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
-			TreeInfo[] trees = rc.senseNearbyTrees(rc.getType().sensorRadius);
+		TreeInfo[] trees = rc.senseNearbyTrees(rc.getType().sensorRadius);
 		if(robots.length==0) {
 			if(trees.length>0 && trees[0].getTeam()!=ally) {
 				Direction tDir = rc.getLocation().directionTo(trees[0].getLocation());
