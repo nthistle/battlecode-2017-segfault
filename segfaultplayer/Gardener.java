@@ -84,12 +84,12 @@ public strictfp class Gardener extends RobotBase
 		while(true) {
 			TreeInfo[] trees = rc.senseNearbyTrees(2.0f,rc.getTeam());
 			Direction dir = randomDirection();
-			if(rc.canBuildRobot(RobotType.SCOUT,dir)&&ctr<1) {
-				rc.buildRobot(RobotType.SCOUT, dir);
+			if(rc.canBuildRobot(RobotType.LUMBERJACK,dir)&&ctr<1) {
+				rc.buildRobot(RobotType.LUMBERJACK, dir);
 				ctr++;
 			}
-			if(rc.canBuildRobot(RobotType.SCOUT,dir)) // was tank
-				rc.buildRobot(RobotType.SCOUT,dir);
+			if(rc.canBuildRobot(RobotType.TANK,dir)) // was tank
+				rc.buildRobot(RobotType.TANK,dir);
 			else if(rc.canPlantTree(dir) && trees.length<2)
 				rc.plantTree(dir);
 			dir = randomDirection();

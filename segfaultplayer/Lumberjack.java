@@ -77,7 +77,7 @@ public strictfp class Lumberjack extends RobotBase
 					curdirection -= 2 * (float) Math.PI;
 				}
 				Direction d = new Direction(curdirection);
-				moveWithDodging(d);
+				moveWithoutDodging(d);
 //				if (rc.canMove(d)) {
 //					rc.move(d);
 //				} else {
