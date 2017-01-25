@@ -448,7 +448,7 @@ public strictfp abstract class RobotBase
     public float dangerHeuristic(BulletInfo[] bi, MapLocation ml){
         // scan full loc; sorted by distance
         if(bi.length == 0){
-            bi = rc.senseNearbyBullets(ml, -1);
+            bi = rc.senseNearbyBullets(rc.getType().sensorRadius);
             if(bi.length == 0){
                 return 0;
             }
@@ -497,19 +497,20 @@ public strictfp abstract class RobotBase
         
         float sum = 0.0f;
         for(int i = 0; i < res.length; i++){
+			System.out.println("SCARY : "+i+" "+sum+" "+res[i]);
             sum += res[i];
         }
-        
+        System.out.println("SCARY MEME: "+sum);
         return sum;
     }
 
 	public void moveWithDodging(Direction goal) throws GameActionException{
-		moveWithoutDodging(goal, false);
+		moveWithDodging(goal, false);
 	}
 
-	public void moveWithDodging(Direction goal, boolean debug) throws GameActionException{
+	public void moveWithDodgingTest(Direction goal, boolean debug) throws GameActionException{
     	System.out.println("HELLO BTCHES");
-		HashMap<Direction,Float> hm = heatmap(rc.getLocation(), 90f, 1, .125f);
+		HashMap<Direction,Float> hm = heatmapTwo(rc.getLocation(), 90f, 1, .125f);
 		System.out.println(hm.size());
 		Set<Direction> keys = hm.keySet();
 		for (Direction key : keys) {
@@ -566,6 +567,88 @@ public strictfp abstract class RobotBase
         }
         return hm;
     }
+
+	public HashMap<Direction, Float> heatmapTwo(MapLocation ml, float offset, int depth, float deetee) throws GameActionException{
+		float[] res = new float[(int)(360f/offset)];
+		HashMap hm = new HashMap<Direction, Float>();
+		MapLocation orig = new MapLocation(ml.x, ml.y);
+		float pie = (float)Math.PI;
+		float cur = 0.0f;
+		BulletInfo[][] doge = muchDoge(depth, deetee);
+
+		for(int i = 0; i < res.length; i++) {
+			Direction d = new Direction(cur * pie / 180.0f);
+			MapLocation target = ml.add(d,rc.getType().strideRadius);
+			float sum = 0.0f;
+			for(int g = 0; g < doge.length; g++) {
+				sum+=dangerHeuristic(doge[g], target);
+			}
+			hm.put(d,sum);
+			ml = new MapLocation(orig.x, orig.y);
+			cur += offset;
+		}
+		return hm;
+	}
+
+	public void moveWithDodging(Direction goal, boolean debug) throws GameActionException {
+		float theta = 45.0f;
+		MapLocation myLoc = rc.getLocation();
+		int[] damage = new int[(int)(360f/theta)+1];
+		if(debug)
+			System.out.println(damage.length);
+		BulletInfo fuckyou[] = rc.senseNearbyBullets(rc.getLocation(), 3); //4 is fastest bullet
+		Direction[] myDirs = new Direction[9]; //method finds dirs fanning out from specified startDir
+		if(rc.canMove(goal) && canTankMove(rc.getLocation().add(goal,rc.getType().strideRadius)))
+			myDirs[0] = goal;
+		else
+			myDirs[0] = null;
+		for(int z=1; z<5; z++) {
+			Direction copyRight = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateRightDegrees((float)(z*45));
+			Direction copyLeft = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateLeftDegrees((float)(z*45));
+			if(rc.canMove(copyRight) && canTankMove(rc.getLocation().add(copyRight,rc.getType().strideRadius)) )
+				myDirs[z*2-1] = copyRight;
+			else
+				myDirs[z*2-1]=null;
+			if(rc.canMove(copyLeft) && canTankMove(rc.getLocation().add(copyLeft,rc.getType().strideRadius)) )
+				myDirs[z*2-1] = copyLeft;
+			else
+				myDirs[z*2-1]=null;
+		}
+		int i=0;
+		for (Direction k : myDirs) { // finds dirs fanning out from specified direction
+			if(k==null)
+				damage[i] = Integer.MAX_VALUE;
+			else {
+				MapLocation newLoc = myLoc.add(k, rc.getType().strideRadius);
+				int ctr = 0;
+				for (BulletInfo b : fuckyou) {
+					MapLocation bulletLoc = b.getLocation().add(b.getDir(), b.getSpeed());
+					if (newLoc.distanceTo(bulletLoc) < 1) {
+						damage[i] += b.getDamage();
+					}
+					ctr++;
+					if(ctr>8)
+						break;
+				}
+			}
+			i+=1;
+		}
+		if(damage[0]==0) {
+			if(rc.canMove(goal) && canTankMove(rc.getLocation().add(goal,rc.getType().strideRadius)))
+				rc.move(goal);
+		} else {
+			int index = 0;
+			int min = damage[index];
+			for (int z=1; z<damage.length; z++){
+				if (damage[z] < min ){
+					min = damage[z];
+					index = z;
+				}
+			}
+			if(myDirs[index]!=null && rc.canMove(myDirs[index]) && canTankMove(rc.getLocation().add(goal,rc.getType().strideRadius)))
+				rc.move(myDirs[index]);
+		}
+	}
     
     /*
     

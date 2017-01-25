@@ -11,9 +11,11 @@ public strictfp class Soldier extends RobotBase
 	public void runAlt() throws GameActionException {
 		while(true) {
 			moveWithDodging(rc.getLocation().directionTo(enemyArchons[0]), true);
-			if(rc.canMove(rc.getLocation().directionTo(enemyArchons[0])))
+			if(rc.hasMoved()==false && rc.canMove(rc.getLocation().directionTo(enemyArchons[0])))
 				rc.move(rc.getLocation().directionTo(enemyArchons[0]));
-			shoot(null);
+			RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
+			if(rc.canFireSingleShot() && robots.length>0)
+				rc.fireSingleShot(rc.getLocation().directionTo(robots[0].getLocation()));
 			Clock.yield();
 		}
 	}
@@ -33,6 +35,7 @@ public strictfp class Soldier extends RobotBase
 				}
 			}
 			boolean attack = true;
+			BulletInfo[] nearbyBullets = rc.senseNearbyBullets();
 			if(attack || steps<15) {
 				if(ctr>=enemyArchons.length) {
 					if (Math.random() < 0.05) {
@@ -46,11 +49,17 @@ public strictfp class Soldier extends RobotBase
 					RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
 					if(robots.length>0)
 						d = rc.getLocation().directionTo(robots[0].getLocation());
-					moveWithoutDodging(d);
+					if(nearbyBullets.length>0)
+						moveWithDodging(d); //movewWithoutDodging
+					else
+						moveWithoutDodging(d);
 				}
 				else {
 					Direction goal = rc.getLocation().directionTo(enemyArchons[ctr]);
-					moveWithoutDodging(goal);
+					if(nearbyBullets.length>0)
+						moveWithDodging(goal); //movewWithoutDodging
+					else
+						moveWithoutDodging(goal);
 				}
 				steps++;
 			}
@@ -81,9 +90,7 @@ public strictfp class Soldier extends RobotBase
 				if(trees.length>0 && trees[0].getTeam()!=ally) {
 					Direction tDir = rc.getLocation().directionTo(trees[0].getLocation());
 					if(goal!=null && tDir.equals(goal,(float)(Math.PI/4.0)) && rc.getLocation().distanceTo(trees[0].getLocation())<3.0) {
-						if (rc.canFirePentadShot()) {
-							rc.firePentadShot(tDir);
-						} else if (rc.canFireTriadShot())
+						if (rc.canFireTriadShot())
 							rc.fireTriadShot(tDir);
 						else if (rc.canFireSingleShot())
 							rc.fireSingleShot(tDir);
