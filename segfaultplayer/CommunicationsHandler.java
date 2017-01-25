@@ -2,6 +2,8 @@ package segfaultplayer;
 import battlecode.common.*;
 
 
+
+
 /*
  * Handles advanced communications things, such as placing order queues for robots to be built,
  * as well as more complicated logging / recording / communicating
@@ -136,12 +138,28 @@ public final strictfp class CommunicationsHandler
     	return treeLocs;
     }
     
-    public static int getSoldierStrategy(RobotController rc) throws GameActionException {
-    	return rc.readBroadcast(2);
+    public static SoldierStrategy getSoldierStrategy(RobotController rc) throws GameActionException {
+    	int nVal = rc.readBroadcast(2);
+    	switch(nVal) {
+			case 1:
+				return SoldierStrategy.BLITZ;
+			case 2:
+				return SoldierStrategy.PATROL;
+			case 3:
+				return SoldierStrategy.SWARM;
+    	}
+    	return null;
     }
     
-    public static void setSoldierStrategy(RobotController rc, int newStrat) throws GameActionException {
-    	rc.broadcast(2, newStrat);
+    public static void setSoldierStrategy(RobotController rc, SoldierStrategy strat) throws GameActionException {
+    	switch(strat) {
+    		case BLITZ:
+    			rc.broadcast(2, 1);
+    		case PATROL:
+    			rc.broadcast(2, 2);
+    		case SWARM:
+    			rc.broadcast(2, 3);
+    	}
     }
     
     // technically pack and unpack are public, but they really could (should?) be private
