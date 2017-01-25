@@ -1,5 +1,7 @@
 package segfaultplayer;
 import battlecode.common.*;
+import java.util.LinkedList;
+
 
 public strictfp class Soldier extends RobotBase
 {
@@ -21,6 +23,7 @@ public strictfp class Soldier extends RobotBase
 	}
 	
 	public void run() throws GameActionException {
+		System.out.println("Solder in action");
 		int ctr = 0;
 		int steps = 0;
 		float curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
@@ -44,6 +47,7 @@ public strictfp class Soldier extends RobotBase
 			
 			// SOLDIER ADDITION I'M TRYING SO THEY DON'T CLOG MUH TREES
 			boolean attack = (CommunicationsHandler.getSoldierStrategy(rc) == SoldierStrategy.BLITZ);
+			
 			if(!attack && turnsAlive < 30) {
 				// if we're at the beginning of a "sentry/patrol" lifestyle,
 				// MOVE THE HELL AWAY A LITTLE BIT WHY DON'T YOU
@@ -51,9 +55,83 @@ public strictfp class Soldier extends RobotBase
 				moveTowards(alphaLoc, rc.getLocation(), (float)Math.PI/8, 5);
 			}
 			
+			Direction curMove = randomDirection();
+			
+			MapLocation targetArchon = enemyArchons[0]; // pls no run on map w/o archons
+			int curArchonNum = 0;
+			
+			boolean whichDir = false;
+			
 			BulletInfo[] nearbyBullets = rc.senseNearbyBullets();
 			if(attack) {// || steps<15) {    // temporarily removing this condition because I want my own anti-clog
-				if(ctr>=enemyArchons.length) {
+				//System.out.println("We're attacking!");
+				RobotInfo[] ri = rc.senseNearbyRobots(-1, enemy);
+				if(ri.length == 0) {
+					if(curArchonNum != -1) {
+						if(rc.getLocation().distanceTo(targetArchon) < (rc.getType().sensorRadius - 2.5f)) {
+							// this archon must be dead, we can't see him
+							curArchonNum ++;
+							if(curArchonNum < enemyArchons.length) {
+								targetArchon = enemyArchons[curArchonNum];
+							} else {
+								curArchonNum = -1;
+							}
+						}
+					}
+					if(curArchonNum != -1) {
+						//System.out.println("We're moving towards an enemy archon");
+						// move towards this archon
+
+						if(nearbyBullets.length > 0) {
+							moveWithDodging(rc.getLocation().directionTo(targetArchon));
+						} else {
+							moveTowards(rc.getLocation(), targetArchon);
+						}
+						if(rc.getLocation().distanceTo(targetArchon) < 6)
+							shoot(rc.getLocation().directionTo(targetArchon));
+					} else {
+						
+						// random direction move, failing all other cases
+						if(rc.canMove(curMove)) {
+							rc.move(curMove);
+						} else {
+							curMove = randomDirection();
+						}
+					}
+					// target archon, move towards
+				} else {
+					//System.out.println("I see an enemy robot, moving towards it");
+					RobotInfo t = ri[0];
+					int x = 0;
+					while(x < (ri.length-1) && t.getType() == RobotType.ARCHON) {
+						x ++;
+						t = ri[x];
+					}
+					MapLocation nearest = t.getLocation();//ri[0].getLocation();
+					
+					if(rc.getLocation().distanceTo(nearest) > 5.0f) {
+						if(nearbyBullets.length > 0 && rc.senseNearbyTrees(4.0f).length < 2) {
+							moveWithDodging(rc.getLocation().directionTo(nearest));
+						} else {
+							moveTowards(rc.getLocation(), nearest);
+						}
+					}
+					if(rc.getLocation().distanceTo(nearest) < 6 &&
+							(t.getType() != RobotType.ARCHON || rc.getRoundNum() > 500))
+						shoot(rc.getLocation().directionTo(nearest));
+					else if(t.getType() == RobotType.ARCHON) {
+						if(whichDir) {
+							if(moveInDir(rc.getLocation().directionTo(nearest).rotateRightDegrees(90.0f)) == null) {
+								whichDir = !whichDir;
+							}
+						} else {
+							if(moveInDir(rc.getLocation().directionTo(nearest).rotateLeftDegrees(90.0f)) == null) {
+								whichDir = !whichDir;
+							}
+						}
+					}
+				}
+				/*if(ctr>=enemyArchons.length) {
 					if (Math.random() < 0.05) {
 						curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
 					}
@@ -68,7 +146,8 @@ public strictfp class Soldier extends RobotBase
 					if(nearbyBullets.length>0)
 						moveWithDodging(d); //movewWithoutDodging
 					else
-						moveWithoutDodging(d);
+						moveInDir(d);
+						//moveWithoutDodging(d);
 				}
 				else {
 					Direction goal = rc.getLocation().directionTo(enemyArchons[ctr]);
@@ -77,14 +156,17 @@ public strictfp class Soldier extends RobotBase
 					else
 						moveWithoutDodging(goal);
 				}
-				steps++;
+				steps++; */
 			}
-			if(ctr<enemyArchons.length && rc.getLocation().distanceTo(enemyArchons[ctr])<4 && isArchonDead())
+			/*
+			if(ctr<enemyArchons.length && rc.getLocation().distanceTo(enemyArchons[ctr])<4 && isArchonDead()) {
 				ctr++;
+				System.out.println("I think the archon target is dead");
+			}
 			if(ctr>=enemyArchons.length)
 				shoot(null);
 			else
-				shoot(rc.getLocation().directionTo(enemyArchons[ctr]));
+				shoot(rc.getLocation().directionTo(enemyArchons[ctr])); */
 			Clock.yield();
 		}
 	}
@@ -99,6 +181,14 @@ public strictfp class Soldier extends RobotBase
 
 	//Does fire action
 	public void shoot(Direction goal) throws GameActionException {
+		/*if(rc.canFirePentadShot()) {
+			rc.firePentadShot(goal);
+		} else if(rc.canFireTriadShot()) {
+			rc.fireTriadShot(goal);
+		} else if(rc.canFireSingleShot()) {
+			rc.fireSingleShot(goal);
+		}*/
+		
 		try {
 			RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
 			TreeInfo[] trees = rc.senseNearbyTrees(rc.getType().sensorRadius);

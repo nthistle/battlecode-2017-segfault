@@ -14,6 +14,8 @@ public strictfp class Gardener extends RobotBase
 	public static final float BUFFER_DIST = 2.5f; // if you must know what this does, ask me
 
 	public static final boolean DOES_BROADCAST_INFO = true;
+	
+	private boolean hasQueuedSoldier = false;
 
 	private float[] aArch;
 	private MapLocation alphaLoc;
@@ -124,8 +126,25 @@ public strictfp class Gardener extends RobotBase
 					} else
 						myBuildCooldown --;
 				}
-				// some kind of watering protocol here
-				gridStepFunction();
+				RobotInfo[] nearby = rc.senseNearbyRobots(-1, enemy);
+				RobotInfo closestEnemyScout = null;
+				for(int i = 0; i < nearby.length; i ++) {
+					if(nearby[i].getType() == RobotType.SCOUT) {
+						closestEnemyScout = nearby[i];
+						break;
+					}
+				}
+				if(closestEnemyScout != null)
+					gridStepFunction();
+				else {
+					if(!hasQueuedSoldier) {
+						CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+					}
+					// and run from the scout
+					moveTowards(rc.getLocation(), closestEnemyScout.getLocation());
+					waterLowest();
+				}
+					
 			} catch(Exception e) {
 				e.printStackTrace();
 				setIndicatorPlus(rc.getLocation(), 255, 0, 0);

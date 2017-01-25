@@ -139,7 +139,7 @@ public final strictfp class CommunicationsHandler
     }
     
     public static SoldierStrategy getSoldierStrategy(RobotController rc) throws GameActionException {
-    	int nVal = rc.readBroadcast(2);
+    	int nVal = rc.readBroadcast(42);
     	switch(nVal) {
 			case 1:
 				return SoldierStrategy.BLITZ;
@@ -154,11 +154,16 @@ public final strictfp class CommunicationsHandler
     public static void setSoldierStrategy(RobotController rc, SoldierStrategy strat) throws GameActionException {
     	switch(strat) {
     		case BLITZ:
-    			rc.broadcast(2, 1);
+    			rc.broadcast(42, 1);
+    			return;
     		case PATROL:
-    			rc.broadcast(2, 2);
+    			rc.broadcast(42, 2);
+    			return;
     		case SWARM:
-    			rc.broadcast(2, 3);
+    			rc.broadcast(42, 3);
+    			return;
+    		default:
+    			return;
     	}
     }
     

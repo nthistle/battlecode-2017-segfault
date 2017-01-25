@@ -11,6 +11,8 @@ public strictfp class Lumberjack extends RobotBase
 	public void run() throws GameActionException {
 		System.out.println("I'm a lumberjack!");
 
+		int scoutTempt = 0;
+		
 		int turnsSinceLastChop = 0;
 
 		float curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
@@ -18,6 +20,24 @@ public strictfp class Lumberjack extends RobotBase
 
 		while(true) {
 			checkVPWin();
+			RobotInfo[] nearby = rc.senseNearbyRobots(4.0f, enemy);
+			RobotInfo closestEnemyScout = null;
+			for(int i = 0; i < nearby.length; i ++) {
+				if(nearby[i].getType() == RobotType.SCOUT) {
+					closestEnemyScout = nearby[i];
+					break;
+				}
+			}
+			if(closestEnemyScout != null) {
+				if(scoutTempt < 25) {
+					moveTowards(closestEnemyScout.getLocation(), rc.getLocation());
+					scoutTempt ++;
+				}
+			} else {
+				scoutTempt = 0;
+			}
+			
+			
 			TreeInfo[] nearbyTrees = rc.senseNearbyTrees();
 			for(int i=0; i<nearbyTrees.length; i++) {
 				if(rc.canShake(nearbyTrees[i].getID())) {
@@ -46,7 +66,10 @@ public strictfp class Lumberjack extends RobotBase
 				1.5*alpha.distanceTo(nearbyTrees[i].getLocation())+enemyAlpha.distanceTo(nearbyTrees[i].getLocation())))
 					nearest = nearbyTrees[i];
 			}
-			if(nearest!=null) {
+			if(rc.senseNearbyRobots(2.5f, enemy).length > 0) {
+				if(rc.canStrike())
+					rc.strike();
+			} else if(nearest!=null) {
 				if (rc.canChop(nearest.getID())) {
 					rc.chop(nearest.getID());
 					turnsSinceLastChop = 0;

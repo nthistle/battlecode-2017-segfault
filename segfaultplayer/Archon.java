@@ -11,7 +11,9 @@ public strictfp class Archon extends RobotBase
 
 	private float[] closeTreeMassByDirection;
 	private float[] farTreeMassSmoothed;
+	private float[] farTreeMassByDirection;
 	private static final float TREE_BLOCKED_THRESHOLD = 10.0f;
+	private MapLocation enemyArch;
 	
 	int xoffset;		// x-offset of grid
 	int yoffset;		// y-offset of grid
@@ -71,15 +73,78 @@ public strictfp class Archon extends RobotBase
 		CommunicationsHandler.setSoldierStrategy(rc, SoldierStrategy.PATROL);
 		
 		CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+		CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+		CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+		CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 		CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+		CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+		CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+		CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+		CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+		CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+		CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+		CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+		CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+		
+		while(true) {
+			if(rc.getRoundNum() == 450 || rc.getRoundNum() == 451) // in case we hit bytecodes, but still
+				CommunicationsHandler.setSoldierStrategy(rc, SoldierStrategy.BLITZ);
+			
+			int gardenerCooldown = 0;
+	
+			if(gardenerCooldown <= 0 &&	rc.getTeamBullets() > RobotType.GARDENER.bulletCost
+					&& ((2.5f * rc.readBroadcast(101)) < rc.readBroadcast(2000))) {
+				Direction dir = randomDirection();
+				for(int j = 0; j < 20 && !rc.canBuildRobot(RobotType.GARDENER, dir); j++)
+					dir = randomDirection();
+				if(rc.canBuildRobot(RobotType.GARDENER, dir)) {
+					rc.buildRobot(RobotType.GARDENER, dir);
+					gardenerCooldown = (rc.getRoundNum()>500?80:30); // later game knock down gardener production
+				}
+			} else if(gardenerCooldown > 0) {
+				gardenerCooldown --;
+			}
+			if(CommunicationsHandler.peekOrder(rc) == null) {
+				if(rc.getRoundNum() < 450) {
+					// growth phase
+					CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+					CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+					CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+					CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+					CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+					CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+				} else if(rc.getRoundNum() < 1500) {
+					// full on  a t t a c k
+					CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.TANK));
+					CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+					CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.TANK));
+					CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+				} else { // something weird happened, hope we can win on VP
+					CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+					CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+				}
+			}
+			Clock.yield();
+		}
+	}
+	
+
+	public void noneExpansionStrategy() throws GameActionException {
+		System.out.println("Case: EXPANSION-NONE");
+		// make enough lumberjacks to get some decent expansion, then start investing
+		// in trees until 
+		CommunicationsHandler.setSoldierStrategy(rc, SoldierStrategy.PATROL);
+		
+		CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 		CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 		CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 		CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SCOUT));
 		CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 		CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 		CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
-		CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
 		CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+		CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+		CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
 		CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 		CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
 		
@@ -134,7 +199,7 @@ public strictfp class Archon extends RobotBase
 		CommunicationsHandler.setSoldierStrategy(rc, SoldierStrategy.PATROL);
 		
 		CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
-		CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SCOUT));
+		CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
 		CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 		CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
 		CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
@@ -164,7 +229,7 @@ public strictfp class Archon extends RobotBase
 				if(rc.canBuildRobot(RobotType.GARDENER, dir)) {
 					rc.buildRobot(RobotType.GARDENER, dir);
 					gardenerCooldown = (rc.getRoundNum()>500?60:30); // later game knock down gardener production
-				}
+				}	
 			} else if(gardenerCooldown > 0) {
 				gardenerCooldown --;
 			}
@@ -182,8 +247,10 @@ public strictfp class Archon extends RobotBase
 					// full on  a t t a c k
 					CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.TANK));
 					CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+					CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 					CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.TANK));
 					CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+					CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 				} else { // something weird happened, hope we can win on VP
 					CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 					CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
@@ -194,6 +261,7 @@ public strictfp class Archon extends RobotBase
 	}
 	
 	public void blitzStrategy() throws GameActionException {
+		int moveTurnsLeft = 20;
 		System.out.println("Case: BLITZ");
 		CommunicationsHandler.setSoldierStrategy(rc, SoldierStrategy.BLITZ);
 		// we're really close, let's try to blitz
@@ -216,6 +284,10 @@ public strictfp class Archon extends RobotBase
 		int gardenerCooldown = 0;
 		// end "blitz" at 800 if it's "failed"
 		while(CommunicationsHandler.peekOrder(rc) != null || rc.getRoundNum() < 800) {
+			if(moveTurnsLeft > 0) {
+				moveTowards(enemyArch, rc.getLocation());
+				moveTurnsLeft --;
+			}
 			checkVPWin();
 			if(gardenerCount < 2 && gardenerCooldown <= 0 &&
 					rc.getTeamBullets() > RobotType.GARDENER.bulletCost) {
@@ -224,7 +296,7 @@ public strictfp class Archon extends RobotBase
 					dir = randomDirection();
 				if(rc.canBuildRobot(RobotType.GARDENER, dir)) {
 					rc.buildRobot(RobotType.GARDENER, dir);
-					gardenerCooldown = 30;
+					gardenerCooldown = 70; // BOOSTED
 					gardenerCount ++;
 				}
 			} else if(gardenerCooldown > 0) {
@@ -269,7 +341,7 @@ public strictfp class Archon extends RobotBase
 	
 	
 	public void calculateDensityFar() throws GameActionException {
-		float[] farTreeMassByDirection = new float[16];
+		farTreeMassByDirection = new float[16];
     	//TreeInfo[] nearbyTrees  = rc.senseNearbyTrees();
     	TreeInfo[] nearbyTrees  = rc.senseNearbyTrees();
     	// tree mass by direction represents roughly area of a tree in a given direction,
@@ -301,6 +373,14 @@ public strictfp class Archon extends RobotBase
     			}
     		}
     	}
+    	
+
+		for(int i = 0; i < 16; i ++) {
+			System.out.println("farTreeMassByDirection[" + i + "] = " + farTreeMassByDirection[i]);
+		}
+    	
+    	
+    	
     	farTreeMassSmoothed = new float[16];
     	for(int i = 0; i < 16; i ++) {
     		farTreeMassSmoothed[i] += 4.0f * farTreeMassByDirection[i];
@@ -371,7 +451,7 @@ public strictfp class Archon extends RobotBase
 			
 			rc.broadcast(1, CommunicationsHandler.pack(rc.getLocation().x, rc.getLocation().y));
 
-			MapLocation enemyArch = null;
+			enemyArch = null;
 			for(MapLocation ml : rc.getInitialArchonLocations(enemy)) {
 				if(enemyArch == null ||
 						ml.distanceTo(rc.getLocation()) < enemyArch.distanceTo(rc.getLocation()))
@@ -387,18 +467,38 @@ public strictfp class Archon extends RobotBase
 
 			// testing some lumbejacks 8)
 
-			CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
 
 			// alright
 
 
+			for(int i = 0; i < 16; i ++) {
+				System.out.println("farSmoothed[" + i + "] = " + farTreeMassSmoothed[i]);
+			}
 
 			float closestDist = rc.getLocation().distanceTo(enemyArch);
 			int numArchons = rc.getInitialArchonLocations(enemy).length;
 			
+			float effectiveDist = closestDist;
+			// figure out which direction enemy arch is in
+			Direction towardsEnemyArch = rc.getLocation().directionTo(enemyArch);
+			float inDeg = towardsEnemyArch.getAngleDegrees() + 11.25f;
+			System.out.println("Degrees of direction to enemy archon: " + inDeg);
+			while(inDeg < 360f) inDeg += 360f;
+			while(inDeg > 360f) inDeg -= 360f;
+			int intDir = (int)(inDeg/22.5f);
+			System.out.println("(int direction is " + intDir + ")");
+
+			effectiveDist += farTreeMassByDirection[intDir%16];
+			effectiveDist += 0.8 * farTreeMassByDirection[(intDir+15)%16];
+			effectiveDist += 0.8 * farTreeMassByDirection[(intDir+1)%16];
+			
 			// alright now we consider cases
 			
-			if(closestDist < 20.0f) {
+			System.out.println("Real distance is " + closestDist);
+			System.out.println("Effective distance is " + effectiveDist);
+			
+			if(effectiveDist < 39.0f) { //closestDist < 20.0f) {
 				if(numArchons < 2) {
 					blitzStrategy();
 				} else {
@@ -413,13 +513,17 @@ public strictfp class Archon extends RobotBase
 					sumOuter += farTreeMassSmoothed[i];
 				}
 				
-				if(sumOuter < 1.25 * sumInner) {
-					// most of trees are just really close, nothing outside of that
-					lightExpansionStrategy();
-					// okay for edge case where small ring of circles completely blocks,
-					// because then we can't be picked as alpha anyways
+				if(sumOuter < 50.0f) { // sufficiently low
+					noneExpansionStrategy();
 				} else {
-					heavyExpansionStrategy();
+					if(sumOuter < 1.25 * sumInner) {
+						// most of trees are just really close, nothing outside of that
+						lightExpansionStrategy();
+						// okay for edge case where small ring of circles completely blocks,
+						// because then we can't be picked as alpha anyways
+					} else {
+						heavyExpansionStrategy();
+					}
 				}
 			}
 			
