@@ -19,6 +19,7 @@ public strictfp class Lumberjack extends RobotBase
 		float curdirection = (float) Math.random() * 2 * (float) Math.PI;
 
 		while(true) {
+			boolean hasMoved = false;
 			checkVPWin();
 			RobotInfo[] nearby = rc.senseNearbyRobots(4.0f, enemy);
 			RobotInfo closestEnemyScout = null;
@@ -31,6 +32,7 @@ public strictfp class Lumberjack extends RobotBase
 			if(closestEnemyScout != null) {
 				if(scoutTempt < 25) {
 					moveTowards(closestEnemyScout.getLocation(), rc.getLocation());
+					hasMoved = true;
 					scoutTempt ++;
 				}
 			} else {
@@ -76,7 +78,8 @@ public strictfp class Lumberjack extends RobotBase
 				}
 				else {
 					Direction toTree = rc.getLocation().directionTo(nearest.getLocation());
-					moveWithoutDodging(toTree);
+					if(!hasMoved)
+						moveWithoutDodging(toTree);
 					if (rc.canChop(nearest.getID())) {
 						rc.chop(nearest.getID());
 						turnsSinceLastChop = 0;
@@ -105,7 +108,8 @@ public strictfp class Lumberjack extends RobotBase
 					curdirection -= 2 * (float) Math.PI;
 				}
 				Direction d = new Direction(curdirection);
-				moveWithoutDodging(d);
+				if(!hasMoved)
+					moveWithoutDodging(d);
 //				if (rc.canMove(d)) {
 //					rc.move(d);
 //				} else {

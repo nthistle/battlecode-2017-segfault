@@ -141,7 +141,7 @@ public strictfp class Gardener extends RobotBase
 						CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
 					}
 					// and run from the scout
-					moveTowards(rc.getLocation(), closestEnemyScout.getLocation());
+					moveTowards(closestEnemyScout.getLocation(), rc.getLocation());
 					waterLowest();
 				}
 					
