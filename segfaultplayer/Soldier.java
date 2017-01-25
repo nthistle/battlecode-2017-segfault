@@ -7,6 +7,14 @@ public strictfp class Soldier extends RobotBase
 	public Soldier(RobotController rc, int id) throws GameActionException {
 		super(rc, id);
 	}
+
+	public void runAlt() throws GameActionException {
+		while(true) {
+			moveWithDodging(rc.getLocation().directionTo(enemyArchons[0]), true);
+			shoot(null);
+			Clock.yield();
+		}
+	}
 	
 	public void run() throws GameActionException {
 		int ctr = 0;

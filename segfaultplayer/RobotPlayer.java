@@ -35,17 +35,17 @@ public strictfp class RobotPlayer {
 
     public static void handleArchon(RobotController rc, int id) throws GameActionException {
         Archon a = new Archon(rc, id);
-        a.run(); //change to runAlternate() for testing
+        a.runAlternate(); //change to runAlternate() for testing
     }
 
     public static void handleGardener(RobotController rc, int id) throws GameActionException {
         Gardener g = new Gardener(rc, id);
-        g.run();
+        g.runAlternate(RobotType.SOLDIER);
     }
 
     public static void handleSoldier(RobotController rc, int id) throws GameActionException {
         Soldier so = new Soldier(rc, id);
-        so.run();
+        so.runAlt();
     }
 
     public static void handleLumberjack(RobotController rc, int id) throws GameActionException {
@@ -59,8 +59,8 @@ public strictfp class RobotPlayer {
     }
 
     public static void handleTank(RobotController rc, int id) throws GameActionException {
-        Tank sc = new Tank(rc, id);
-        sc.run();
+        Tank tk = new Tank(rc, id);
+        tk.run();
     }
 
 }

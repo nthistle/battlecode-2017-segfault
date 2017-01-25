@@ -22,6 +22,30 @@ public strictfp class Gardener extends RobotBase
 		super(rc, id);
 	}
 
+	public void runAlternate(RobotType rcs) throws GameActionException {
+	int ctr = 0;
+	while(true) {
+		TreeInfo[] trees = rc.senseNearbyTrees(2.0f,rc.getTeam());
+		Direction dir = randomDirection();
+		if(rc.canBuildRobot(rcs,dir)&&ctr<1) {
+			rc.buildRobot(rcs, dir);
+			ctr++;
+		}
+		if(rc.canBuildRobot(RobotType.TANK,dir)) // was tank
+			rc.buildRobot(RobotType.TANK,dir);
+		else if(rc.canPlantTree(dir) && trees.length<2)
+			rc.plantTree(dir);
+		dir = randomDirection();
+		TreeInfo tree = null;
+		for(int i=0; i<trees.length; i++)
+			if(tree==null || tree.getHealth()>trees[i].getHealth())
+				tree = trees[i];
+		if(tree!=null && rc.canWater(tree.getID()))
+			rc.water(tree.getID());
+		Clock.yield();
+	}
+	}
+
 	public void run() throws GameActionException {
 
 		aArch = CommunicationsHandler.unpack(rc.readBroadcast(1));

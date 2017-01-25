@@ -1,6 +1,7 @@
 package segfaultplayer;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.Set;
 
 import battlecode.common.*;
 
@@ -500,7 +501,45 @@ public strictfp abstract class RobotBase
         }
         
         return sum;
-    }	
+    }
+
+	public void moveWithDodging(Direction goal) throws GameActionException{
+		moveWithoutDodging(goal, false);
+	}
+
+	public void moveWithDodging(Direction goal, boolean debug) throws GameActionException{
+    	System.out.println("HELLO BTCHES");
+		HashMap<Direction,Float> hm = heatmap(rc.getLocation(), 45f, 1, .125f);
+		System.out.println(hm.size());
+		Set<Direction> keys = hm.keySet();
+		for (Direction key : keys) {
+			System.out.println(key.getAngleDegrees()+" "+hm.get(key));
+		}
+//		if(rc.canMove(goal) && canTankMove(rc.getLocation().add(goal,rc.getType().strideRadius)) && hm.get(goal)==0 ) {
+//			rc.move(goal);
+//			if(debug)
+//				System.out.println("Move straight");
+//			return;
+//		}
+//		for(int i=1; i<5; i++) {
+//			Direction copyRight = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateRightDegrees((float)(i*45));
+//			Direction copyLeft = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateLeftDegrees((float)(i*45));
+//			if(rc.canMove(copyRight) && canTankMove(rc.getLocation().add(copyRight,rc.getType().strideRadius)) ) {
+//				rc.move(copyRight);
+//				if(debug)
+//					System.out.println("Move Right");
+//				return;
+//			}
+//			else if(rc.canMove(copyLeft) && canTankMove(rc.getLocation().add(copyLeft,rc.getType().strideRadius))) {
+//				rc.move(copyLeft);
+//				if(debug)
+//					System.out.println("Move Right");
+//				return;
+//			}
+//		}
+//		if(debug)
+//			System.out.println("NO move");
+	}
 
     /** OLD
      * Generates an array of floats with the relative danger of each direction with a 
@@ -589,10 +628,6 @@ public strictfp abstract class RobotBase
             moveInDir(min_danger.getKey());
         }
     }*/
-    
-    public void moveWithDodging(Direction goal){
-            //to keep it compiling
-    }
 	
 	
 
