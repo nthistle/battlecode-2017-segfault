@@ -134,7 +134,7 @@ public strictfp class Gardener extends RobotBase
 						break;
 					}
 				}
-				if(closestEnemyScout != null)
+				if(closestEnemyScout == null)
 					gridStepFunction();
 				else {
 					if(!hasQueuedSoldier) {

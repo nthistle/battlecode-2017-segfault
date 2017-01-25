@@ -575,12 +575,14 @@ public strictfp class Archon extends RobotBase
 		} else {
 			while(true) {
 				// draw some pretty lines
-				Direction dir;
+				Direction dir = null;
 				for(int i = 0; i < 15; i ++) {
 					dir = randomDirection();
 					rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dir, 4.0f),
 							RobotBase.rand.nextInt(255), RobotBase.rand.nextInt(255), RobotBase.rand.nextInt(255));
 				}
+				if(rc.canMove(dir))
+					rc.move(dir);
 				Clock.yield();
 			}
 		}

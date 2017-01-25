@@ -29,6 +29,12 @@ public final strictfp class CommunicationsHandler
 		int myBlocked = a.getBlockedFactor();
 		a.rc.broadcast(210 + a.getID(), myBlocked);
 		a.rc.broadcast(220 + a.getID(), a.rc.getID());
+		
+		System.out.println("Broadcasting: " );
+		System.out.println((int)(100*myDist));
+		System.out.println(myBlocked);
+		System.out.println(a.rc.getID());
+		
 		Clock.yield();
 		int numAlphas = getNumMade(a.rc, RobotType.ARCHON);
 		int rank = 0;
@@ -42,12 +48,17 @@ public final strictfp class CommunicationsHandler
 			if(myBlocked > a.rc.readBroadcast(210 + i)) {
 				rank ++; // we're more boxed in than him, we can't be better alpha
 			} else if(myBlocked == a.rc.readBroadcast(210 + i)) {
-				if((100*myDist) > a.rc.readBroadcast(200 + i))
+				if((int)(100*myDist) > a.rc.readBroadcast(200 + i))
 					rank ++; // we're as boxed in, but he's closer	
 				else if((int)(100*myDist) == a.rc.readBroadcast(200+i)) {
 					// we're really tied
-					if(a.rc.getID() > a.rc.readBroadcast(220 + i))
+					if(a.rc.getID() > a.rc.readBroadcast(220 + i)) {
 						rank ++;
+						System.out.println("We're higher!");
+					} else {
+						System.out.println("Our ID is lower than theirs");
+						System.out.println(a.rc.getID() + " vs " + a.rc.readBroadcast(220+i));
+					}
 				}
 			}
 		}

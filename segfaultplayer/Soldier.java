@@ -32,6 +32,8 @@ public strictfp class Soldier extends RobotBase
 		
 		float[] alph = CommunicationsHandler.unpack(rc.readBroadcast(1));
 		MapLocation alphaLoc = new MapLocation(alph[0], alph[1]);
+
+		boolean whichDir = false;
 		
 		while(true) {
 			checkVPWin();
@@ -60,7 +62,8 @@ public strictfp class Soldier extends RobotBase
 			MapLocation targetArchon = enemyArchons[0]; // pls no run on map w/o archons
 			int curArchonNum = 0;
 			
-			boolean whichDir = false;
+			
+			boolean hasMoved = false;
 			
 			BulletInfo[] nearbyBullets = rc.senseNearbyBullets();
 			if(attack) {// || steps<15) {    // temporarily removing this condition because I want my own anti-clog
@@ -109,13 +112,7 @@ public strictfp class Soldier extends RobotBase
 					}
 					MapLocation nearest = t.getLocation();//ri[0].getLocation();
 					
-					if(rc.getLocation().distanceTo(nearest) > 5.0f) {
-						if(nearbyBullets.length > 0 && rc.senseNearbyTrees(4.0f).length < 2) {
-							moveWithDodging(rc.getLocation().directionTo(nearest));
-						} else {
-							moveTowards(rc.getLocation(), nearest);
-						}
-					}
+
 					if(rc.getLocation().distanceTo(nearest) < 6 &&
 							(t.getType() != RobotType.ARCHON || rc.getRoundNum() > 500))
 						shoot(rc.getLocation().directionTo(nearest));
@@ -123,11 +120,20 @@ public strictfp class Soldier extends RobotBase
 						if(whichDir) {
 							if(moveInDir(rc.getLocation().directionTo(nearest).rotateRightDegrees(90.0f)) == null) {
 								whichDir = !whichDir;
-							}
+							} else hasMoved = true;
 						} else {
 							if(moveInDir(rc.getLocation().directionTo(nearest).rotateLeftDegrees(90.0f)) == null) {
 								whichDir = !whichDir;
-							}
+							} else hasMoved = true;
+						}
+					}
+					
+					
+					if(!hasMoved && rc.getLocation().distanceTo(nearest) > 5.0f) {
+						if(nearbyBullets.length > 0 && rc.senseNearbyTrees(4.0f).length < 2) {
+							moveWithDodging(rc.getLocation().directionTo(nearest));
+						} else {
+							moveTowards(rc.getLocation(), nearest);
 						}
 					}
 				}
