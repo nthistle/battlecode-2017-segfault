@@ -509,7 +509,7 @@ public strictfp abstract class RobotBase
 
 	public void moveWithDodging(Direction goal, boolean debug) throws GameActionException{
     	System.out.println("HELLO BTCHES");
-		HashMap<Direction,Float> hm = heatmap(rc.getLocation(), 45f, 1, .125f);
+		HashMap<Direction,Float> hm = heatmap(rc.getLocation(), 90f, 1, .125f);
 		System.out.println(hm.size());
 		Set<Direction> keys = hm.keySet();
 		for (Direction key : keys) {
