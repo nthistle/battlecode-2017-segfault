@@ -31,8 +31,10 @@ public strictfp class Scout extends RobotBase
 		System.out.println(rc.getLocation().distanceTo(el));
 
 
-		while (rc.getLocation().distanceTo(el) > 5.0f) {
+		//while (rc.getLocation().distanceTo(el) > 5.0f) {
+		while(true) {
 			boolean hasMoved = false;
+			boolean hasShaken = false;
 			MapLocation myLoc = rc.getLocation();
 			float distance = myLoc.distanceTo(el);
 			TreeInfo[] myTrees = rc.senseNearbyTrees(sR);
@@ -46,10 +48,11 @@ public strictfp class Scout extends RobotBase
 					}
 					scaledNumTrees += (q*q);
 				}
-				if(k.containedBullets!=0) {
+				if(!hasShaken && k.containedBullets!=0) {
 					if(rc.canShake(k.ID)){
 						rc.shake(k.ID);
-						System.out.println("Got a bullet lolololol");
+						//System.out.println("Got a bullet lolololol");
+						hasShaken = true;
 					} else {
 						dir = myLoc.directionTo(k.location);
 						break;

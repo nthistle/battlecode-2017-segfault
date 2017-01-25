@@ -25,8 +25,14 @@ public strictfp class Soldier extends RobotBase
 		int steps = 0;
 		float curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
 		float curdirection = (float) Math.random() * 2 * (float) Math.PI;
+		int turnsAlive = 0;
+		
+		float[] alph = CommunicationsHandler.unpack(rc.readBroadcast(1));
+		MapLocation alphaLoc = new MapLocation(alph[0], alph[1]);
+		
 		while(true) {
 			checkVPWin();
+			turnsAlive++;
 			TreeInfo[] nearbyTrees = rc.senseNearbyTrees();
 			for(int i=0; i<nearbyTrees.length; i++) {
 				if(nearbyTrees[i].getContainedBullets() > 0 && rc.canShake(nearbyTrees[i].getID())) {
@@ -34,9 +40,19 @@ public strictfp class Soldier extends RobotBase
 					break;
 				}
 			}
-			boolean attack = true;
+			
+			
+			// SOLDIER ADDITION I'M TRYING SO THEY DON'T CLOG MUH TREES
+			boolean attack = (CommunicationsHandler.getSoldierStrategy(rc) == SoldierStrategy.BLITZ);
+			if(!attack && turnsAlive < 30) {
+				// if we're at the beginning of a "sentry/patrol" lifestyle,
+				// MOVE THE HELL AWAY A LITTLE BIT WHY DON'T YOU
+				//Direction goalDir = alphaLoc.directionTo(rc.getLocation());
+				moveTowards(alphaLoc, rc.getLocation(), (float)Math.PI/8, 5);
+			}
+			
 			BulletInfo[] nearbyBullets = rc.senseNearbyBullets();
-			if(attack || steps<15) {
+			if(attack) {// || steps<15) {    // temporarily removing this condition because I want my own anti-clog
 				if(ctr>=enemyArchons.length) {
 					if (Math.random() < 0.05) {
 						curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);

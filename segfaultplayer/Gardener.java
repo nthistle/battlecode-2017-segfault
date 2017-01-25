@@ -23,27 +23,27 @@ public strictfp class Gardener extends RobotBase
 	}
 
 	public void runAlternate(RobotType rcs) throws GameActionException {
-	int ctr = 0;
-	while(true) {
-		TreeInfo[] trees = rc.senseNearbyTrees(2.0f,rc.getTeam());
-		Direction dir = randomDirection();
-		if(rc.canBuildRobot(rcs,dir)&&ctr<1) {
-			rc.buildRobot(rcs, dir);
-			ctr++;
+		int ctr = 0;
+		while(true) {
+			TreeInfo[] trees = rc.senseNearbyTrees(2.0f,rc.getTeam());
+			Direction dir = randomDirection();
+			if(rc.canBuildRobot(rcs,dir)&&ctr<1) {
+				rc.buildRobot(rcs, dir);
+				ctr++;
+			}
+			if(rc.canBuildRobot(RobotType.TANK,dir)) // was tank
+				rc.buildRobot(RobotType.TANK,dir);
+			else if(rc.canPlantTree(dir) && trees.length<2)
+				rc.plantTree(dir);
+			dir = randomDirection();
+			TreeInfo tree = null;
+			for(int i=0; i<trees.length; i++)
+				if(tree==null || tree.getHealth()>trees[i].getHealth())
+					tree = trees[i];
+			if(tree!=null && rc.canWater(tree.getID()))
+				rc.water(tree.getID());
+			Clock.yield();
 		}
-		if(rc.canBuildRobot(RobotType.TANK,dir)) // was tank
-			rc.buildRobot(RobotType.TANK,dir);
-		else if(rc.canPlantTree(dir) && trees.length<2)
-			rc.plantTree(dir);
-		dir = randomDirection();
-		TreeInfo tree = null;
-		for(int i=0; i<trees.length; i++)
-			if(tree==null || tree.getHealth()>trees[i].getHealth())
-				tree = trees[i];
-		if(tree!=null && rc.canWater(tree.getID()))
-			rc.water(tree.getID());
-		Clock.yield();
-	}
 	}
 
 	public void run() throws GameActionException {
@@ -95,7 +95,7 @@ public strictfp class Gardener extends RobotBase
 					// check if we can build something and if we can
 					nextOrder = CommunicationsHandler.peekOrder(rc);
 					if(myBuildCooldown <= 0 && nextOrder != null) {
-						System.out.println("Trying order!");
+						//System.out.println("Trying order!");
 						if(nextOrder.type == OrderType.TREE) {
 							CommunicationsHandler.popOrder(rc);
 							if(!addToGrid()) System.out.println("Problem adding a tree to grid, although received order");

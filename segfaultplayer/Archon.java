@@ -154,17 +154,16 @@ public strictfp class Archon extends RobotBase
 			// TODO: implement swarming for real
 			
 			int gardenerCooldown = 0;
-			int numGardeners = 0;
 	
 			if(gardenerCooldown <= 0 &&	rc.getTeamBullets() > RobotType.GARDENER.bulletCost
-					&& (numGardeners < 2 || ((2.5f * rc.readBroadcast(101)) < rc.readBroadcast(2000)))) {
+					&& (rc.readBroadcast(101) < 2 || ((2.5f * rc.readBroadcast(101)) < rc.readBroadcast(2000)))) {
+				System.out.println("G: " + rc.readBroadcast(101) + " T: " + rc.readBroadcast(2000));
 				Direction dir = randomDirection();
 				for(int j = 0; j < 20 && !rc.canBuildRobot(RobotType.GARDENER, dir); j++)
 					dir = randomDirection();
 				if(rc.canBuildRobot(RobotType.GARDENER, dir)) {
 					rc.buildRobot(RobotType.GARDENER, dir);
 					gardenerCooldown = (rc.getRoundNum()>500?60:30); // later game knock down gardener production
-					numGardeners ++;
 				}
 			} else if(gardenerCooldown > 0) {
 				gardenerCooldown --;
@@ -359,10 +358,17 @@ public strictfp class Archon extends RobotBase
 		} else return 0;
 	}
 	
+	// =========================================================================================
+	// ===================================== MAIN RUN THREAD ===================================
+	// =========================================================================================
+	
 	public void run() throws GameActionException {
 		
 		if(alpha) {
 			System.out.println("I am the alpha");
+			calculateDensityFar();
+			
+			
 			rc.broadcast(1, CommunicationsHandler.pack(rc.getLocation().x, rc.getLocation().y));
 
 			MapLocation enemyArch = null;
@@ -391,6 +397,34 @@ public strictfp class Archon extends RobotBase
 			int numArchons = rc.getInitialArchonLocations(enemy).length;
 			
 			// alright now we consider cases
+			
+			if(closestDist < 20.0f) {
+				if(numArchons < 2) {
+					blitzStrategy();
+				} else {
+					lightExpansionStrategy();
+				}
+			} else {
+				float sumInner = 0.0f;
+				float sumOuter = 0.0f;
+				
+				for(int i = 0; i < 16; i ++) {
+					sumInner += closeTreeMassByDirection[i];
+					sumOuter += farTreeMassSmoothed[i];
+				}
+				
+				if(sumOuter < 1.25 * sumInner) {
+					// most of trees are just really close, nothing outside of that
+					lightExpansionStrategy();
+					// okay for edge case where small ring of circles completely blocks,
+					// because then we can't be picked as alpha anyways
+				} else {
+					heavyExpansionStrategy();
+				}
+			}
+			
+			
+			/*
 			if(closestDist < 20.0f && numArchons < 3) { // for now, we consider rushing if there's 2 enemy archons as well
 				blitzStrategy();
 			} else {
@@ -422,7 +456,7 @@ public strictfp class Archon extends RobotBase
 						CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
 					}
 				}
-			}
+			}*/
 
 
 

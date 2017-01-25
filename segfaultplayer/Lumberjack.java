@@ -41,7 +41,9 @@ public strictfp class Lumberjack extends RobotBase
 				//if(nearbyTrees[i].getTeam()!=ally && (nearest==null || alpha.distanceTo(nearest.getLocation())>alpha.distanceTo(nearbyTrees[i].getLocation())))
 				////if(nearest!=null)
 				////	System.out.println(alpha.distanceTo(nearest.getLocation())+" "+enemyAlpha.distanceTo(nearest.getLocation())+" "+alpha.distanceTo(nearbyTrees[i].getLocation())+" "+enemyAlpha.distanceTo(nearbyTrees[i].getLocation()));
-				if(nearbyTrees[i].getTeam()!=ally && (nearest==null || 1.5*alpha.distanceTo(nearest.getLocation())+enemyAlpha.distanceTo(nearest.getLocation())>1.5*alpha.distanceTo(nearbyTrees[i].getLocation())+enemyAlpha.distanceTo(nearbyTrees[i].getLocation())))
+				if(nearbyTrees[i].getTeam()!=ally && (nearest==null ||
+						1.5*alpha.distanceTo(nearest.getLocation())+enemyAlpha.distanceTo(nearest.getLocation()) > 
+				1.5*alpha.distanceTo(nearbyTrees[i].getLocation())+enemyAlpha.distanceTo(nearbyTrees[i].getLocation())))
 					nearest = nearbyTrees[i];
 			}
 			if(nearest!=null) {
