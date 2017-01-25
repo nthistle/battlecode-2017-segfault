@@ -98,160 +98,163 @@ public strictfp class Archon extends RobotBase
 	
 	public void run() throws GameActionException {
 		
-//		if(alpha) {
-//			System.out.println("I am the alpha");
-//			rc.broadcast(1, CommunicationsHandler.pack(rc.getLocation().x, rc.getLocation().y));
-//
-//			MapLocation enemyArch = null;
-//			for(MapLocation ml : rc.getInitialArchonLocations(enemy)) {
-//				if(enemyArch == null ||
-//						ml.distanceTo(rc.getLocation()) < enemyArch.distanceTo(rc.getLocation()))
-//					enemyArch = ml;
-//			}
-//
-//			CommunicationsHandler.addTree(rc, enemyArch.x, enemyArch.y);
-//
-//			// testing for trees :))
-//			//for(int i = 0; i < 10; i ++) {
-//			//	CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-//			//} // end testing for trees
-//
-//			// testing some lumbejacks 8)
-//
-//			CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
-//
-//			// alright
-//
-//
-//
-//			float closestDist = rc.getLocation().distanceTo(enemyArch);
-//
-//			// alright now we consider cases
-//			if(closestDist < 20.0f) {
-//				System.out.println("Case: BLITZ");
-//				// we're really close, let's try to blitz
-//
-//				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
-//				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
-//				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-//				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-//				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
-//				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
-//				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-//				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
-//				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
-//				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
-//				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-//				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-//
-//				// make two gardeners, then wait until order queue is empty
-//				int gardenerCount = 0;
-//				int gardenerCooldown = 0;
-//				// end "blitz" at 800 if it's "failed"
-//				while(CommunicationsHandler.peekOrder(rc) != null || rc.getRoundNum() < 800) {
-//					checkVPWin();
-//					if(gardenerCount < 2 && gardenerCooldown <= 0 &&
-//							rc.getTeamBullets() > RobotType.GARDENER.bulletCost) {
-//						Direction dir = randomDirection();
-//						for(int j = 0; j < 20 && !rc.canBuildRobot(RobotType.GARDENER, dir); j++)
-//							dir = randomDirection();
-//						if(rc.canBuildRobot(RobotType.GARDENER, dir)) {
-//							rc.buildRobot(RobotType.GARDENER, dir);
-//							gardenerCooldown = 30;
-//							gardenerCount ++;
-//						}
-//					} else if(gardenerCooldown > 0) {
-//						gardenerCooldown --;
-//					}
-//					if(CommunicationsHandler.peekOrder(rc) == null) {
-//						if(RobotBase.rand.nextBoolean())
-//							CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.TANK));
-//						else
-//							CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
-//					}
-//					Clock.yield();
-//				}
-//				// now it's turn 800, what are we going to do?
-//				// well blitz failed, so try lumberjacks and trees, I guess?
-//				while(true) {
-//					if(gardenerCooldown <= 0 &&	rc.getTeamBullets() > RobotType.GARDENER.bulletCost
-//							&& 2.5f * rc.readBroadcast(101) < rc.readBroadcast(2000)) {
-//						Direction dir = randomDirection();
-//						for(int j = 0; j < 20 && !rc.canBuildRobot(RobotType.GARDENER, dir); j++)
-//							dir = randomDirection();
-//						if(rc.canBuildRobot(RobotType.GARDENER, dir)) {
-//							rc.buildRobot(RobotType.GARDENER, dir);
-//							gardenerCooldown = 50;
-//							gardenerCount ++;
-//						}
-//					} else if(gardenerCooldown > 0) {
-//						gardenerCooldown --;
-//					}
-//					if(CommunicationsHandler.peekOrder(rc) == null) {
-//						CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
-//						CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-//						CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-//						CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
-//						CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-//						CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-//						CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
-//					}
-//					Clock.yield();
-//				}
-//			} else {
-//				// NOT VERY GOOD
-//				for(int i = 0; i < 5; i ++) {
-//					CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-//				}
-//				int t = 40;
-//				while(true) {
-//					checkVPWin();
-//					//if(rc.getRoundNum() > 200)
-//					//	rc.resign(); // temporary for testing to prevent 3000 long games
-//					Direction dir = randomDirection();
-//					if (rc.canBuildRobot(RobotType.GARDENER, dir) && t > 30) {// && rc.getTeamBullets()>200)
-//						// do we actually need another gardener though?
-//						if(2.5f * rc.readBroadcast(101) < rc.readBroadcast(2000)) {
-//							// only if we have more trees than 2.5 * [num gardeners made]
-//							// do we decide that we need more gardeners
-//							rc.buildRobot(RobotType.GARDENER, dir);
-//							t = 0;
-//						}
-//					}
-//					Clock.yield();
-//					t++;
-//					if(t%5 == 0) {
-//						CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-//						//System.out.println("Queued a tree");
-//					} else if(t%5 == 1) {
-//						CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
-//					}
-//				}
-//			}
-//
-//
-//
-//
-//
-//			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
-//			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
-//			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-//			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-//			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
-//			//System.out.println("Queued three trees");
-//		} else {
-//			while(true) {
-//				// draw some pretty lines
-//				Direction dir;
-//				for(int i = 0; i < 15; i ++) {
-//					dir = randomDirection();
-//					rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dir, 4.0f),
-//							RobotBase.rand.nextInt(255), RobotBase.rand.nextInt(255), RobotBase.rand.nextInt(255));
-//				}
-//				Clock.yield();
-//			}
-//		}
+		if(alpha) {
+			System.out.println("I am the alpha");
+			rc.broadcast(1, CommunicationsHandler.pack(rc.getLocation().x, rc.getLocation().y));
 
+			MapLocation enemyArch = null;
+			for(MapLocation ml : rc.getInitialArchonLocations(enemy)) {
+				if(enemyArch == null ||
+						ml.distanceTo(rc.getLocation()) < enemyArch.distanceTo(rc.getLocation()))
+					enemyArch = ml;
+			}
+
+			CommunicationsHandler.addTree(rc, enemyArch.x, enemyArch.y);
+
+			// testing for trees :))
+			//for(int i = 0; i < 10; i ++) {
+			//	CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+			//} // end testing for trees
+
+			// testing some lumbejacks 8)
+
+			CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+
+			// alright
+
+
+
+			float closestDist = rc.getLocation().distanceTo(enemyArch);
+
+			// alright now we consider cases
+			if(closestDist < 20.0f) {
+				System.out.println("Case: BLITZ");
+				// we're really close, let's try to blitz
+
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+				CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+
+				// make two gardeners, then wait until order queue is empty
+				int gardenerCount = 0;
+				int gardenerCooldown = 0;
+				// end "blitz" at 800 if it's "failed"
+				while(CommunicationsHandler.peekOrder(rc) != null || rc.getRoundNum() < 800) {
+					checkVPWin();
+					if(gardenerCount < 2 && gardenerCooldown <= 0 &&
+							rc.getTeamBullets() > RobotType.GARDENER.bulletCost) {
+						Direction dir = randomDirection();
+						for(int j = 0; j < 20 && !rc.canBuildRobot(RobotType.GARDENER, dir); j++)
+							dir = randomDirection();
+						if(rc.canBuildRobot(RobotType.GARDENER, dir)) {
+							rc.buildRobot(RobotType.GARDENER, dir);
+							gardenerCooldown = 30;
+							gardenerCount ++;
+						}
+					} else if(gardenerCooldown > 0) {
+						gardenerCooldown --;
+					}
+					if(CommunicationsHandler.peekOrder(rc) == null) {
+						if(RobotBase.rand.nextBoolean())
+							CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.TANK));
+						else
+							CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+					}
+					Clock.yield();
+				}
+				// now it's turn 800, what are we going to do?
+				// well blitz failed, so try lumberjacks and trees, I guess?
+				while(true) {
+					if(gardenerCooldown <= 0 &&	rc.getTeamBullets() > RobotType.GARDENER.bulletCost
+							&& 2.5f * rc.readBroadcast(101) < rc.readBroadcast(2000)) {
+						Direction dir = randomDirection();
+						for(int j = 0; j < 20 && !rc.canBuildRobot(RobotType.GARDENER, dir); j++)
+							dir = randomDirection();
+						if(rc.canBuildRobot(RobotType.GARDENER, dir)) {
+							rc.buildRobot(RobotType.GARDENER, dir);
+							gardenerCooldown = 50;
+							gardenerCount ++;
+						}
+					} else if(gardenerCooldown > 0) {
+						gardenerCooldown --;
+					}
+					if(CommunicationsHandler.peekOrder(rc) == null) {
+						CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+						CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+						CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+						CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+						CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+						CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+						CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
+					}
+					Clock.yield();
+				}
+			} else {
+				// NOT VERY GOOD
+				for(int i = 0; i < 5; i ++) {
+					CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+				}
+				int t = 40;
+				while(true) {
+					checkVPWin();
+					//if(rc.getRoundNum() > 200)
+					//	rc.resign(); // temporary for testing to prevent 3000 long games
+					Direction dir = randomDirection();
+					if (rc.canBuildRobot(RobotType.GARDENER, dir) && t > 30) {// && rc.getTeamBullets()>200)
+						// do we actually need another gardener though?
+						if(2.5f * rc.readBroadcast(101) < rc.readBroadcast(2000)) {
+							// only if we have more trees than 2.5 * [num gardeners made]
+							// do we decide that we need more gardeners
+							rc.buildRobot(RobotType.GARDENER, dir);
+							t = 0;
+						}
+					}
+					Clock.yield();
+					t++;
+					if(t%5 == 0) {
+						CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+						//System.out.println("Queued a tree");
+					} else if(t%5 == 1) {
+						CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+					}
+				}
+			}
+
+
+
+
+
+			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
+			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+			//System.out.println("Queued three trees");
+		} else {
+			while(true) {
+				// draw some pretty lines
+				Direction dir;
+				for(int i = 0; i < 15; i ++) {
+					dir = randomDirection();
+					rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dir, 4.0f),
+							RobotBase.rand.nextInt(255), RobotBase.rand.nextInt(255), RobotBase.rand.nextInt(255));
+				}
+				Clock.yield();
+			}
+		}
+	}
+	
+
+	public void runAlternate() throws GameActionException {
 		
 		boolean testOtherStuff = true;
 
