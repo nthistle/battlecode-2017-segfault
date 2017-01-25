@@ -35,7 +35,7 @@ public strictfp class RobotPlayer {
 
     public static void handleArchon(RobotController rc, int id) throws GameActionException {
         Archon a = new Archon(rc, id);
-        a.run();
+        a.run(); //CHANGE HERE!
     }
 
     public static void handleGardener(RobotController rc, int id) throws GameActionException {
