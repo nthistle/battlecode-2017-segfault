@@ -378,64 +378,74 @@ public strictfp abstract class RobotBase
 		moveWithDodging(goal, false);
 	}
 
+	
+    static Direction[] getBestDirections(Direction bestDir, float theta) throws GameActionException {
+    	float initialtheta = theta;
+    	Direction[] dirs = new Direction [(int)(360.0f/theta)];
+    	dirs[0] = bestDir;
+    	for (int j=1; j<dirs.length; j++) {
+    		bestDir = bestDir.rotateLeftDegrees(theta);
+    		dirs[j] = bestDir;
+    		if (theta>0f) {
+    			theta = theta*-1f;
+    		} else {
+    			theta = theta*-1f + initialtheta;
+    		}
+    	}
+    	return dirs;
+	}
 	//What was implemented late at night b4 seeding.
 	public void moveWithDodging(Direction goal, boolean debug) throws GameActionException {
 		float theta = 45.0f;
 		MapLocation myLoc = rc.getLocation();
-		int[] damage = new int[(int)(360f/theta)+1];
-		if(debug)
-			System.out.println(damage.length);
+		
+		int[][] damage = new int[(int)(360f/theta)][2];
+		// damage is a matrix because damage[i][0] = i, so that once damage is sorted we still know 
+		// the original direction index. damage[i][1] is the damage itself
+		
+		float stride = rc.getType().strideRadius;
 		BulletInfo fuckyou[] = rc.senseNearbyBullets(rc.getLocation(), 3); //bullets (3 is fastest for soldier)
-		Direction[] myDirs = new Direction[9]; //method finds dirs fanning out from specified startDir
-		if(rc.canMove(goal) && canTankMove(rc.getLocation().add(goal,rc.getType().strideRadius)))
-			myDirs[0] = goal;
-		else
-			myDirs[0] = null;
-		for(int z=1; z<5; z++) { //adds new direction to array, null if not possible to move in (the last direction is actually checked twice bc rushed code)
-			Direction copyRight = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateRightDegrees((float)(z*45));
-			Direction copyLeft = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateLeftDegrees((float)(z*45));
-			if(rc.canMove(copyRight) && canTankMove(rc.getLocation().add(copyRight,rc.getType().strideRadius)) )
-				myDirs[z*2-1] = copyRight;
-			else
-				myDirs[z*2-1]=null;
-			if(rc.canMove(copyLeft) && canTankMove(rc.getLocation().add(copyLeft,rc.getType().strideRadius)) )
-				myDirs[z*2-1] = copyLeft;
-			else
-				myDirs[z*2-1]=null;
-		}
+		Direction[] myDirs = getBestDirections(goal, theta); 			   //method finds dirs fanning out from specified startDir
+		
 		int i=0;
-		for (Direction k : myDirs) { //damage calculation
-			if(k==null)
-				damage[i] = Integer.MAX_VALUE;
+		for (Direction k : myDirs) {
+			damage[i][0] = i;
+			// if i can't move to a location, it gets a high damage so its prioritized last
+			if(!rc.canMove(k) || !canTankMove(myLoc.add(k, stride)))
+				damage[i][1] = Integer.MAX_VALUE;
 			else {
-				MapLocation newLoc = myLoc.add(k, rc.getType().strideRadius);
-				int ctr = 0;
+				MapLocation newLoc = myLoc.add(k, stride);
 				for (BulletInfo b : fuckyou) {
+					// calculate damage
+					float x1 = b.location.x;
+					float y1 = b.location.y;
 					MapLocation bulletLoc = b.getLocation().add(b.getDir(), b.getSpeed());
-					if (newLoc.distanceTo(bulletLoc) < 1) {
-						damage[i] += b.getDamage();
+					float x2 = bulletLoc.x;
+					float y2 = bulletLoc.y;
+					float x0 = newLoc.x;
+					float y0 = newLoc.y;
+					double calc = Math.abs((x2-x1)*x0 + (y2-y1)*y0 + (x1-x2)*y1 + (y2-y1)*x1)/(Math.sqrt(Math.pow((x2-x1), 2) + Math.pow((y2-y1), 2)));
+					if ((float)calc <= 1.0f) { 			// 1.0 = radius of unit
+						damage[i][1] += b.getDamage();
 					}
-					ctr++;
-					if(ctr>8)
-						break;
 				}
 			}
 			i+=1;
 		}
-		if(damage[0]==0) { //can it go best move
-			if(rc.canMove(goal) && canTankMove(rc.getLocation().add(goal,rc.getType().strideRadius)))
-				rc.move(goal);
-		} else { //find best remaining move, directions are already sorted
-			int index = 0;
-			int min = damage[index];
-			for (int z=1; z<damage.length; z++){
-				if (damage[z] < min ){
-					min = damage[z];
-					index = z;
+		java.util.Arrays.sort(damage, new java.util.Comparator<int[]>() {
+			public int compare(int[] a, int[] b) {
+				if(a[1]==b[1]) {
+					return Integer.compare(a[0], b[0]); // sort by direction if damage is equal (lower = closer to goal)
 				}
+				return Integer.compare(a[1], b[1]);		// sort by damage if they are unequal (lower = less damage)
+		    }
+		});
+		// because the array has been sorted, the first legal move is the best legal move
+		for(int j=0; j<damage.length; j++) {
+			if(rc.canMove(myDirs[damage[j][0]]) && canTankMove(myLoc.add(myDirs[damage[j][0]],stride))) {
+				rc.move(myDirs[damage[j][0]]);
+				break;
 			}
-			if(myDirs[index]!=null && rc.canMove(myDirs[index]) && canTankMove(rc.getLocation().add(goal,rc.getType().strideRadius)))
-				rc.move(myDirs[index]);
 		}
 	}
     
