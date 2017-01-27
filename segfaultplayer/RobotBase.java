@@ -399,26 +399,20 @@ public strictfp abstract class RobotBase
 			MapLocation ml = rc.getLocation().add(randomDirection(),(float)(.5+(Math.random()*.5)*rc.getType().strideRadius));
 			boolean clear = true;
 			for(BulletInfo bullet: bi) {
-				for(int z=0; z<3; z++) {
-					if(ml.distanceTo(bullet.getLocation().add(bullet.getDir(), (float)(bullet.getSpeed()*z/2.0))) < rc.getType().bodyRadius + .05) {
-						clear = false;
-						break;
-					}
-				}
-				if(!clear)
+				if(ml.distanceTo(bullet.getLocation().add(bullet.getDir(),bullet.getSpeed()))<rc.getType().bodyRadius+.05
+						&& ml.distanceTo(bullet.getLocation().add(bullet.getDir(),(float)(bullet.getSpeed()*.5)))<rc.getType().bodyRadius+.05) {
+					clear = false;
 					break;
+				}
 			}
 			if(clear) {
 				if (rc.canMove(ml)) {
 					rc.move(ml);
-					if(debug)
-						System.out.println("i: "+i);
+					System.out.println("i: "+i);
 					break;
 				}
 			}
 		}
-		if(!rc.hasMoved())
-			System.out.println("No moved!");
 	}
 
     static Direction[] getBestDirections(Direction bestDir, float theta) throws GameActionException {

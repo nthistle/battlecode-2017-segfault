@@ -14,7 +14,7 @@ public strictfp class Tank extends RobotBase
 
 	public void runAlt() throws GameActionException {
 		while(true) {
-			moveWithDodging(rc.getLocation().directionTo(enemyArchons[0]), true);
+			moveWithDodging();
 			if(rc.hasMoved()==false && rc.canMove(rc.getLocation().directionTo(enemyArchons[0])))
 				rc.move(rc.getLocation().directionTo(enemyArchons[0]));
 			RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
@@ -79,7 +79,7 @@ public strictfp class Tank extends RobotBase
 			goal = new Direction(curdirection);
 		}
 		if(nearbyBullets.length>0) //if there are bullets, dodge
-			moveWithDodging(goal); //TODO: check to make sure not crowded in by trees / make more efficient
+			moveWithDodging(); //TODO: check to make sure not crowded in by trees / can tanks dodge?
 		else //move normally
 			moveWithoutDodging(goal); //TODO: Replace with pathfinding / better movement
 	}
