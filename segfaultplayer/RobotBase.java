@@ -374,11 +374,11 @@ public strictfp abstract class RobotBase
 		return (float)(angle/180.0*Math.PI);
 	}
 
-	public void moveWithDodging(Direction goal) throws GameActionException{
-		moveWithDodging(goal, false);
+	public void moveWithDodging() throws GameActionException{
+		moveWithDodging(false);
 	}
 
-	public void moveWithDodgingTest() throws GameActionException {
+	public void moveWithDodging(boolean debug) throws GameActionException {
 		BulletInfo[] nearbyBullets = rc.senseNearbyBullets(5.0f);
 		int ctr=0;
 		for(int i=0; i<nearbyBullets.length; i++) {
@@ -387,13 +387,10 @@ public strictfp abstract class RobotBase
 			else
 				ctr++;
 		}
-		for(int i=0; i<nearbyBullets.length; i++)
-			System.out.print(nearbyBullets[i]+" ");
 		BulletInfo[] bi = new BulletInfo[ctr];
 		ctr=0;
 		for(int i=0; i<nearbyBullets.length; i++) {
 			if(nearbyBullets[i]!=null) {
-				System.out.println(nearbyBullets[i].getDamage()+" "+ctr);
 				bi[ctr] = nearbyBullets[i];
 				ctr++;
 			}
@@ -402,20 +399,26 @@ public strictfp abstract class RobotBase
 			MapLocation ml = rc.getLocation().add(randomDirection(),(float)(.5+(Math.random()*.5)*rc.getType().strideRadius));
 			boolean clear = true;
 			for(BulletInfo bullet: bi) {
-				if(ml.distanceTo(bullet.getLocation().add(bullet.getDir(),bullet.getSpeed()))<rc.getType().bodyRadius+.05
-						&& ml.distanceTo(bullet.getLocation().add(bullet.getDir(),(float)(bullet.getSpeed()*.5)))<rc.getType().bodyRadius+.05) {
-					clear = false;
-					break;
+				for(int z=0; z<3; z++) {
+					if(ml.distanceTo(bullet.getLocation().add(bullet.getDir(), (float)(bullet.getSpeed()*z/2.0))) < rc.getType().bodyRadius + .05) {
+						clear = false;
+						break;
+					}
 				}
+				if(!clear)
+					break;
 			}
 			if(clear) {
 				if (rc.canMove(ml)) {
 					rc.move(ml);
-					System.out.println("i: "+i);
+					if(debug)
+						System.out.println("i: "+i);
 					break;
 				}
 			}
 		}
+		if(!rc.hasMoved())
+			System.out.println("No moved!");
 	}
 
     static Direction[] getBestDirections(Direction bestDir, float theta) throws GameActionException {
@@ -482,22 +485,22 @@ public strictfp abstract class RobotBase
     }
 
 
-    public void moveWithDodging(Direction goal, boolean debug) throws GameActionException {
+ /*   public void moveWithDodging(Direction goal, boolean debug) throws GameActionException {
 		float theta = 45.0f;
 		MapLocation myLoc = rc.getLocation();
-		
+
 		int[][] damage = new int[(int)(360f/theta)][2];
-		// damage is a matrix because damage[i][0] = i, so that once damage is sorted we still know 
+		// damage is a matrix because damage[i][0] = i, so that once damage is sorted we still know
 		// the original direction index. damage[i][1] is the damage itself
-		
+
 		float stride = rc.getType().strideRadius;
 		BulletInfo fuckyou[] = rc.senseNearbyBullets(rc.getLocation(), 3); //bullets (3 is fastest for soldier)
 		Direction[] myDirs = getBestDirections(goal, theta); 			   //method finds dirs fanning out from specified startDir
-		
+
 		System.out.println(Clock.getBytecodeNum());
 		eliminateBullets(myLoc, fuckyou); // gets rid of bullets outside of strideRadius
 		System.out.println(Clock.getBytecodeNum());
-		
+
 		int i=0;
 		for (Direction k : myDirs) {
 			damage[i][0] = i;
@@ -537,7 +540,7 @@ public strictfp abstract class RobotBase
 				break;
 			}
 		}
-	}
+	} */
     
     /*
     
