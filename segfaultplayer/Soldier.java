@@ -81,7 +81,8 @@ public strictfp class Soldier extends RobotBase
 			goal = new Direction(curdirection);
 		}
 		if(nearbyBullets.length>0) //if there are bullets, dodge
-			moveWithDodging(goal); //TODO: check to make sure not crowded in by trees OR UNITS / make more efficient
+			moveWithDodgingTest();
+			//moveWithDodging(goal); //TODO: check to make sure not crowded in by trees OR UNITS / make more efficient
 		else //move normally
 			moveWithoutDodging(goal); //TODO: Replace with pathfinding / better movement
 	}

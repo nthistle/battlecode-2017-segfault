@@ -378,7 +378,46 @@ public strictfp abstract class RobotBase
 		moveWithDodging(goal, false);
 	}
 
-	
+	public void moveWithDodgingTest() throws GameActionException {
+		BulletInfo[] nearbyBullets = rc.senseNearbyBullets(5.0f);
+		int ctr=0;
+		for(int i=0; i<nearbyBullets.length; i++) {
+			if(rc.getLocation().directionTo(nearbyBullets[i].getLocation()).equals(nearbyBullets[i].getDir(),(float)(Math.PI/2.0)))
+				nearbyBullets[i] = null;
+			else
+				ctr++;
+		}
+		for(int i=0; i<nearbyBullets.length; i++)
+			System.out.print(nearbyBullets[i]+" ");
+		BulletInfo[] bi = new BulletInfo[ctr];
+		ctr=0;
+		for(int i=0; i<nearbyBullets.length; i++) {
+			if(nearbyBullets[i]!=null) {
+				System.out.println(nearbyBullets[i].getDamage()+" "+ctr);
+				bi[ctr] = nearbyBullets[i];
+				ctr++;
+			}
+		}
+		for(int i=0; i<25; i++) {
+			MapLocation ml = rc.getLocation().add(randomDirection(),(float)(.5+(Math.random()*.5)*rc.getType().strideRadius));
+			boolean clear = true;
+			for(BulletInfo bullet: bi) {
+				if(ml.distanceTo(bullet.getLocation().add(bullet.getDir(),bullet.getSpeed()))<rc.getType().bodyRadius+.05
+						&& ml.distanceTo(bullet.getLocation().add(bullet.getDir(),(float)(bullet.getSpeed()*.5)))<rc.getType().bodyRadius+.05) {
+					clear = false;
+					break;
+				}
+			}
+			if(clear) {
+				if (rc.canMove(ml)) {
+					rc.move(ml);
+					System.out.println("i: "+i);
+					break;
+				}
+			}
+		}
+	}
+
     static Direction[] getBestDirections(Direction bestDir, float theta) throws GameActionException {
     	float initialtheta = theta;
     	Direction[] dirs = new Direction [(int)(360.0f/theta)];
@@ -394,9 +433,6 @@ public strictfp abstract class RobotBase
     	}
     	return dirs;
 	}
-    
-    
-
     
     public float doCalculations(MapLocation myLoc, BulletInfo b) {
     	MapLocation updatedLoc = b.getLocation().add(b.getDir(), b.getSpeed());
