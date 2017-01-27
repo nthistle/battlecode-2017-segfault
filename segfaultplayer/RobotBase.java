@@ -394,8 +394,59 @@ public strictfp abstract class RobotBase
     	}
     	return dirs;
 	}
-	//What was implemented late at night b4 seeding.
-	public void moveWithDodging(Direction goal, boolean debug) throws GameActionException {
+    
+    
+
+    
+    public float doCalculations(MapLocation myLoc, BulletInfo b) {
+    	MapLocation updatedLoc = b.getLocation().add(b.getDir(), b.getSpeed());
+		float A = myLoc.x - b.location.x;
+		float B = myLoc.y - b.location.y;
+		float C = updatedLoc.x - b.location.x;
+		float D = updatedLoc.y - b.location.y;
+
+		float dot = A * C + B * D;
+		float len_sq = C * C + D * D;
+		float param = -1f;
+		if (len_sq != 0)  {//in case of 0 length line
+		      param = dot / len_sq;
+		}
+		float xx, yy;
+		if (param < 0) {
+		    xx = b.location.x;
+		    yy = b.location.y;
+		}
+		else if (param > 1) {
+		  xx = updatedLoc.x;
+		  yy = updatedLoc.y;
+		}
+		else {
+		    xx = b.location.x + param * C;
+		    yy = b.location.y + param * D;
+		 }
+		float dx = myLoc.x - xx;
+		float dy = myLoc.y - yy;
+		double distance =  Math.sqrt(dx * dx + dy * dy);
+		return (float)distance;
+    }
+    public float getDamage(MapLocation myLoc, BulletInfo b) {
+    	float distance = doCalculations(myLoc, b);
+    	if (distance > 1.0f) {
+    		return b.damage;
+    	}
+    	return 0f;
+    }
+    
+    public void eliminateBullets(MapLocation myLoc, BulletInfo[] myB) {
+    	for(BulletInfo b : myB) {
+    		if(Math.abs(myLoc.directionTo(b.location).degreesBetween(b.dir)) > 90f) {
+    			b = null;
+    		}
+    	}
+    }
+
+
+    public void moveWithDodging(Direction goal, boolean debug) throws GameActionException {
 		float theta = 45.0f;
 		MapLocation myLoc = rc.getLocation();
 		
@@ -407,31 +458,33 @@ public strictfp abstract class RobotBase
 		BulletInfo fuckyou[] = rc.senseNearbyBullets(rc.getLocation(), 3); //bullets (3 is fastest for soldier)
 		Direction[] myDirs = getBestDirections(goal, theta); 			   //method finds dirs fanning out from specified startDir
 		
+		System.out.println(Clock.getBytecodeNum());
+		eliminateBullets(myLoc, fuckyou); // gets rid of bullets outside of strideRadius
+		System.out.println(Clock.getBytecodeNum());
+		
 		int i=0;
 		for (Direction k : myDirs) {
 			damage[i][0] = i;
 			// if i can't move to a location, it gets a high damage so its prioritized last
-			if(!rc.canMove(k) || !canTankMove(myLoc.add(k, stride)))
+			if(!rc.canMove(k) || !canTankMove(myLoc.add(k, stride))) {
 				damage[i][1] = Integer.MAX_VALUE;
-			else {
+			} else {
 				MapLocation newLoc = myLoc.add(k, stride);
 				for (BulletInfo b : fuckyou) {
 					// calculate damage
-					float x1 = b.location.x;
-					float y1 = b.location.y;
-					MapLocation bulletLoc = b.getLocation().add(b.getDir(), b.getSpeed());
-					float x2 = bulletLoc.x;
-					float y2 = bulletLoc.y;
-					float x0 = newLoc.x;
-					float y0 = newLoc.y;
-					double calc = Math.abs((x2-x1)*x0 + (y2-y1)*y0 + (x1-x2)*y1 + (y2-y1)*x1)/(Math.sqrt(Math.pow((x2-x1), 2) + Math.pow((y2-y1), 2)));
-					if ((float)calc <= 1.0f) { 			// 1.0 = radius of unit
-						damage[i][1] += b.getDamage();
-					}
+					System.out.println(Clock.getBytecodeNum());
+					if(b!=null) {
+						float thisDamage = getDamage(newLoc, b);
+						damage[i][1] += thisDamage;
+					} // when b==null, damage[i][1]+=0
+					System.out.println(Clock.getBytecodeNum());
 				}
+				rc.setIndicatorLine(myLoc, newLoc, 0, 20*damage[i][1], 0 );
 			}
 			i+=1;
 		}
+		System.out.println("Sorting array");
+		System.out.println(Clock.getBytecodeNum());
 		java.util.Arrays.sort(damage, new java.util.Comparator<int[]>() {
 			public int compare(int[] a, int[] b) {
 				if(a[1]==b[1]) {
@@ -440,10 +493,11 @@ public strictfp abstract class RobotBase
 				return Integer.compare(a[1], b[1]);		// sort by damage if they are unequal (lower = less damage)
 		    }
 		});
+		System.out.println(Clock.getBytecodeNum());
 		// because the array has been sorted, the first legal move is the best legal move
 		for(int j=0; j<damage.length; j++) {
 			if(rc.canMove(myDirs[damage[j][0]]) && canTankMove(myLoc.add(myDirs[damage[j][0]],stride))) {
-				rc.move(myDirs[damage[j][0]]);
+				moveInDir(myDirs[damage[j][0]]);
 				break;
 			}
 		}
@@ -453,7 +507,6 @@ public strictfp abstract class RobotBase
     
      Ok mihir.  NOTEES. What follows is Srinidhi code (broken)
      =====================================================
-     
      The idea for this is that you take the max and min danger values [the float] from the hashmap returned by the heatmap function (denoted by max and min)
      You also get the danger value for the closest angle to "goal" that is in the hashmap (call the danger value d) (you need to find the angle urself)
      So then u have:
