@@ -110,9 +110,9 @@ public strictfp class Lumberjack extends RobotBase
 		TreeInfo[] trees = rc.senseNearbyTrees(GameConstants.LUMBERJACK_STRIKE_RADIUS);
 		double[] score = {0.0,0.0};
 		for(int i=0; i<robots.length; i++) {
-			double value = 2.0;
+			double value = 8.0;
 			if(robots[i].getType()==RobotType.ARCHON)
-				value+=4.0;
+				value+=10.0;
 			if(robots[i].getTeam()==ally)
 				score[0]+=value;
 			else
