@@ -25,6 +25,8 @@ public strictfp class Soldier extends RobotBase
 	}
 	
 	public void run() throws GameActionException {
+		//TODO: Identify closest archon
+
 		try {
 			while(true) {
 				dailyTasks();
@@ -101,7 +103,7 @@ public strictfp class Soldier extends RobotBase
 			RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.ARCHON, RobotType.SCOUT}; //priority of shooting
 			RobotInfo target = null;
 			int z = 0;
-			while (target == null && z<priority.length) {
+			while (target == null && (z<priority.length && rc.getRoundNum()>300 || z<priority.length-1)) {
 				for (int i = 0; i < robots.length; i++) {
 					if (robots[i].getType() == priority[z] && isSingleShotClear(rc.getLocation().directionTo(robots[i].getLocation()))) {
 						target = robots[i];

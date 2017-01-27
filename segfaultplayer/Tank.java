@@ -98,10 +98,10 @@ public strictfp class Tank extends RobotBase
 		TreeInfo[] trees = rc.senseNearbyTrees(rc.getType().sensorRadius);
 		if (robots.length > 0) { //there are nearby robots
 			//TODO?: Make more efficient? Isn't an issue right now
-			RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.ARCHON, RobotType.SCOUT}; //priority of shooting
+			RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SCOUT, RobotType.ARCHON}; //priority of shooting
 			RobotInfo target = null;
 			int z = 0;
-			while (target == null && z<priority.length) {
+			while (target == null && (z<priority.length && rc.getRoundNum()>300 || z<priority.length-1)) {
 				for (int i = 0; i < robots.length; i++) {
 					if (robots[i].getType() == priority[z] && isSingleShotClear(rc.getLocation().directionTo(robots[i].getLocation()))) {
 						target = robots[i];
