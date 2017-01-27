@@ -68,10 +68,10 @@ public strictfp class Soldier extends RobotBase
 		BulletInfo[] nearbyBullets = rc.senseNearbyBullets();
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
 		Direction goal;
-		if(ctr<enemyArchons.length) //if archons are alive, move towards them
-			goal = rc.getLocation().directionTo(enemyArchons[ctr]);
-		else if(robots.length>0) //elif nearby units, move towards them
+		if(robots.length>0) //if nearby units, move towards them
 			goal = rc.getLocation().directionTo(robots[0].getLocation());
+		else if(ctr<enemyArchons.length) //elif archons are alive, move towards them
+			goal = rc.getLocation().directionTo(enemyArchons[ctr]);
 		else { //move randomly
 			if (Math.random() < 0.05)
 				curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
@@ -81,7 +81,7 @@ public strictfp class Soldier extends RobotBase
 			goal = new Direction(curdirection);
 		}
 		if(nearbyBullets.length>0) //if there are bullets, dodge
-			moveWithDodging(goal); //TODO: check to make sure not crowded in by trees / make more efficient
+			moveWithoutDodging(goal); //TODO: check to make sure not crowded in by trees OR UNITS / make more efficient
 		else //move normally
 			moveWithoutDodging(goal); //TODO: Replace with pathfinding / better movement
 	}
@@ -100,7 +100,7 @@ public strictfp class Soldier extends RobotBase
 		TreeInfo[] trees = rc.senseNearbyTrees(rc.getType().sensorRadius);
 		if (robots.length > 0) { //there are nearby robots
 			//TODO?: Make more efficient? Isn't an issue right now
-			RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.ARCHON, RobotType.SCOUT}; //priority of shooting
+			RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SCOUT, RobotType.ARCHON}; //priority of shooting
 			RobotInfo target = null;
 			int z = 0;
 			while (target == null && (z<priority.length && rc.getRoundNum()>300 || z<priority.length-1)) {
