@@ -14,7 +14,7 @@ public strictfp class Soldier extends RobotBase
 
 	public void runAlt() throws GameActionException {
 		while(true) {
-			moveWithDodging(rc.getLocation().directionTo(enemyArchons[0]), true);
+			moveWithDodging();
 			if(rc.hasMoved()==false && rc.canMove(rc.getLocation().directionTo(enemyArchons[0])))
 				rc.move(rc.getLocation().directionTo(enemyArchons[0]));
 			RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
