@@ -122,10 +122,10 @@ public strictfp class Soldier extends RobotBase
 					rc.fireSingleShot(tDir);
 			}
 		}
-		else if(trees.length>0 && trees[0].getTeam()!=ally) { //TODO: Fix sht
+		else if(rc.getRoundNum()>400 && goal!=null && trees.length>0 && trees[0].getTeam()!=ally) { //are there nearby non-ally trees
 			Direction tDir = rc.getLocation().directionTo(trees[0].getLocation());
-			if(goal!=null && tDir.equals(goal,(float)(Math.PI/4.0)) && rc.getLocation().distanceTo(trees[0].getLocation())<3.0) {
-				if (rc.canFireTriadShot())
+			if( tDir.equals(goal,(float)(Math.PI/4.0)) && rc.getLocation().distanceTo(trees[0].getLocation())<3.0) { //are they in our way
+				if (rc.canFireTriadShot()) //shoot em down
 					rc.fireTriadShot(tDir);
 				else if (rc.canFireSingleShot())
 					rc.fireSingleShot(tDir);
