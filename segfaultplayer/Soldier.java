@@ -14,7 +14,7 @@ public strictfp class Soldier extends RobotBase
 
 	public void runAlt() throws GameActionException {
 		while(true) {
-			moveWithDodging();
+			moveWithDodging(randomDirection());
 			if(rc.hasMoved()==false && rc.canMove(rc.getLocation().directionTo(enemyArchons[0])))
 				rc.move(rc.getLocation().directionTo(enemyArchons[0]));
 			RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
@@ -81,7 +81,7 @@ public strictfp class Soldier extends RobotBase
 			goal = new Direction(curdirection);
 		}
 		if(nearbyBullets.length>0) //if there are bullets, dodge
-			moveWithDodging(); //TODO: check to make sure not crowded in by trees
+			moveWithDodging(goal); //TODO: check to make sure not crowded in by trees
 		else //move normally
 			moveWithoutDodging(goal); //TODO: Replace with pathfinding / better movement
 	}
@@ -124,7 +124,7 @@ public strictfp class Soldier extends RobotBase
 					rc.fireSingleShot(tDir);
 			}
 		}
-		else if(rc.getRoundNum()>400 && goal!=null && trees.length>0 && trees[0].getTeam()!=ally) { //are there nearby non-ally trees
+		else if(rc.getRoundNum()>400 && rc.getTeamBullets()>200 && goal!=null && trees.length>0 && trees[0].getTeam()!=ally) { //are there nearby non-ally trees
 			Direction tDir = rc.getLocation().directionTo(trees[0].getLocation());
 			if( tDir.equals(goal,(float)(Math.PI/4.0)) && rc.getLocation().distanceTo(trees[0].getLocation())<3.0) { //are they in our way
 				if (rc.canFireTriadShot()) //shoot em down

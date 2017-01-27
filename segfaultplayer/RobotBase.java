@@ -374,11 +374,12 @@ public strictfp abstract class RobotBase
 		return (float)(angle/180.0*Math.PI);
 	}
 
-	public void moveWithDodging() throws GameActionException{
-		moveWithDodging(false);
+	public void moveWithDodging(Direction goal) throws GameActionException{
+		moveWithDodging(goal, false);
 	}
 
-	public void moveWithDodging(boolean debug) throws GameActionException {
+	//moves arbitrarily with dodging, if all bullets are non-threatening moves using without dodging
+	public void moveWithDodging(Direction goal, boolean debug) throws GameActionException {
 		BulletInfo[] nearbyBullets = rc.senseNearbyBullets(5.0f);
 		int ctr=0;
 		for(int i=0; i<nearbyBullets.length; i++) {
@@ -386,6 +387,10 @@ public strictfp abstract class RobotBase
 				nearbyBullets[i] = null;
 			else
 				ctr++;
+		}
+		if(ctr==0) {
+			moveWithoutDodging(goal);
+			return;
 		}
 		BulletInfo[] bi = new BulletInfo[ctr];
 		ctr=0;
@@ -415,6 +420,7 @@ public strictfp abstract class RobotBase
 		}
 	}
 
+	//fans out directions
     static Direction[] getBestDirections(Direction bestDir, float theta) throws GameActionException {
     	float initialtheta = theta;
     	Direction[] dirs = new Direction [(int)(360.0f/theta)];
@@ -430,318 +436,6 @@ public strictfp abstract class RobotBase
     	}
     	return dirs;
 	}
-    
-    public float doCalculations(MapLocation myLoc, BulletInfo b) {
-    	MapLocation updatedLoc = b.getLocation().add(b.getDir(), b.getSpeed());
-		float A = myLoc.x - b.location.x;
-		float B = myLoc.y - b.location.y;
-		float C = updatedLoc.x - b.location.x;
-		float D = updatedLoc.y - b.location.y;
-
-		float dot = A * C + B * D;
-		float len_sq = C * C + D * D;
-		float param = -1f;
-		if (len_sq != 0)  {//in case of 0 length line
-		      param = dot / len_sq;
-		}
-		float xx, yy;
-		if (param < 0) {
-		    xx = b.location.x;
-		    yy = b.location.y;
-		}
-		else if (param > 1) {
-		  xx = updatedLoc.x;
-		  yy = updatedLoc.y;
-		}
-		else {
-		    xx = b.location.x + param * C;
-		    yy = b.location.y + param * D;
-		 }
-		float dx = myLoc.x - xx;
-		float dy = myLoc.y - yy;
-		double distance =  Math.sqrt(dx * dx + dy * dy);
-		return (float)distance;
-    }
-    public float getDamage(MapLocation myLoc, BulletInfo b) {
-    	float distance = doCalculations(myLoc, b);
-    	if (distance > 1.0f) {
-    		return b.damage;
-    	}
-    	return 0f;
-    }
-    
-    public void eliminateBullets(MapLocation myLoc, BulletInfo[] myB) {
-    	for(BulletInfo b : myB) {
-    		if(Math.abs(myLoc.directionTo(b.location).degreesBetween(b.dir)) > 90f) {
-    			b = null;
-    		}
-    	}
-    }
-
-
- /*   public void moveWithDodging(Direction goal, boolean debug) throws GameActionException {
-		float theta = 45.0f;
-		MapLocation myLoc = rc.getLocation();
-
-		int[][] damage = new int[(int)(360f/theta)][2];
-		// damage is a matrix because damage[i][0] = i, so that once damage is sorted we still know
-		// the original direction index. damage[i][1] is the damage itself
-
-		float stride = rc.getType().strideRadius;
-		BulletInfo fuckyou[] = rc.senseNearbyBullets(rc.getLocation(), 3); //bullets (3 is fastest for soldier)
-		Direction[] myDirs = getBestDirections(goal, theta); 			   //method finds dirs fanning out from specified startDir
-
-		System.out.println(Clock.getBytecodeNum());
-		eliminateBullets(myLoc, fuckyou); // gets rid of bullets outside of strideRadius
-		System.out.println(Clock.getBytecodeNum());
-
-		int i=0;
-		for (Direction k : myDirs) {
-			damage[i][0] = i;
-			// if i can't move to a location, it gets a high damage so its prioritized last
-			if(!rc.canMove(k) || !canTankMove(myLoc.add(k, stride))) {
-				damage[i][1] = Integer.MAX_VALUE;
-			} else {
-				MapLocation newLoc = myLoc.add(k, stride);
-				for (BulletInfo b : fuckyou) {
-					// calculate damage
-					System.out.println(Clock.getBytecodeNum());
-					if(b!=null) {
-						float thisDamage = getDamage(newLoc, b);
-						damage[i][1] += thisDamage;
-					} // when b==null, damage[i][1]+=0
-					System.out.println(Clock.getBytecodeNum());
-				}
-				rc.setIndicatorLine(myLoc, newLoc, 0, 20*damage[i][1], 0 );
-			}
-			i+=1;
-		}
-		System.out.println("Sorting array");
-		System.out.println(Clock.getBytecodeNum());
-		java.util.Arrays.sort(damage, new java.util.Comparator<int[]>() {
-			public int compare(int[] a, int[] b) {
-				if(a[1]==b[1]) {
-					return Integer.compare(a[0], b[0]); // sort by direction if damage is equal (lower = closer to goal)
-				}
-				return Integer.compare(a[1], b[1]);		// sort by damage if they are unequal (lower = less damage)
-		    }
-		});
-		System.out.println(Clock.getBytecodeNum());
-		// because the array has been sorted, the first legal move is the best legal move
-		for(int j=0; j<damage.length; j++) {
-			if(rc.canMove(myDirs[damage[j][0]]) && canTankMove(myLoc.add(myDirs[damage[j][0]],stride))) {
-				moveInDir(myDirs[damage[j][0]]);
-				break;
-			}
-		}
-	} */
-    
-    /*
-    
-     Ok mihir.  NOTEES. What follows is Srinidhi code (broken)
-     =====================================================
-     The idea for this is that you take the max and min danger values [the float] from the hashmap returned by the heatmap function (denoted by max and min)
-     You also get the danger value for the closest angle to "goal" that is in the hashmap (call the danger value d) (you need to find the angle urself)
-     So then u have:
-     
-     min<---------|x|---->max
-     
-     and you are given a threshold
-     
-     you find (x - min) / (max - min)
-     and see if its greater than the threshold.
-     if greater:moveInDir(for that direction)
-     else: moveInDir(safest one) [min danger value]
-     
-     
-     I sorta tried to do it. But it became a meme.
-     
-    public void moveWithDodging(Direction goal, float off, int dept, float dete, double tolerance) throws GameActionException{
-        // find the closest direction
-        HashMap map = heatmap(rc.getLocation(), off, dept, dete);
-        float curgoel = goal.radians;
-        HashMap<Float, Direction[]> surf = new HashMap<Float, Direction[]>();
-        
-        for(Direction entry : map.keySet()) {
-            float r1 = entry.radians;
-            surf.put(new Float(Math.abs(r1 - curgoel)), new Direction[]{entry, goal});
-        }
-        
-        Map.Entry<Float, Direction[]> min = null;
-        for (Map.Entry<Float, Direction[]> entry : surf.entrySet()) {
-            if (min == null || min.getKey() > entry.getKey()) {
-                min = entry;
-            }
-        }
-        
-        Direction imtryna = min.getValue()[0];
-        float res_danger = map.get(imtryna).floatValue();
-        
-        Map.Entry<Direction, Float> min_danger = null;
-        Map.Entry<Direction, Float> max_danger = null;
-
-        for (Map.Entry<Direction, Float> entry : map.entrySet()) {
-            if (min_danger == null || min_danger.getKey().radians > entry.getKey().radians) {
-                min_danger = entry;
-            }
-            if (max_danger == null || max_danger.getKey().radians < entry.getKey().radians) {
-                max_danger = entry;
-            }
-        }
-        
-        float isOkay = (res_danger - min_danger.getValue())/ (max_danger.getValue() - min_danger.getValue());
-        if(isOkay > tolerance){
-            moveInDir(imtryna);
-        } else {
-            moveInDir(min_danger.getKey());
-        }
-    }*/
-
-	/**
-	 * Computes the BulletInfos for a given set of bullets in the range of current bullet sight radius
-	 *
-	 * @param depth depth of how many turns of lookahead
-	 * @param dt duration of each non-continuous step (the smaller the more accurate)
-	 * @return locations of all the bullets after a given time dt; ex output[bulletnumber][depth] is a given bullet at a given depth
-	 */
-	public BulletInfo[][] muchDoge(int depth, float dt) throws GameActionException{
-		BulletInfo[] bi = rc.senseNearbyBullets(rc.getLocation(), -1); // scan full loc; sorted by distance
-		BulletInfo[][] res = new BulletInfo[bi.length][depth];
-		for(int i = 0; i < res.length; i++){
-			res[i][0] = bi[i];
-		}
-		for(int i = 0; i < res.length; i++){
-			BulletInfo cur = bi[i];
-			for(int j = 1; j < res[0].length; j++){
-				MapLocation np = new MapLocation(cur.location.x, cur.location.y);
-				float deex = res[i][j-1].getSpeed() * dt;
-				np = np.add(cur.dir, deex);
-				if(rc.isLocationOccupied(np)){
-					BulletInfo add = new BulletInfo(cur.getID(), np, cur.getDir(), cur.getSpeed(), cur.getDamage());
-				} else{
-					BulletInfo add = new BulletInfo(cur.getID(), np, cur.getDir(), -1, -1);
-				}
-			}
-		}
-		return res;
-	}
-
-	/**
-	 * Computes an approx sense of danger for a given location based on speed and
-	 * power of nearby bullets
-	 *
-	 * @param ml location in question
-	 * @return relative danger; closer to zero the less danger you are in
-	 */
-	public float dangerHeuristic(BulletInfo[] bi, MapLocation ml){
-		// scan full loc; sorted by distance
-		if(bi.length == 0){
-			bi = rc.senseNearbyBullets(rc.getType().sensorRadius);
-			if(bi.length == 0){
-				return 0;
-			}
-		}
-
-		// compute max and min damages within radius to create a scale and instill a
-		// notion of "how deadly" a given bullet is
-		BulletInfo max_damage = bi[0];
-		BulletInfo min_damage = bi[0];
-		BulletInfo max_speed = bi[0];
-		BulletInfo min_speed = bi[0];
-		BulletInfo max_loc = bi[0];
-		BulletInfo min_loc = bi[0];
-		for(int i = 0; i < bi.length; i++){
-			if(bi[i].damage > max_damage.damage){
-				max_damage = bi[i];
-			}
-			if(bi[i].damage < min_damage.damage){
-				min_damage = bi[i];
-			}
-			if(bi[i].speed > max_speed.speed){
-				max_speed = bi[i];
-			}
-			if(bi[i].speed < min_speed.speed){
-				min_speed = bi[i];
-			}
-			if(bi[i].location.distanceTo(ml) > max_loc.location.distanceTo(ml)){
-				max_loc = bi[i];
-			}
-			if(bi[i].location.distanceTo(ml) < min_loc.location.distanceTo(ml)){
-				min_loc = bi[i];
-			}
-		}
-
-		// If you want to mess around with more ratios you can use this
-		float dam_diff = max_damage.damage - min_damage.damage;
-		float spd_diff = max_speed.speed - min_speed.speed;
-		float loc_diff = max_loc.location.distanceTo(ml) - min_loc.location.distanceTo(ml);
-		// generate how deadly a bullet is on a scale of  based on speed and damage
-		float[] res = new float[bi.length];
-		for(int i = 0; i < bi.length; i++){
-			res[i] = (bi[i].damage - min_damage.damage) / dam_diff;
-			res[i] += (bi[i].speed - min_speed.speed) / spd_diff;
-			res[i] += 1 / ((bi[i].location.distanceTo(ml) - min_loc.location.distanceTo(ml)) / loc_diff);
-		}
-
-		float sum = 0.0f;
-		for(int i = 0; i < res.length; i++){
-			System.out.println("SCARY : "+i+" "+sum+" "+res[i]);
-			sum += res[i];
-		}
-		System.out.println("SCARY MEME: "+sum);
-		return sum;
-	}
-
-
-	/** OLD
-	 * Generates an array of floats with the relative danger of each direction with a
-	 * given offset
-	 *
-	 * @param ml location of interest
-	 * @param offset the increment to attempt directions in in degrees
-	 * @return array with relative danger potentials of each position with stride of 1
-	 */
-	public HashMap<Direction, Float> heatmap(MapLocation ml, float offset, int depth, float deetee) throws GameActionException{
-		float[] res = new float[(int)(360f/offset)];
-		HashMap hm = new HashMap<Direction, Float>();
-		MapLocation orig = new MapLocation(ml.x, ml.y);
-		float pie = (float)Math.PI;
-		float cur = 0.0f;
-		BulletInfo[][] doge = muchDoge(depth, deetee);
-		for(int g = 0; g < doge.length; g++){
-			for(int i = 0; i < res.length; i++){
-				Direction d = new Direction(cur * pie / 180.0f);
-				hm.put(d, dangerHeuristic(doge[g], ml.add(d)));
-				ml = new MapLocation(orig.x, orig.y);
-				cur += offset;
-			}
-		}
-		return hm;
-	}
-
-	//old code, ignore
-	public HashMap<Direction, Float> heatmapTwo(MapLocation ml, float offset, int depth, float deetee) throws GameActionException{
-		float[] res = new float[(int)(360f/offset)];
-		HashMap hm = new HashMap<Direction, Float>();
-		MapLocation orig = new MapLocation(ml.x, ml.y);
-		float pie = (float)Math.PI;
-		float cur = 0.0f;
-		BulletInfo[][] doge = muchDoge(depth, deetee);
-
-		for(int i = 0; i < res.length; i++) {
-			Direction d = new Direction(cur * pie / 180.0f);
-			MapLocation target = ml.add(d,rc.getType().strideRadius);
-			float sum = 0.0f;
-			for(int g = 0; g < doge.length; g++) {
-				sum+=dangerHeuristic(doge[g], target);
-			}
-			hm.put(d,sum);
-			ml = new MapLocation(orig.x, orig.y);
-			cur += offset;
-		}
-		return hm;
-	}
-	
 
 	// =====================================================================================
 	//                              STATIC  HELPER  METHODS
