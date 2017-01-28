@@ -15,11 +15,8 @@ public strictfp class Soldier extends RobotBase
 		try {
 			while(true) {
 				dailyTasks();
-				System.out.println("Daily Task: "+Clock.getBytecodesLeft());
-				decideMove(true);
-				System.out.println("After Move: "+Clock.getBytecodesLeft());
+				decideMove();
 				decideShoot();
-				System.out.println("After Shoot: "+Clock.getBytecodesLeft());
 				Clock.yield();
 			}
 		} catch(Exception e) {
