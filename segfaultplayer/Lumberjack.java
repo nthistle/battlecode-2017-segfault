@@ -89,7 +89,7 @@ public strictfp class Lumberjack extends RobotBase
 		return getTarget(nearbyTrees, false);
 	}
 
-	//prioritizes ideal tree
+	//finds ideal tree
 	public TreeInfo getTarget(TreeInfo[] nearbyTrees, boolean debug) throws GameActionException {
 		MapLocation alpha = allyArchons[0];
 		for(int i=1; i<allyArchons.length; i++) {
@@ -103,7 +103,6 @@ public strictfp class Lumberjack extends RobotBase
 		}
 		TreeInfo target = null;
 		for(int i=0; i<nearbyTrees.length; i++) {
-			//TODO: Prioritze contained units? Prioritize nearest to me?
 			if(nearbyTrees[i].getTeam()!=ally && (target==null || treeHeuristic(target,nearbyTrees[i],alpha,enemyAlpha)))
 				target = nearbyTrees[i];
 		}
@@ -112,6 +111,7 @@ public strictfp class Lumberjack extends RobotBase
 		return target;
 	}
 
+	//prioritizes ideal tree using radius, distance, and contained units
 	public boolean treeHeuristic(TreeInfo target, TreeInfo test, MapLocation alpha, MapLocation enemyAlpha) {
 		TreeInfo[] input = {target,test};
 		double[] scores = new double[2];
