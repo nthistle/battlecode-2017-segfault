@@ -222,6 +222,16 @@ public strictfp class Gardener extends RobotBase
 			lifetimeWaterLowest();
 		}*/
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
 	public Direction[] getGoodBuildDirections(Direction intended) {
 		Direction[] buildDirs = new Direction[17];

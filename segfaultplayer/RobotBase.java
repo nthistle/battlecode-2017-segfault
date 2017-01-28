@@ -339,9 +339,9 @@ public strictfp abstract class RobotBase
 				System.out.println("Move straight");
 			return;
 		}
-		for(int i=1; i<25; i++) { //fans out, adding fixed degrees right and left on 7.5 intervals. Neal's code performs better!!!! idk why, look at it. This gets stuck
-			Direction copyRight = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateRightDegrees((float)(i*7.5));
-			Direction copyLeft = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateLeftDegrees((float)(i*7.5));
+		for(int i=1; i<13; i++) { //fans out, adding fixed degrees right and left on 7.5 intervals. Neal's code performs better!!!! idk why, look at it. This gets stuck
+			Direction copyRight = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateRightDegrees((float)(i*15));
+			Direction copyLeft = (new Direction(degreesToRadians(goal.getAngleDegrees()))).rotateLeftDegrees((float)(i*15));
 			if(rc.canMove(copyRight) && canTankMove(rc.getLocation().add(copyRight,rc.getType().strideRadius)) ) {
 				rc.move(copyRight);
 				if(debug)

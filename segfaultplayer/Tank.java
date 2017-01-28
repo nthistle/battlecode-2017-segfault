@@ -121,8 +121,10 @@ public strictfp class Tank extends RobotBase
 		}
 		else if(goal!=null && trees.length>0 && trees[0].getTeam()!=ally) { //are there nearby non-ally trees
 			Direction tDir = rc.getLocation().directionTo(trees[0].getLocation());
-			if( tDir.equals(goal,(float)(Math.PI/4.0))) { //are they in our way
-				if (rc.canFireTriadShot()) //shoot em down
+			if( tDir.equals(goal,(float)(Math.PI/2.0))) { //are they in our way
+				if (rc.canFirePentadShot() && rc.getTeamBullets()>150)
+					rc.firePentadShot(tDir);
+				else if (rc.canFireTriadShot() && rc.getTeamBullets()>100) //shoot em down
 					rc.fireTriadShot(tDir);
 				else if (rc.canFireSingleShot())
 					rc.fireSingleShot(tDir);
