@@ -415,7 +415,7 @@ public strictfp abstract class RobotBase
 
 		MapLocation myLoc = rc.getLocation();
 		Direction toEnd = myLoc.directionTo(endLoc);
-		Direction[] myDirs = getDirections(toEnd, 30f);
+		Direction[] myDirs = getDirections(Direction.getNorth(), 30f);
 		float[][] hyperMeme = new float[myDirs.length][2];
 		for(int i=0; i<myDirs.length; i++) {
 			if(rc.canMove(myDirs[i], stride)) {
