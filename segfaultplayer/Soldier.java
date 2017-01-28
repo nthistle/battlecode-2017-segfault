@@ -91,11 +91,15 @@ public strictfp class Soldier extends RobotBase
 		if(ctr>=enemyArchons.length)
 			shoot(null);
 		else
-			shoot(rc.getLocation().directionTo(enemyArchons[ctr]));
+			shoot(rc.getLocation().directionTo(enemyArchons[ctr]),true);
+	}
+
+	public void shoot(Direction goal) throws GameActionException {
+		shoot(goal, false);
 	}
 
 	//Does fire action
-	public void shoot(Direction goal) throws GameActionException {
+	public void shoot(Direction goal, boolean debug) throws GameActionException {
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
 		TreeInfo[] trees = rc.senseNearbyTrees(rc.getType().sensorRadius);
 		if (robots.length > 0) { //there are nearby robots
@@ -116,6 +120,10 @@ public strictfp class Soldier extends RobotBase
 				Direction tDir = rc.getLocation().directionTo(target.getLocation());
 				double[] vPentad = isPentadShotClear(tDir);
 				double[] vTriad = isTriadShotClear(tDir);
+				if(debug) {
+					System.out.println("vPentad: "+vPentad[0]+" "+vPentad[1]);
+					System.out.println("vTriad: "+vTriad[0]+" "+vTriad[1]);
+				}
 				if (rc.canFirePentadShot() && vPentad[1] > vPentad[0]) //does penta do more enemy dmg
 					rc.firePentadShot(tDir);
 				else if (rc.canFireTriadShot() && vTriad[0] == 0) //is triad safe
