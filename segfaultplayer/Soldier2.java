@@ -11,18 +11,6 @@ public strictfp class Soldier2 extends RobotBase
 	public Soldier2(RobotController rc, int id) throws GameActionException {
 		super(rc, id);
 	}
-
-	public void runAlt() throws GameActionException {
-		while(true) {
-			moveWithDodging(randomDirection());
-			if(rc.hasMoved()==false && rc.canMove(rc.getLocation().directionTo(enemyArchons[0])))
-				rc.move(rc.getLocation().directionTo(enemyArchons[0]));
-			RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
-			if(rc.canFireSingleShot() && robots.length>0)
-				rc.fireSingleShot(rc.getLocation().directionTo(robots[0].getLocation()));
-			Clock.yield();
-		}
-	}
 	
 	public void run() throws GameActionException {
 		//TODO: Identify closest archon
@@ -65,27 +53,27 @@ public strictfp class Soldier2 extends RobotBase
 	}
 
 	//determines movement for the turn
-	public void decideMove() throws GameActionException {
-		BulletInfo[] nearbyBullets = rc.senseNearbyBullets();
-		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
-		Direction goal;
-		if(robots.length>0) //if nearby units, move towards them
-			goal = rc.getLocation().directionTo(robots[0].getLocation());
-		else if(ctr<enemyArchons.length) //elif archons are alive, move towards them
-			goal = rc.getLocation().directionTo(enemyArchons[ctr]);
-		else { //move randomly
-			if (Math.random() < 0.05)
-				curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
-			curdirection += curdiff + 2 * (float) Math.PI;
-			while (curdirection > 2 * (float) Math.PI)
-				curdirection -= 2 * (float) Math.PI;
-			goal = new Direction(curdirection);
-		}
-		if(nearbyBullets.length>0) //if there are bullets, dodge
-			moveWithDodging(goal); //TODO: check to make sure not crowded in by trees
-		else //move normally
-			moveWithoutDodging(goal); //TODO: Replace with pathfinding / better movement
-	}
+//	public void decideMove() throws GameActionException {
+//		BulletInfo[] nearbyBullets = rc.senseNearbyBullets();
+//		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
+//		Direction goal;
+//		if(robots.length>0) //if nearby units, move towards them
+//			goal = rc.getLocation().directionTo(robots[0].getLocation());
+//		else if(ctr<enemyArchons.length) //elif archons are alive, move towards them
+//			goal = rc.getLocation().directionTo(enemyArchons[ctr]);
+//		else { //move randomly
+//			if (Math.random() < 0.05)
+//				curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
+//			curdirection += curdiff + 2 * (float) Math.PI;
+//			while (curdirection > 2 * (float) Math.PI)
+//				curdirection -= 2 * (float) Math.PI;
+//			goal = new Direction(curdirection);
+//		}
+//		if(nearbyBullets.length>0) //if there are bullets, dodge
+//			moveWithDodging(goal); //TODO: check to make sure not crowded in by trees
+//		else //move normally
+//			moveWithoutDodging(goal); //TODO: Replace with pathfinding / better movement
+//	}
 
 	//determines shooting for the turn
 	public void decideShoot() throws GameActionException {

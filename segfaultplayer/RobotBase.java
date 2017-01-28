@@ -16,6 +16,8 @@ public strictfp abstract class RobotBase
 	public final Team ally;
 	MapLocation[] enemyArchons;
 	MapLocation[] allyArchons;
+	public MapLocation marker = null;
+	public MapLocation marker2= null;
 
 	public RobotBase(RobotController rc) throws GameActionException {
 		this.rc = rc;
@@ -326,6 +328,141 @@ public strictfp abstract class RobotBase
 		return ret;
 	}
 
+	//very important! rc.canMove(dir) is always true for tanks bc they roll trees over. This sees if the tree in question is friendly so it can move around them and not steamroll
+	public boolean canTankMove(MapLocation ml) {
+		TreeInfo[] trees = rc.senseNearbyTrees(rc.getType().sensorRadius,ally);
+		for(int i=0; i<trees.length; i++) {
+			if(ml.distanceTo(trees[i].getLocation())<trees[i].getRadius()+rc.getType().bodyRadius)
+				return false;
+			//System.out.println(ml.distanceTo(trees[i].getLocation())+" "+trees[i].getRadius());
+		}
+		return true;
+	}
+
+	public float degreesToRadians(double angle) {
+		return (float)(angle/180.0*Math.PI);
+	}
+
+	public void moveWithDodging(MapLocation ml) throws GameActionException{
+		moveWithDodging(ml, false);
+	}
+
+	//moves arbitrarily with dodging, if all bullets are non-threatening moves using without dodging
+	public void moveWithDodging(MapLocation ml, boolean debug) throws GameActionException {
+		Direction goal = rc.getLocation().directionTo(ml);
+		BulletInfo[] nearbyBullets = rc.senseNearbyBullets(5.0f);
+		int ctr=0;
+		for(int i=0; i<nearbyBullets.length; i++) {
+			if(rc.getLocation().directionTo(nearbyBullets[i].getLocation()).equals(nearbyBullets[i].getDir(),(float)(Math.PI/2.0)))
+				nearbyBullets[i] = null;
+			else
+				ctr++;
+		}
+		if(ctr==0) {
+			pathFind(ml);
+			return;
+		}
+		BulletInfo[] bi = new BulletInfo[ctr];
+		ctr=0;
+		for(int i=0; i<nearbyBullets.length; i++) {
+			if(nearbyBullets[i]!=null) {
+				bi[ctr] = nearbyBullets[i];
+				ctr++;
+			}
+		}
+		for(int i=0; i<25; i++) {
+			MapLocation mapLocation = rc.getLocation().add(randomDirection(),(float)(.5+(Math.random()*.5)*rc.getType().strideRadius));
+			boolean clear = true;
+			for(BulletInfo bullet: bi) {
+				if(mapLocation.distanceTo(bullet.getLocation().add(bullet.getDir(),bullet.getSpeed()))<rc.getType().bodyRadius+.05
+						&& mapLocation.distanceTo(bullet.getLocation().add(bullet.getDir(),(float)(bullet.getSpeed()*.5)))<rc.getType().bodyRadius+.05) {
+					clear = false;
+					break;
+				}
+			}
+			if(clear) {
+				if (rc.canMove(mapLocation)) {
+					rc.move(mapLocation);
+					System.out.println("i: "+i);
+					break;
+				}
+			}
+		}
+	}
+
+	//Go to intened location with pathfinding
+	public void pathFind(MapLocation endLoc) throws GameActionException {
+		float stride = rc.getType().strideRadius;
+
+		MapLocation myLoc = rc.getLocation();
+		Direction toEnd = myLoc.directionTo(endLoc);
+		Direction[] myDirs = getDirections(toEnd, 30f);
+		float[][] hyperMeme = new float[myDirs.length][2];
+		for(int i=0; i<myDirs.length; i++) {
+			if(rc.canMove(myDirs[i], stride)) {
+				hyperMeme[i][0] = i;
+				MapLocation newLoc = myLoc.add(myDirs[i], stride);
+				hyperMeme[i][1] = newLoc.distanceTo(endLoc);
+				System.out.print(hyperMeme[i][1] + " ");
+				if(marker!=null) {
+					hyperMeme[i][1] -= newLoc.distanceTo(marker)*1.6; //*2;
+					rc.setIndicatorLine(myLoc, marker, 255, 0, 0);
+					//System.out.print(newLoc.distanceTo(marker) + " ");
+				}
+				if(marker2!=null) {
+					hyperMeme[i][1] -= newLoc.distanceTo(marker2)*.4; //*5;
+					rc.setIndicatorLine(myLoc, marker, 255, 0, 0);
+					System.out.println(newLoc.distanceTo(marker2) + " ");
+				}
+				rc.setIndicatorLine(myLoc,newLoc, 0, (int)hyperMeme[i][1]*5, 0);
+			} else {
+				hyperMeme[i][0] = i;
+				hyperMeme[i][1] = Float.MAX_VALUE;
+			}
+		}
+
+		java.util.Arrays.sort(hyperMeme, new java.util.Comparator<float[]>() {
+			public int compare(float[] a, float[] b) {
+				return Float.compare(a[1], b[1]); // sort by heuristic if damage is equal (lower = closer to goal)
+			}
+		});
+		//for(int i=0; i<hyperMeme.length; i++) {
+		//	for(int j=0; j<hyperMeme[0].length; j++) {
+		//		System.out.print(hyperMeme[i][j] + " ");
+		//	}
+		//	System.out.println();
+		//}
+		marker2 = marker;
+		marker = myLoc;
+		for (int j=0; j<myDirs.length; j++) {
+			if(rc.canMove(myDirs[(int)hyperMeme[j][0]])) {
+				rc.move(myDirs[(int)hyperMeme[j][0]]);
+				break;
+			}
+		}
+	}
+
+	//fans out directions
+    static Direction[] getBestDirections(Direction bestDir, float theta) throws GameActionException {
+    	float initialtheta = theta;
+    	Direction[] dirs = new Direction [(int)(360.0f/theta)];
+    	dirs[0] = bestDir;
+    	for (int j=1; j<dirs.length; j++) {
+    		bestDir = bestDir.rotateLeftDegrees(theta);
+    		dirs[j] = bestDir;
+    		if (theta>0f) {
+    			theta = theta*-1f;
+    		} else {
+    			theta = theta*-1f + initialtheta;
+    		}
+    	}
+    	return dirs;
+	}
+
+	// =====================================================================================
+	//                              OLD METHODS (Useless?)
+	// =====================================================================================
+
 	public void moveWithoutDodging(Direction goal) throws GameActionException {
 		moveWithoutDodging(goal, false);
 	}
@@ -357,84 +494,6 @@ public strictfp abstract class RobotBase
 		}
 		if(debug)
 			System.out.println("NO move");
-	}
-
-	//very important! rc.canMove(dir) is always true for tanks bc they roll trees over. This sees if the tree in question is friendly so it can move around them and not steamroll
-	public boolean canTankMove(MapLocation ml) {
-		TreeInfo[] trees = rc.senseNearbyTrees(rc.getType().sensorRadius,ally);
-		for(int i=0; i<trees.length; i++) {
-			if(ml.distanceTo(trees[i].getLocation())<trees[i].getRadius()+rc.getType().bodyRadius)
-				return false;
-			//System.out.println(ml.distanceTo(trees[i].getLocation())+" "+trees[i].getRadius());
-		}
-		return true;
-	}
-
-	public float degreesToRadians(double angle) {
-		return (float)(angle/180.0*Math.PI);
-	}
-
-	public void moveWithDodging(Direction goal) throws GameActionException{
-		moveWithDodging(goal, false);
-	}
-
-	//moves arbitrarily with dodging, if all bullets are non-threatening moves using without dodging
-	public void moveWithDodging(Direction goal, boolean debug) throws GameActionException {
-		BulletInfo[] nearbyBullets = rc.senseNearbyBullets(5.0f);
-		int ctr=0;
-		for(int i=0; i<nearbyBullets.length; i++) {
-			if(rc.getLocation().directionTo(nearbyBullets[i].getLocation()).equals(nearbyBullets[i].getDir(),(float)(Math.PI/2.0)))
-				nearbyBullets[i] = null;
-			else
-				ctr++;
-		}
-		if(ctr==0) {
-			moveWithoutDodging(goal);
-			return;
-		}
-		BulletInfo[] bi = new BulletInfo[ctr];
-		ctr=0;
-		for(int i=0; i<nearbyBullets.length; i++) {
-			if(nearbyBullets[i]!=null) {
-				bi[ctr] = nearbyBullets[i];
-				ctr++;
-			}
-		}
-		for(int i=0; i<25; i++) {
-			MapLocation ml = rc.getLocation().add(randomDirection(),(float)(.5+(Math.random()*.5)*rc.getType().strideRadius));
-			boolean clear = true;
-			for(BulletInfo bullet: bi) {
-				if(ml.distanceTo(bullet.getLocation().add(bullet.getDir(),bullet.getSpeed()))<rc.getType().bodyRadius+.05
-						&& ml.distanceTo(bullet.getLocation().add(bullet.getDir(),(float)(bullet.getSpeed()*.5)))<rc.getType().bodyRadius+.05) {
-					clear = false;
-					break;
-				}
-			}
-			if(clear) {
-				if (rc.canMove(ml)) {
-					rc.move(ml);
-					System.out.println("i: "+i);
-					break;
-				}
-			}
-		}
-	}
-
-	//fans out directions
-    static Direction[] getBestDirections(Direction bestDir, float theta) throws GameActionException {
-    	float initialtheta = theta;
-    	Direction[] dirs = new Direction [(int)(360.0f/theta)];
-    	dirs[0] = bestDir;
-    	for (int j=1; j<dirs.length; j++) {
-    		bestDir = bestDir.rotateLeftDegrees(theta);
-    		dirs[j] = bestDir;
-    		if (theta>0f) {
-    			theta = theta*-1f;
-    		} else {
-    			theta = theta*-1f + initialtheta;
-    		}
-    	}
-    	return dirs;
 	}
 
 	// =====================================================================================
