@@ -9,15 +9,55 @@ public strictfp class Scout extends RobotBase
 {
 
 	public String alphabet = "abcdefghijklmnopqrstuvwxyz";
+	public float curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
+	public float curdirection = (float) Math.random() * 2 * (float) Math.PI;
 
 	public Scout(RobotController rc, int id) throws GameActionException {
 		super(rc, id);
 	}
 
 	public void run() throws GameActionException {
-		MapLocation dank = rc.getInitialArchonLocations(enemy)[0];
-		System.out.println(dank);
-		bulletPath(dank);
+	//	MapLocation dank = rc.getInitialArchonLocations(enemy)[0];
+	//	System.out.println(dank);
+	//	bulletPath(dank);
+		while(true) {
+			boolean hasShaked = shake();
+			move();
+			if (!hasShaked)
+				shake();
+			Clock.yield();
+		}
+	}
+
+	public boolean shake() throws GameActionException {
+		TreeInfo[] nearbyTrees = rc.senseNearbyTrees();
+		for(TreeInfo tree: nearbyTrees) {
+			if(rc.canShake(tree.getID())) {
+				rc.shake(tree.getID());
+				return true;
+			}
+		}
+		return false;
+	}
+	public void move() throws GameActionException {
+		TreeInfo[] nearbyTrees = rc.senseNearbyTrees();
+		for(int i=0; i<nearbyTrees.length; i++) {
+			TreeInfo tree = nearbyTrees[i];
+			if(tree.getContainedBullets()>0) {
+				if (rc.canMove(rc.getLocation().directionTo(tree.getLocation()))) {
+					rc.move(rc.getLocation().directionTo(tree.getLocation()));
+					rc.setIndicatorDot(tree.getLocation(),255,0,0);
+					return;
+				}
+			}
+		}
+		if (Math.random() < 0.05)
+			curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
+		curdirection += curdiff + 2 * (float) Math.PI;
+		while (curdirection > 2 * (float) Math.PI)
+			curdirection -= 2 * (float) Math.PI;
+		if(rc.canMove(new Direction(curdirection)))
+			rc.move(new Direction(curdirection));
 	}
 
 	public void bulletPath(MapLocation el) throws GameActionException {
@@ -25,10 +65,8 @@ public strictfp class Scout extends RobotBase
 		float scaledNumTrees = 0;
 		int steps = 0;
 		float sR = rc.getType().sensorRadius;
-		float stride = 1.25f;
+		float stride = rc.getType().strideRadius;
 		int broadcast = 3000;
-		System.out.println("dank Memes");
-		System.out.println(rc.getLocation().distanceTo(el));
 
 
 		//while (rc.getLocation().distanceTo(el) > 5.0f) {
