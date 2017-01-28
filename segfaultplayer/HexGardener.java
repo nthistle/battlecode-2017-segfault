@@ -32,9 +32,12 @@ public strictfp class HexGardener extends RobotBase
 		
 		// first thing we have to do is fine a location for our pod
 
-		findPodLocation();
+		//findPodLocation();
+		setPodLocations();
 		
 		while(true) {
+			updatePodStatus();
+			drawPodStatus();
 			Clock.yield();
 		}
 	}
