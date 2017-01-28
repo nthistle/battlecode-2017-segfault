@@ -278,23 +278,24 @@ public strictfp abstract class RobotBase
 				}
 			}
 			for(int i=0; i<trees.length; i++) {
-				if(drawIndicators)
-					rc.setIndicatorDot(trees[i].getLocation(), 0,0,255);
-				Direction fDir = rc.getLocation().directionTo(trees[i].getLocation());
-				double length = (double) rc.getLocation().distanceTo(trees[i].getLocation());
-				double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
-				if (dist < trees[i].getRadius()+.1) {
-					double score=1.0;
-					if(trees[i].getTeam()==rc.getTeam())
-						ret[0]+=score;
-					else
-						ret[1]+=score;
+				if(trees[i].getTeam()==ally) {
+					if (drawIndicators)
+						rc.setIndicatorDot(trees[i].getLocation(), 0, 0, 255);
+					Direction fDir = rc.getLocation().directionTo(trees[i].getLocation());
+					double length = (double) rc.getLocation().distanceTo(trees[i].getLocation());
+					double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
+					if (dist < trees[i].getRadius() + .1) {
+						double score = 1.0;
+						if (trees[i].getTeam() == rc.getTeam())
+							ret[0] += score;
+						else
+							ret[1] += score;
+					}
 				}
 			}
 		}
 		return ret;
 	}
-
 
 	public double[] isPentadShotClear(Direction tDir) throws GameActionException {
 		return isPentadShotClear(tDir, false);
@@ -330,17 +331,19 @@ public strictfp abstract class RobotBase
 				}
 			}
 			for(int i=0; i<trees.length; i++) {
-				if(drawIndicators)
-					rc.setIndicatorDot(trees[i].getLocation(), 0,0,255);
-				Direction fDir = rc.getLocation().directionTo(trees[i].getLocation());
-				double length = (double) rc.getLocation().distanceTo(trees[i].getLocation());
-				double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
-				if (dist < trees[i].getRadius()+.1) {
-					double score=1.0;
-					if(trees[i].getTeam()==rc.getTeam())
-						ret[0]+=score;
-					else
-						ret[1]+=score;
+				if(trees[i].getTeam()==ally) {
+					if (drawIndicators)
+						rc.setIndicatorDot(trees[i].getLocation(), 0, 0, 255);
+					Direction fDir = rc.getLocation().directionTo(trees[i].getLocation());
+					double length = (double) rc.getLocation().distanceTo(trees[i].getLocation());
+					double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
+					if (dist < trees[i].getRadius() + .1) {
+						double score = 1.0;
+						if (trees[i].getTeam() == rc.getTeam())
+							ret[0] += score;
+						else
+							ret[1] += score;
+					}
 				}
 			}
 		}
@@ -389,7 +392,7 @@ public strictfp abstract class RobotBase
 				ctr++;
 			}
 		}
-		for(int i=0; i<20; i++) {
+		for(int i=0; i<25; i++) {
 			MapLocation mapLocation = rc.getLocation().add(randomDirection(),(float)(.5+(Math.random()*.5)*rc.getType().strideRadius));
 			boolean clear = true;
 			for(BulletInfo bullet: bi) {

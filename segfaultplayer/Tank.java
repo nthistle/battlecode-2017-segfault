@@ -16,8 +16,11 @@ public strictfp class Tank extends RobotBase
 		try {
 			while(true) {
 				dailyTasks();
-				decideMove();
+				System.out.println("Daily Task: "+Clock.getBytecodesLeft());
+				decideMove(true);
+				System.out.println("After Move: "+Clock.getBytecodesLeft());
 				decideShoot();
+				System.out.println("After Shoot: "+Clock.getBytecodesLeft());
 				Clock.yield();
 			}
 		} catch(Exception e) {
@@ -49,8 +52,12 @@ public strictfp class Tank extends RobotBase
 		return true;
 	}
 
-	//determines movement for the turn
 	public void decideMove() throws GameActionException {
+		decideMove(false);
+	}
+
+	//determines movement for the turn
+	public void decideMove(boolean debug) throws GameActionException {
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
 		MapLocation goal;
 		if(robots.length>0) //if nearby units, move towards them
@@ -65,6 +72,8 @@ public strictfp class Tank extends RobotBase
 				curdirection -= 2 * (float) Math.PI;
 			goal = rc.getLocation().add(new Direction(curdirection),rc.getType().strideRadius);
 		}
+		if(debug)
+			System.out.println("Decided Move: "+Clock.getBytecodesLeft());
 		pathFind(goal);
 	}
 
@@ -107,12 +116,14 @@ public strictfp class Tank extends RobotBase
 		}
 		else if(goal!=null && trees.length>0 && trees[0].getTeam()!=ally) { //are there nearby non-ally trees
 			Direction tDir = rc.getLocation().directionTo(trees[0].getLocation());
-			if( tDir.equals(goal,(float)(Math.PI/2.0))) { //are they in our way
-				if (rc.canFirePentadShot() && rc.getTeamBullets()>150)
+			double[] vPentad = isPentadShotClear(tDir);
+			double[] vTriad = isTriadShotClear(tDir);
+			if( tDir.equals(goal,(float)(Math.PI/2.0))) { //TODO: Balance enemy vs. friendly damage
+				if (rc.canFirePentadShot() && rc.getTeamBullets()>150 && vPentad[0]==0)
 					rc.firePentadShot(tDir);
-				else if (rc.canFireTriadShot() && rc.getTeamBullets()>100) //shoot em down
+				else if (rc.canFireTriadShot() && rc.getTeamBullets()>100 && vTriad[0]==0) //shoot em down
 					rc.fireTriadShot(tDir);
-				else if (rc.canFireSingleShot())
+				else if (rc.canFireSingleShot() && isSingleShotClear(tDir))
 					rc.fireSingleShot(tDir);
 			}
 		}

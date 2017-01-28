@@ -15,8 +15,11 @@ public strictfp class Soldier extends RobotBase
 		try {
 			while(true) {
 				dailyTasks();
-				decideMove();
+				System.out.println("Daily Task: "+Clock.getBytecodesLeft());
+				decideMove(true);
+				System.out.println("After Move: "+Clock.getBytecodesLeft());
 				decideShoot();
+				System.out.println("After Shoot: "+Clock.getBytecodesLeft());
 				Clock.yield();
 			}
 		} catch(Exception e) {
@@ -48,8 +51,12 @@ public strictfp class Soldier extends RobotBase
 		return true;
 	}
 
-	//determines movement for the turn
 	public void decideMove() throws GameActionException {
+		decideMove(false);
+	}
+
+	//determines movement for the turn
+	public void decideMove(boolean debug) throws GameActionException {
 		BulletInfo[] nearbyBullets = rc.senseNearbyBullets();
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
 		MapLocation goal;
@@ -65,6 +72,8 @@ public strictfp class Soldier extends RobotBase
 				curdirection -= 2 * (float) Math.PI;
 			goal = rc.getLocation().add(new Direction(curdirection),rc.getType().strideRadius);
 		}
+		if(debug)
+			System.out.println("Decided Move: "+Clock.getBytecodesLeft());
 		if(nearbyBullets.length>0) //if there are bullets, dodge
 			moveWithDodging(goal);
 		else //move normally
