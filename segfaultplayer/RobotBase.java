@@ -1,5 +1,6 @@
 package segfaultplayer;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -25,6 +26,15 @@ public strictfp abstract class RobotBase
 		enemy = rc.getTeam().opponent();
 		ally = rc.getTeam();
 		enemyArchons = rc.getInitialArchonLocations(enemy);
+		for(int i=0; i<enemyArchons.length; i++) {
+			for(int z=0; z<enemyArchons.length; z++) {
+				if(rc.getLocation().distanceTo(enemyArchons[i])<rc.getLocation().distanceTo(enemyArchons[z])) {
+					MapLocation temp = enemyArchons[i];
+					enemyArchons[i] = enemyArchons[z];
+					enemyArchons[z] = temp;
+				}
+			}
+		}
 		allyArchons = rc.getInitialArchonLocations(ally);
 	}
 	
@@ -34,6 +44,15 @@ public strictfp abstract class RobotBase
 		enemy = rc.getTeam().opponent();
 		ally = rc.getTeam();
 		enemyArchons = rc.getInitialArchonLocations(enemy);
+		for(int i=0; i<enemyArchons.length; i++) {
+			for(int z=0; z<enemyArchons.length; z++) {
+				if(rc.getLocation().distanceTo(enemyArchons[i])<rc.getLocation().distanceTo(enemyArchons[z])) {
+					MapLocation temp = enemyArchons[i];
+					enemyArchons[i] = enemyArchons[z];
+					enemyArchons[z] = temp;
+				}
+			}
+		}
 		allyArchons = rc.getInitialArchonLocations(ally);
 	}
 	
@@ -186,7 +205,7 @@ public strictfp abstract class RobotBase
 				System.out.println("thetrees");
 				return false;
 			}
-			}
+		}
 		return true;
 	}
 
@@ -370,7 +389,7 @@ public strictfp abstract class RobotBase
 				ctr++;
 			}
 		}
-		for(int i=0; i<25; i++) {
+		for(int i=0; i<20; i++) {
 			MapLocation mapLocation = rc.getLocation().add(randomDirection(),(float)(.5+(Math.random()*.5)*rc.getType().strideRadius));
 			boolean clear = true;
 			for(BulletInfo bullet: bi) {
@@ -403,7 +422,7 @@ public strictfp abstract class RobotBase
 				hyperMeme[i][0] = i;
 				MapLocation newLoc = myLoc.add(myDirs[i], stride);
 				hyperMeme[i][1] = newLoc.distanceTo(endLoc);
-				System.out.print(hyperMeme[i][1] + " ");
+				//System.out.print(hyperMeme[i][1] + " ");
 				if(marker!=null) {
 					hyperMeme[i][1] -= newLoc.distanceTo(marker)*1.6; //*2;
 					rc.setIndicatorLine(myLoc, marker, 255, 0, 0);
@@ -412,7 +431,7 @@ public strictfp abstract class RobotBase
 				if(marker2!=null) {
 					hyperMeme[i][1] -= newLoc.distanceTo(marker2)*.4; //*5;
 					rc.setIndicatorLine(myLoc, marker, 255, 0, 0);
-					System.out.println(newLoc.distanceTo(marker2) + " ");
+					//System.out.println(newLoc.distanceTo(marker2) + " ");
 				}
 				rc.setIndicatorLine(myLoc,newLoc, 0, (int)hyperMeme[i][1]*5, 0);
 			} else {
