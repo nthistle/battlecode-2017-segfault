@@ -69,12 +69,32 @@ public strictfp class HexGardener extends RobotBase
 	/**
 	 * updates myPodStatus according to which potential pod locations are open
 	 * does not call Clock.yield()
+	 * 1 = occupied by tree
+	 * 2 = occupied by unit
+	 * 3 = free
 	 * @throws GameActionException
 	 */
 	public void updatePodStatus() throws GameActionException {
 		TreeInfo[] obstructingTrees = rc.senseNearbyTrees(3.5f);
 		RobotInfo[] obstructingRobots = rc.senseNearbyRobots(3.5f);
-		for(int i = 0; i < 6; i ++) myPodStatus[i] = 0;
+		for(int i = 0; i < 6; i ++) myPodStatus[i] = 3;
+		// I really should do this with angles, but if this runs under
+		// bytecode limit, I don't really care
+		outerloop:
+		for(int i = 0; i < 6; i ++) {
+			MapLocation pod = myPodLocations[i];
+			for(TreeInfo ti : obstructingTrees) {
+				if(ti.getLocation().distanceTo(pod) < (1.05f + ti.getRadius())) {
+					myPodStatus[i] = 1;
+					continue outerloop;
+				}
+			}
+			for(RobotInfo ri : obstructingRobots) {
+				if(ri.getLocation().distanceTo(pod) < (1.05f + ri.getType().bodyRadius)) {
+					myPodStatus[i] = 2;
+				}
+			}
+		}
 	}
 	
 	/**
@@ -84,6 +104,22 @@ public strictfp class HexGardener extends RobotBase
 	 * blue = F R E E 
 	 */
 	public void drawPodStatus() throws GameActionException {
-		
+		for(int i = 0; i < 6; i ++) {
+			MapLocation pod = myPodLocations[i];
+			int status = myPodStatus[i];
+			switch(status) {
+			  case 1:
+				rc.setIndicatorDot(pod, 255, 0, 0);
+				break;
+			  case 2:
+				rc.setIndicatorDot(pod, 255, 0, 255);
+				break;
+			  case 3:
+				rc.setIndicatorDot(pod, 0, 0, 255);
+				break;
+			  default:
+				break;
+			}
+		}
 	}
 }
