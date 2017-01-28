@@ -155,12 +155,12 @@ public strictfp class Soldier2 extends RobotBase
 					hyperMeme[i][1] = newLoc.distanceTo(endLoc);
 					System.out.print(hyperMeme[i][1] + " ");
 					if(marker!=null) {
-						hyperMeme[i][1] -= newLoc.distanceTo(marker)*2;
+						hyperMeme[i][1] -= newLoc.distanceTo(marker); //*2;
 						rc.setIndicatorLine(myLoc, marker, 255, 0, 0);
 						//System.out.print(newLoc.distanceTo(marker) + " ");
 					}
 					if(marker2!=null) {
-						hyperMeme[i][1] -= newLoc.distanceTo(marker2)*5;
+						hyperMeme[i][1] -= newLoc.distanceTo(marker2)*.25; //*5;
 						rc.setIndicatorLine(myLoc, marker, 255, 0, 0);
 						System.out.println(newLoc.distanceTo(marker2) + " ");
 					}
