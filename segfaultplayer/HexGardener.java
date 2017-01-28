@@ -8,6 +8,17 @@ public strictfp class HexGardener extends RobotBase
 	private MapLocation alphaLoc;
 	
 	private int[] myPodStatus;
+	
+	private MapLocation[] myPodLocations;
+	
+	private Direction[] podDirs = new Direction[] {
+			new Direction(0),
+			new Direction((float)Math.PI/3.0f),
+			new Direction(2.0f*(float)Math.PI/3.0f),
+			new Direction(3.0f*(float)Math.PI/3.0f),
+			new Direction(4.0f*(float)Math.PI/3.0f),
+			new Direction(5.0f*(float)Math.PI/3.0f)
+	};
 
 	public HexGardener(RobotController rc, int id) throws GameActionException {
 		super(rc, id);
@@ -44,11 +55,26 @@ public strictfp class HexGardener extends RobotBase
 	}
 	
 	/**
+	 * sets podLocations[] according to podDirs and current location
+	 * does not call Clock.yield()
+	 * @throws GameActionException
+	 */
+	public void setPodLocations() throws GameActionException {
+		myPodLocations = new MapLocation[6];
+		for(int i = 0; i < podDirs.length; i ++) {
+			myPodLocations[i] = rc.getLocation().add(podDirs[i],2.05f); // 0.05f buffer
+		}
+	}
+	
+	/**
 	 * updates myPodStatus according to which potential pod locations are open
+	 * does not call Clock.yield()
 	 * @throws GameActionException
 	 */
 	public void updatePodStatus() throws GameActionException {
 		TreeInfo[] obstructingTrees = rc.senseNearbyTrees(3.5f);
+		RobotInfo[] obstructingRobots = rc.senseNearbyRobots(3.5f);
+		for(int i = 0; i < 6; i ++) myPodStatus[i] = 0;
 	}
 	
 	/**
