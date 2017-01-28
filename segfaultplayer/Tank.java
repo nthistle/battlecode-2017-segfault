@@ -65,7 +65,7 @@ public strictfp class Tank extends RobotBase
 				curdirection -= 2 * (float) Math.PI;
 			goal = rc.getLocation().add(new Direction(curdirection),rc.getType().strideRadius);
 		}
-		pathFind(goal); //TODO: Make method work + change to better get ML
+		pathFind(goal);
 	}
 
 	//determines shooting for the turn
@@ -81,7 +81,6 @@ public strictfp class Tank extends RobotBase
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
 		TreeInfo[] trees = rc.senseNearbyTrees(rc.getType().sensorRadius);
 		if (robots.length > 0) { //there are nearby robots
-			//TODO?: Make more efficient? Isn't an issue right now
 			RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SCOUT, RobotType.ARCHON}; //priority of shooting
 			RobotInfo target = null;
 			int z = 0;

@@ -12,8 +12,6 @@ public strictfp class Soldier extends RobotBase
 	}
 	
 	public void run() throws GameActionException {
-		//TODO: Identify closest archon
-
 		try {
 			while(true) {
 				dailyTasks();
@@ -68,9 +66,9 @@ public strictfp class Soldier extends RobotBase
 			goal = rc.getLocation().add(new Direction(curdirection),rc.getType().strideRadius);
 		}
 		if(nearbyBullets.length>0) //if there are bullets, dodge
-			moveWithDodging(goal); //TODO: check to make sure not crowded in by trees
+			moveWithDodging(goal);
 		else //move normally
-			pathFind(goal); //TODO: Make method work + change to better get ML
+			pathFind(goal);
 	}
 
 	//determines shooting for the turn
