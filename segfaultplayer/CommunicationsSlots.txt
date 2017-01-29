@@ -1,6 +1,7 @@
 Communications Slots
 1   	-	alpha archon starting location
-42		-	soldier game plan (1=blitz,2=patrol,3=swarm)
+11	-	ratio of soldiers to trees (sigmoid function on distance to ally archon over distance to enemy archon) (double*1000)
+42	-	soldier game plan (1=blitz,2=patrol,3=swarm)
 101 	-	total number of gardeners created (id of new gardener)
 102 	-	total number of scouts created (id of new scout)
 103 	-	total number of soldiers created (id of new soldier)

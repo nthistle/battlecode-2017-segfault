@@ -36,6 +36,15 @@ public strictfp abstract class RobotBase
 			}
 		}
 		allyArchons = rc.getInitialArchonLocations(ally);
+		for(int i=0; i<allyArchons.length; i++) {
+			for(int z=0; z<allyArchons.length; z++) {
+				if(rc.getLocation().distanceTo(allyArchons[i])<rc.getLocation().distanceTo(allyArchons[z])) {
+					MapLocation temp = allyArchons[i];
+					allyArchons[i] = allyArchons[z];
+					allyArchons[z] = temp;
+				}
+			}
+		}
 	}
 	
 	public RobotBase(RobotController rc, int id) throws GameActionException {
@@ -54,6 +63,15 @@ public strictfp abstract class RobotBase
 			}
 		}
 		allyArchons = rc.getInitialArchonLocations(ally);
+		for(int i=0; i<allyArchons.length; i++) {
+			for(int z=0; z<allyArchons.length; z++) {
+				if(rc.getLocation().distanceTo(allyArchons[i])<rc.getLocation().distanceTo(allyArchons[z])) {
+					MapLocation temp = allyArchons[i];
+					allyArchons[i] = allyArchons[z];
+					allyArchons[z] = temp;
+				}
+			}
+		}
 	}
 	
 	public abstract void run() throws GameActionException; // implemented by subclass robots
@@ -414,6 +432,11 @@ public strictfp abstract class RobotBase
 
 	//Go to intened location with pathfinding
 	public void pathFind(MapLocation endLoc) throws GameActionException {
+		int myRatio = (int)(1.0 / (1.0 + Math.pow(Math.E,(rc.getLocation().distanceTo(allyArchons[0])/rc.getLocation().distanceTo(enemyArchons[0]))) )*1000.0 );
+		int realRatio = rc.readBroadcast(11);
+		if(myRatio>realRatio)
+			rc.broadcast(11, myRatio);
+
 		float stride = rc.getType().strideRadius;
 
 		MapLocation myLoc = rc.getLocation();
