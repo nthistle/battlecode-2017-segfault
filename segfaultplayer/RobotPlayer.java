@@ -47,7 +47,7 @@ public strictfp class RobotPlayer {
         //g.run();
         
         
-        g.runAlternate(RobotType.SCOUT);
+        //g.runAlternate(RobotType.SCOUT);
     }
 
     public static void handleSoldier(RobotController rc, int id) throws GameActionException {
