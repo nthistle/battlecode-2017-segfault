@@ -3,7 +3,8 @@ Communications Slots
 2		- 	gardener plan (2 is far, 1 is close)
 11		-	ratio of soldiers to trees
 21      -   alpha archon gardener build (right now used by all)
-42		-	soldier game plan (1=blitz,2=patrol,3=swarm)
+42		-	soldier game plan (1=blitz,2=patrol,3=swarm) (OLD MEME)
+43	-	soldier game plan real
 101 	-	total number of gardeners created (id of new gardener)
 102 	-	total number of scouts created (id of new scout)
 103 	-	total number of soldiers created (id of new soldier)
