@@ -43,7 +43,7 @@ public strictfp class RobotPlayer {
 
         Gardener g = new Gardener(rc, id);
         //g.run();
-        g.runAlternate(RobotType.SOLDIER);
+        g.runAlternate(RobotType.SCOUT);
     }
 
     public static void handleSoldier(RobotController rc, int id) throws GameActionException {
@@ -58,7 +58,7 @@ public strictfp class RobotPlayer {
     }
 
     public static void handleScout(RobotController rc, int id) throws GameActionException {
-        Scout sc = new Scout(rc, id);
+        Scout2 sc = new Scout2(rc, id);
         sc.run();
     }
 

@@ -8,8 +8,6 @@ import battlecode.common.*;
 public strictfp class Scout extends RobotBase
 {
 
-	public String alphabet = "abcdefghijklmnopqrstuvwxyz";
-
 	public Scout(RobotController rc, int id) throws GameActionException {
 		super(rc, id);
 	}
@@ -59,7 +57,6 @@ public strictfp class Scout extends RobotBase
 					if(k.containedBullets!=0) {
 						if(!hasShaken && rc.canShake(k.ID)){
 							rc.shake(k.ID);
-							//System.out.println("Got a bullet lolololol");
 							hasShaken = true;
 						} else {
 							dir = myLoc.directionTo(k.location);
