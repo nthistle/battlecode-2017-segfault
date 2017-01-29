@@ -47,6 +47,9 @@ public strictfp class Scout extends RobotBase
 					isAtEnemy=true;
 					if(counter%15==0) { // change direction
 						dir = randomDirection();
+						while(!rc.canMove(dir)) {
+							dir = randomDirection();
+						}
 					}
 				}
 				for (TreeInfo k : myTrees) {
