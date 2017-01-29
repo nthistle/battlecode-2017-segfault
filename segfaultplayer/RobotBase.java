@@ -9,17 +9,23 @@ import battlecode.common.*;
 
 public strictfp abstract class RobotBase
 {
-	protected final RobotController rc;
-	private int myID;
 	private static final int randSeed = 10385;
 	public static Random rand = new Random(randSeed);
+	
+	protected final RobotController rc;
+	
 	public final Team enemy;
 	public final Team ally;
-	MapLocation[] enemyArchons;
-	MapLocation[] allyArchons;
-	public MapLocation marker = null;
-	public MapLocation marker2= null;
+	
+	public MapLocation[] enemyArchons;
+	public MapLocation[] allyArchons;
+	
+	public MapLocation marker  = null;
+	public MapLocation marker2 = null; // what are these?
+	
 	public int firstTurn;
+	
+	private int myID;
 
 	public RobotBase(RobotController rc) throws GameActionException {
 		this.rc = rc;
@@ -27,26 +33,7 @@ public strictfp abstract class RobotBase
 		enemy = rc.getTeam().opponent();
 		ally = rc.getTeam();
 		firstTurn = rc.getRoundNum();
-		enemyArchons = rc.getInitialArchonLocations(enemy);
-		for(int i=0; i<enemyArchons.length; i++) {
-			for(int z=0; z<enemyArchons.length; z++) {
-				if(rc.getLocation().distanceTo(enemyArchons[i])<rc.getLocation().distanceTo(enemyArchons[z])) {
-					MapLocation temp = enemyArchons[i];
-					enemyArchons[i] = enemyArchons[z];
-					enemyArchons[z] = temp;
-				}
-			}
-		}
-		allyArchons = rc.getInitialArchonLocations(ally);
-		for(int i=0; i<allyArchons.length; i++) {
-			for(int z=0; z<allyArchons.length; z++) {
-				if(rc.getLocation().distanceTo(allyArchons[i])<rc.getLocation().distanceTo(allyArchons[z])) {
-					MapLocation temp = allyArchons[i];
-					allyArchons[i] = allyArchons[z];
-					allyArchons[z] = temp;
-				}
-			}
-		}
+		setAndSortArchons();
 	}
 	
 	public RobotBase(RobotController rc, int id) throws GameActionException {
@@ -55,6 +42,15 @@ public strictfp abstract class RobotBase
 		enemy = rc.getTeam().opponent();
 		ally = rc.getTeam();
 		firstTurn = rc.getRoundNum();
+		setAndSortArchons();
+	}
+	
+	/**
+	 * Sets enemyArchons and allyArchons correspondingly, and sorts them according to this robot's
+	 * current location (starting location, since called once upon spawn)
+	 * Actually uses bubble sort
+	 */
+	private void setAndSortArchons() {
 		enemyArchons = rc.getInitialArchonLocations(enemy);
 		for(int i=0; i<enemyArchons.length; i++) {
 			for(int z=0; z<enemyArchons.length; z++) {
@@ -77,9 +73,19 @@ public strictfp abstract class RobotBase
 		}
 	}
 	
-	public abstract void run() throws GameActionException; // implemented by subclass robots
+	
+	/**
+	 * Implemented by subclass robots, is called by handler methods in RobotPlayer.java
+	 * @throws GameActionException
+	 */
+	public abstract void run() throws GameActionException;
 
-
+	
+	/**
+	 * Checks if our current bullet stockpile is enough to win the game on victory points, and
+	 * if it is, attempts to cash in and win.
+	 * @throws GameActionException
+	 */
 	public void checkVPWin() throws GameActionException {
 		int vpNeeded = GameConstants.VICTORY_POINTS_TO_WIN - rc.getTeamVictoryPoints();
 		if(vpNeeded*rc.getVictoryPointCost() < rc.getTeamBullets()) {
@@ -106,6 +112,10 @@ public strictfp abstract class RobotBase
 	//                              INSTANCE  HELPER  METHODS
 	// =====================================================================================
 
+	/**
+	 * Gets number of turns this robot has been alive
+	 * @return number of turns this robot has been alive
+	 */
 	public int getLifespan() {
 		return rc.getRoundNum()-firstTurn;
 	}
