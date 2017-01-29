@@ -94,7 +94,6 @@ public strictfp class Soldier extends RobotBase
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
 		TreeInfo[] trees = rc.senseNearbyTrees(rc.getType().sensorRadius);
 		if (robots.length > 0) { //there are nearby robots
-			//TODO?: Make more efficient? Isn't an issue right now
 			RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SCOUT, RobotType.ARCHON}; //priority of shooting
 			RobotInfo target = null;
 			int z = 0;

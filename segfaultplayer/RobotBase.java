@@ -527,7 +527,7 @@ public strictfp abstract class RobotBase
 	 * @throws GameActionException
 	 */
 	public void updateRatio(MapLocation myLocation) throws GameActionException {
-		int myRatio = (int)(1.0 / (1.0 + Math.pow(Math.E,(myLocation.distanceTo(allyArchons[0])/myLocation.distanceTo(enemyArchons[0]))) )*1000.0 );
+		int myRatio = (int)(3.0 / (1.0 + Math.pow(Math.E,3.0-2.0*(myLocation.distanceTo(enemyArchons[0])/myLocation.distanceTo(allyArchons[0]))) )*1000.0 );
 		int realRatio = rc.readBroadcast(11);
 		if(myRatio>realRatio) {
 			rc.broadcast(11, myRatio);
