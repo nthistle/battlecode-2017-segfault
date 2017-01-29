@@ -1,4 +1,6 @@
 package segfaultplayer;
+import java.util.ArrayList;
+
 import battlecode.common.*;
 
 
@@ -20,6 +22,7 @@ public strictfp class HexGardener extends RobotBase
 			new Direction(5.0f*(float)Math.PI/3.0f)
 	};
 	
+	public static final float halfDirection = (float)Math.PI/6.0f;
 
 	// tree blocked is considered more "permanently" blocked than unit blocked,
 	// and so takes precedence
@@ -54,26 +57,42 @@ public strictfp class HexGardener extends RobotBase
 		setPodOpenDir();
 		drawPodOpenDir();
 		
-		while(true) {
-			checkVPWin();
-			updatePodStatus();
-			drawPodStatus();
-			Order nextOrder = CommunicationsHandler.peekOrder(rc);
-			if(nextOrder.type == OrderType.TREE) {
-				if(isAbleToBuild()) {
-					if(addTreeToPod()) {
-						CommunicationsHandler.popOrder(rc);
+		while(rc.getRoundNum() < 100) {
+			try {
+				checkVPWin();
+				updatePodStatus();
+				drawPodStatus();
+				Order nextOrder = CommunicationsHandler.peekOrder(rc);
+				if(nextOrder.type == OrderType.TREE) {
+					if(isAbleToBuild()) {
+						if(addTreeToPod()) {
+							System.out.println("Filled a tree order");
+							CommunicationsHandler.popOrder(rc);
+						}
+					}
+				} else {
+					if(rc.getTeamBullets() > nextOrder.rt.bulletCost) {
+						Direction buildDir = getBuildDirection(nextOrder.rt);
+						if(buildDir == null) {
+							// can't build this, ohwell
+						} else {
+							System.out.println("Filled an order for " + nextOrder.rt.toString());
+							rc.buildRobot(nextOrder.rt, buildDir);
+							CommunicationsHandler.popOrder(rc);
+						}
 					}
 				}
+				drawPodOpenDir();
+				waterLowest();
+				if(buildCooldown>0) buildCooldown--;
+			} catch(Exception e) {
+				e.printStackTrace();
 			}
-			//} else {
-				
-			//}
-			drawPodOpenDir();
-			waterLowest();
-			if(buildCooldown>0) buildCooldown--;
 			Clock.yield();
 		}
+		// alright, now round num has exceeded 100
+		int unitsBuilt = 0;
+		int treesPlanted = 0;
 	}
 	
 	public boolean isAbleToBuild() {
@@ -84,6 +103,27 @@ public strictfp class HexGardener extends RobotBase
 			if(i == FREE_SPOT) numFree ++;
 		}
 		return numFree > 0;
+	}
+	
+	
+	public Direction getBuildDirection(RobotType rt) {
+		Direction idealDirection = podDirs[openDirection];
+		
+		if(rc.canBuildRobot(rt, idealDirection))
+			return idealDirection;
+
+		Direction poss;
+		for(int i = 1; i < 5; i ++) {
+			poss = idealDirection.rotateRightRads(halfDirection * i);
+			if(rc.canBuildRobot(rt, poss)) {
+				return poss;
+			}
+			poss = idealDirection.rotateLeftRads(halfDirection * i);
+			if(rc.canBuildRobot(rt, poss)) {
+				return poss;
+			}
+		}
+		return null;
 	}
 	
 	/**
@@ -168,10 +208,15 @@ public strictfp class HexGardener extends RobotBase
 						closestIndex = i;
 				}
 			}
-			openDirection = closestIndex;
-			System.out.println("Pod open direction is " + openDirection);
-			// open direction is the closest one towards direction pointing to enemy archon 
-			// that is free or blocked by a unit (no tree blocked)
+			if(closestIndex != -1) {
+				openDirection = closestIndex;
+				System.out.println("Pod open direction is " + openDirection);
+				// open direction is the closest one towards direction pointing to enemy archon 
+				// that is free or blocked by a unit (no tree blocked)
+			} else {
+				System.out.println("HUHHHH nothing works!");
+				openDirection = rand.nextInt(6);
+			}
 		} else {
 			System.out.println("No initial enemy archons? Using random initial open direction");
 			openDirection = rand.nextInt(6);
