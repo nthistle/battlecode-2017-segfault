@@ -19,12 +19,14 @@ public strictfp abstract class RobotBase
 	MapLocation[] allyArchons;
 	public MapLocation marker = null;
 	public MapLocation marker2= null;
+	public int firstTurn;
 
 	public RobotBase(RobotController rc) throws GameActionException {
 		this.rc = rc;
 		myID = -1;
 		enemy = rc.getTeam().opponent();
 		ally = rc.getTeam();
+		firstTurn = rc.getRoundNum();
 		enemyArchons = rc.getInitialArchonLocations(enemy);
 		for(int i=0; i<enemyArchons.length; i++) {
 			for(int z=0; z<enemyArchons.length; z++) {
@@ -52,6 +54,7 @@ public strictfp abstract class RobotBase
 		myID = id;
 		enemy = rc.getTeam().opponent();
 		ally = rc.getTeam();
+		firstTurn = rc.getRoundNum();
 		enemyArchons = rc.getInitialArchonLocations(enemy);
 		for(int i=0; i<enemyArchons.length; i++) {
 			for(int z=0; z<enemyArchons.length; z++) {
@@ -103,6 +106,9 @@ public strictfp abstract class RobotBase
 	//                              INSTANCE  HELPER  METHODS
 	// =====================================================================================
 
+	public int getLifespan() {
+		return rc.getRoundNum()-firstTurn;
+	}
 	
 	public void setIndicatorPlus(MapLocation ml, int r, int g, int b) throws GameActionException {
 		rc.setIndicatorLine(ml.add(new Direction(0),1.0f),
@@ -437,7 +443,7 @@ public strictfp abstract class RobotBase
 		if(myRatio>realRatio)
 			rc.broadcast(11, myRatio);
 
-		float stride = rc.getType().strideRadius;
+		float stride = (float)(rc.getType().strideRadius);
 
 		MapLocation myLoc = rc.getLocation();
 		Direction toEnd = myLoc.directionTo(endLoc);
@@ -450,12 +456,12 @@ public strictfp abstract class RobotBase
 				hyperMeme[i][1] = newLoc.distanceTo(endLoc);
 				//System.out.print(hyperMeme[i][1] + " ");
 				if(marker!=null) {
-					hyperMeme[i][1] -= newLoc.distanceTo(marker)*1.6; //*1.6;
+					hyperMeme[i][1] -= newLoc.distanceTo(marker)*1.6;//(1.6+2*getLifespan()/rc.getRoundLimit()); //*1.6;
 					rc.setIndicatorLine(myLoc, marker, 255, 0, 0);
 					//System.out.print(newLoc.distanceTo(marker) + " ");
 				}
 				if(marker2!=null) {
-					hyperMeme[i][1] -= newLoc.distanceTo(marker2)*.4; //*.4;
+					hyperMeme[i][1] -= newLoc.distanceTo(marker2)*.4;//(.4+2*getLifespan()/rc.getRoundLimit()); //*.4;
 					rc.setIndicatorLine(myLoc, marker, 255, 0, 0);
 					//System.out.println(newLoc.distanceTo(marker2) + " ");
 				}
@@ -465,7 +471,7 @@ public strictfp abstract class RobotBase
 				hyperMeme[i][1] = Float.MAX_VALUE;
 			}
 		}
-
+					System.out.println("Boost: "+6*getLifespan()/(1.0*rc.getRoundLimit()));
 		java.util.Arrays.sort(hyperMeme, new java.util.Comparator<float[]>() {
 			public int compare(float[] a, float[] b) {
 				return Float.compare(a[1], b[1]); // sort by heuristic if damage is equal (lower = closer to goal)
