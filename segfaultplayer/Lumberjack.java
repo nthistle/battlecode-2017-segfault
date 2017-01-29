@@ -11,8 +11,8 @@ public strictfp class Lumberjack extends RobotBase
 	}
 
 	public void run() throws GameActionException {
-		try {
-			while (true) {
+		while (true) {
+			try {
 				dailyTasks();
 				TreeInfo[] nearbyTrees = rc.senseNearbyTrees();
 				if(!strike(true)) { //tries attacking first
@@ -29,11 +29,11 @@ public strictfp class Lumberjack extends RobotBase
 						}
 					}
 				}
-				Clock.yield();
+			} catch(Exception e) {
+				e.printStackTrace();
+				System.out.println("Lumberjack Error");
 			}
-		} catch(Exception e) {
-			e.printStackTrace();
-			System.out.println("Lumberjack Error");
+			Clock.yield();
 		}
 	}
 

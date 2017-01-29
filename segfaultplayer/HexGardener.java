@@ -132,14 +132,15 @@ public strictfp class HexGardener extends RobotBase
 					// build stuff for phase 2 is done based on ratio
 					if(numPodTrees >= PHASE_2_MAX_TREES || treesPlanted > getFloatRatio() * unitsBuilt) {
 						// build a unit to make up for it
-						//RobotType nextType = getNextRobotBuiltType();
 						
-						RobotType nextType = RobotType.SOLDIER;
+						RobotType nextType = getNextRobotBuildType();
+
 						Direction buildDir = getBuildDirection(nextType);
 						if(buildDir == null) {
 							// can't build this, ohwell
 						} else {
 							rc.buildRobot(nextType, buildDir);
+							hasBuiltType(nextType);
 							buildCooldown = 15;
 							unitsBuilt ++;
 						}
@@ -152,7 +153,6 @@ public strictfp class HexGardener extends RobotBase
 						}
 					}
 				}
-
 				
 				// more standard stuff
 				waterLowest();
@@ -173,6 +173,37 @@ public strictfp class HexGardener extends RobotBase
 			if(i == FREE_SPOT) numFree ++;
 		}
 		return numFree > 0;
+	}
+	
+	/**
+	 * based on trees / progress towards attacking enemy, returns what type of
+	 * robot we should build, TODO: have local counter variables to keep track so
+	 * it makes stuff in good ratios / w/e
+	 * also TODO: modify to return array of preferred types
+	 * right now returns soldier at round 300 and before, and 50/50 tank or soldier
+	 * after that
+	 * @return
+	 */
+	public RobotType getNextRobotBuildType() {
+		if(rc.getRoundNum() < 300) {
+			return RobotType.SOLDIER;
+		} else {
+			// make it 50/50 after round 300 on tanks vs soldiers
+			if(rand.nextBoolean()) {
+				return RobotType.TANK;
+			} else {
+				return RobotType.SOLDIER;
+			}
+		}
+	}
+	
+	/**
+	 * used in conjunction with getNextRobotBuildType so we know what to make next,
+	 * TODO: modify local variables accordingly.
+	 * Right now does nothing. 
+	 */
+	public void hasBuiltType(RobotType rt) {
+		// do nothing lol
 	}
 	
 	
