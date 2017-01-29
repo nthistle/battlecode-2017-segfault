@@ -494,15 +494,26 @@ public strictfp abstract class RobotBase
 			}
 		}
 	}
-	// ========================================================================
-	// Determining Gardener Robot vs. Tree Ratio using Farthest Robot Location
-	// ========================================================================
 	
+	/**
+	 * Determines gardener unit vs. tree production ratio (for phase 2 of hex gardener)
+	 * based on the closest we've reached to an enemy archon.
+	 * @return
+	 * @throws GameActionException
+	 */
 	public float getFloatRatio() throws GameActionException {
 		int realRatio = rc.readBroadcast(11);
 		return (float)realRatio / 1000.0f;
 	}
 	
+	/**
+	 * Updates the ratio for gardener unit vs. tree production as a function of how close
+	 * to enemy archon we've made it.
+	 * If the furthest we've reached is mid-way between enemy archon and our archon, there's
+	 * most likely a path due to symmetry, and we want more soldiers to rush down that path.
+	 * @param myLocation
+	 * @throws GameActionException
+	 */
 	public void updateRatio(MapLocation myLocation) throws GameActionException {
 		int myRatio = (int)(1.0 / (1.0 + Math.pow(Math.E,(myLocation.distanceTo(allyArchons[0])/myLocation.distanceTo(enemyArchons[0]))) )*1000.0 );
 		int realRatio = rc.readBroadcast(11);
