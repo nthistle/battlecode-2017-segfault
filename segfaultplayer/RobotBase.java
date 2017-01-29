@@ -389,6 +389,10 @@ public strictfp abstract class RobotBase
 		return (float)(angle/180.0*Math.PI);
 	}
 
+	// =========================================================
+	// ======================= DODGING =========================
+	// =========================================================
+	
 	public void moveWithDodging(MapLocation ml) throws GameActionException{
 		moveWithDodging(ml, false);
 	}
@@ -435,20 +439,19 @@ public strictfp abstract class RobotBase
 			}
 		}
 	}
+	
 
-	//Go to intened location with pathfinding
+	// =========================================================
+	// ==================== PATHFINDING ========================
+	// =========================================================
 	public void pathFind(MapLocation endLoc) throws GameActionException {
-		int myRatio = (int)(1.0 / (1.0 + Math.pow(Math.E,(rc.getLocation().distanceTo(allyArchons[0])/rc.getLocation().distanceTo(enemyArchons[0]))) )*1000.0 );
-		int realRatio = rc.readBroadcast(11);
-		if(myRatio>realRatio)
-			rc.broadcast(11, myRatio);
-
 		float stride = (float)(rc.getType().strideRadius);
-
 		MapLocation myLoc = rc.getLocation();
+		updateRatio(myLoc);
 		Direction toEnd = myLoc.directionTo(endLoc);
-		Direction[] myDirs = getDirections(Direction.getNorth(), 30f);
+		Direction[] myDirs = getDirections(Direction.getNorth(), 30f); // not pointed towards enemy archon so it can move straight up and down
 		float[][] hyperMeme = new float[myDirs.length][2];
+		
 		for(int i=0; i<myDirs.length; i++) {
 			if(rc.canMove(myDirs[i], stride)) {
 				hyperMeme[i][0] = i;
@@ -467,24 +470,23 @@ public strictfp abstract class RobotBase
 				}
 				rc.setIndicatorLine(myLoc,newLoc, 0, (int)hyperMeme[i][1]*5, 0);
 			} else {
+				// theres something in the way
 				hyperMeme[i][0] = i;
 				hyperMeme[i][1] = Float.MAX_VALUE;
 			}
 		}
-					System.out.println("Boost: "+6*getLifespan()/(1.0*rc.getRoundLimit()));
+		System.out.println("Boost: "+6*getLifespan()/(1.0*rc.getRoundLimit()));
+		// sort the array
 		java.util.Arrays.sort(hyperMeme, new java.util.Comparator<float[]>() {
 			public int compare(float[] a, float[] b) {
 				return Float.compare(a[1], b[1]); // sort by heuristic if damage is equal (lower = closer to goal)
 			}
 		});
-		//for(int i=0; i<hyperMeme.length; i++) {
-		//	for(int j=0; j<hyperMeme[0].length; j++) {
-		//		System.out.print(hyperMeme[i][j] + " ");
-		//	}
-		//	System.out.println();
-		//}
+		//update markers
 		marker2 = marker;
 		marker = myLoc;
+		
+		//actually move
 		for (int j=0; j<myDirs.length; j++) {
 			if(rc.canMove(myDirs[(int)hyperMeme[j][0]])) {
 				rc.move(myDirs[(int)hyperMeme[j][0]]);
@@ -492,24 +494,22 @@ public strictfp abstract class RobotBase
 			}
 		}
 	}
-
-	//fans out directions
-    static Direction[] getBestDirections(Direction bestDir, float theta) throws GameActionException {
-    	float initialtheta = theta;
-    	Direction[] dirs = new Direction [(int)(360.0f/theta)];
-    	dirs[0] = bestDir;
-    	for (int j=1; j<dirs.length; j++) {
-    		bestDir = bestDir.rotateLeftDegrees(theta);
-    		dirs[j] = bestDir;
-    		if (theta>0f) {
-    			theta = theta*-1f;
-    		} else {
-    			theta = theta*-1f + initialtheta;
-    		}
-    	}
-    	return dirs;
+	// ========================================================================
+	// Determining Gardener Robot vs. Tree Ratio using Farthest Robot Location
+	// ========================================================================
+	
+	public float getFloatRatio() throws GameActionException {
+		int realRatio = rc.readBroadcast(11);
+		return (float)realRatio / 1000.0f;
 	}
-
+	
+	public void updateRatio(MapLocation myLocation) throws GameActionException {
+		int myRatio = (int)(1.0 / (1.0 + Math.pow(Math.E,(myLocation.distanceTo(allyArchons[0])/myLocation.distanceTo(enemyArchons[0]))) )*1000.0 );
+		int realRatio = rc.readBroadcast(11);
+		if(myRatio>realRatio) {
+			rc.broadcast(11, myRatio);
+		}
+	}
 	// =====================================================================================
 	//                              OLD METHODS (Useless?)
 	// =====================================================================================
@@ -552,6 +552,24 @@ public strictfp abstract class RobotBase
 	// =====================================================================================
 	
 	// consider moving to a static class later
+	
+	//fans out directions from initial direction by delta theta
+	// returns array of directions best arr[0] to worst arr[arr.len-1]
+    public static Direction[] getBestDirections(Direction bestDir, float theta) throws GameActionException {
+    	float initialtheta = theta;
+    	Direction[] dirs = new Direction [(int)(360.0f/theta)];
+    	dirs[0] = bestDir;
+    	for (int j=1; j<dirs.length; j++) {
+    		bestDir = bestDir.rotateLeftDegrees(theta);
+    		dirs[j] = bestDir;
+    		if (theta>0f) {
+    			theta = theta*-1f;
+    		} else {
+    			theta = theta*-1f + initialtheta;
+    		}
+    	}
+    	return dirs;
+	}
 	
 	public static Direction averageDirection(Direction a, Direction b) {
 		float adeg = a.radians;
