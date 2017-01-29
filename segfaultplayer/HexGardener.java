@@ -59,6 +59,18 @@ public strictfp class HexGardener extends RobotBase
 		setPodOpenDir();
 		drawPodOpenDir();
 		
+		if(rc.senseNearbyTrees(3.0f,Team.NEUTRAL).length > 0) {
+			// attempt to build a lumberjack
+			// if we can't, just give up, TODO: make it try again later
+			for(float rads = 0.0f; rads < (float)Math.PI*2.0f; rads += (float)Math.PI/8) {
+				if(rc.canBuildRobot(RobotType.LUMBERJACK, new Direction(rads))) {
+					rc.buildRobot(RobotType.LUMBERJACK, new Direction(rads));
+					Clock.yield();
+					break;
+				}
+			}
+		}
+		
 		
 		// phase 1
 		while(rc.getRoundNum() < 100) {
@@ -128,6 +140,7 @@ public strictfp class HexGardener extends RobotBase
 							// can't build this, ohwell
 						} else {
 							rc.buildRobot(nextType, buildDir);
+							buildCooldown = 15;
 							unitsBuilt ++;
 						}
 					} else {

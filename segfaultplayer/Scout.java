@@ -4,7 +4,7 @@ import java.util.Set;
 
 import battlecode.common.*;
 
-//
+
 public strictfp class Scout extends RobotBase
 {
 
