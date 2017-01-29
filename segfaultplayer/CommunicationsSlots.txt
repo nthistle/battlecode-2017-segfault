@@ -19,6 +19,3 @@ Communications Slots
 401 	-	total number of friendly lumberjacks seen by frontier gardeners (every 50)
 402 	-	total number of neutral trees seen by frontier gardeners (every 50)
 600+	-	gardener orders (robots and trees)
-2000	-	number of trees
-2001+	-	packed tree coords
-3000+	-	packed tree coords with robots as found by scouts
