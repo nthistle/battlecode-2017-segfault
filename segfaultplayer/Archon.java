@@ -482,10 +482,38 @@ public strictfp class Archon extends RobotBase
 		//	drawDoge(rc.getLocation().add(dirr,i*distTo/50.0f), 0.65f);
 		//	Clock.yield();
 		//}
-		
+		boolean doge = false;
 		
 		if(alpha) {
-			System.out.println("I am the alpha");
+			int archonsClose = 2;
+			for(int i=0; i<enemyArchons.length; i++)
+				if(rc.getLocation().distanceTo(enemyArchons[i])<40.0)
+					archonsClose=1;
+			rc.broadcast(2,archonsClose);
+			Direction[] buildDirections = getBestDirections(rc.getLocation().directionTo(enemyArchons[0]),1.0f);
+			for(int i=0; i<buildDirections.length; i++) {
+				if(rc.canBuildRobot(RobotType.GARDENER,buildDirections[i])) {
+					rc.buildRobot(RobotType.GARDENER, buildDirections[i]);
+					break;
+				}
+			}
+			while(true) {
+				buildDirections = getBestDirections(rc.getLocation().directionTo(enemyArchons[0]),1.0f);
+				if(rc.readBroadcast(21)==1) {
+					for(int i=0; i<buildDirections.length; i++) {
+						if(rc.canBuildRobot(RobotType.GARDENER,buildDirections[i])) {
+							rc.buildRobot(RobotType.GARDENER, buildDirections[i]);
+							break;
+						}
+					}
+					rc.broadcast(21,0);
+				}
+				if(Clock.getBytecodesLeft()>20000 && doge==true)
+					drawDoge(rc.getLocation(),0.65f);
+				Clock.yield();
+			}
+
+			/* System.out.println("I am the alpha");
 			calculateDensityFar();
 			
 			
@@ -565,7 +593,7 @@ public strictfp class Archon extends RobotBase
 						heavyExpansionStrategy();
 					}
 				}
-			}
+			} */
 			
 			
 			/*
@@ -614,17 +642,19 @@ public strictfp class Archon extends RobotBase
 			//System.out.println("Queued three trees");
 		} else {
 			while(true) {
-				// draw some pretty lines
-				Direction dir = null;
-				for(int i = 0; i < 15; i ++) {
-					dir = randomDirection();
-					rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dir, 4.0f),
-							RobotBase.rand.nextInt(255), RobotBase.rand.nextInt(255), RobotBase.rand.nextInt(255));
+				Direction[] buildDirections = getBestDirections(rc.getLocation().directionTo(enemyArchons[0]),1.0f);
+				if(rc.readBroadcast(21)==1) {
+					for(int i=0; i<buildDirections.length; i++) {
+						if(rc.canBuildRobot(RobotType.GARDENER,buildDirections[i])) {
+							rc.buildRobot(RobotType.GARDENER, buildDirections[i]);
+							break;
+						}
+					}
+					rc.broadcast(21,0);
 				}
-				if(rc.canMove(dir))
-					rc.move(dir);
 				Clock.yield();
 			}
+
 		}
 	}
 	

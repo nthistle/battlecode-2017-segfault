@@ -58,7 +58,7 @@ public strictfp class RobotPlayer {
     }
 
     public static void handleScout(RobotController rc, int id) throws GameActionException {
-        Scout2 sc = new Scout2(rc, id);
+        Scout sc = new Scout(rc, id);
         sc.run();
     }
 

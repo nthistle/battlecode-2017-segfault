@@ -142,7 +142,7 @@ public strictfp class HexGardener extends RobotBase
 						} else {
 							rc.buildRobot(nextType, buildDir);
 							hasBuiltType(nextType);
-							buildCooldown = 15;
+							buildCooldown = 15; //replace with actual constant
 							unitsBuilt ++;
 						}
 					} else {
