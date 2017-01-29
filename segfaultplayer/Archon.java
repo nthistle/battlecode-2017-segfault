@@ -485,6 +485,11 @@ public strictfp class Archon extends RobotBase
 		boolean doge = false;
 		
 		if(alpha) {
+			int archonsClose = 2;
+			for(int i=0; i<enemyArchons.length; i++)
+				if(rc.getLocation().distanceTo(enemyArchons[i])<40.0)
+					archonsClose=1;
+			rc.broadcast(2,archonsClose);
 			Direction[] buildDirections = getBestDirections(rc.getLocation().directionTo(enemyArchons[0]),1.0f);
 			for(int i=0; i<buildDirections.length; i++) {
 				if(rc.canBuildRobot(RobotType.GARDENER,buildDirections[i])) {
