@@ -375,7 +375,7 @@ public strictfp class HexGardener extends RobotBase
 	}
 	
     
-//    public void findTheOptimalShits() throws GameActionException{
+//    public float[] findTheOptimalShits() throws GameActionException{
 //        TreeInfo[] trees = rc.senseNearbyTrees();
 //        
 //        ArrayList<TreeInfo> dicked = new ArrayList<TreeInfo>();
@@ -400,7 +400,7 @@ public strictfp class HexGardener extends RobotBase
 //        MapLocation[] toCheck = new MapLocation[8];
 //        float cur_rad = 0;
 //        for(int i = 0; i < toCheck.length; i++) {
-//            toCheck[i] = rc.getLocation().add(new Direction(cur_rad)); // 0.05f buffer
+//            toCheck[i] = rc.getLocation().add(new Direction(cur_rad)); // 
 //            cur_rad += ((2 * Math.PI) / toCheck.length);
 //        }
 //        
@@ -408,17 +408,15 @@ public strictfp class HexGardener extends RobotBase
 //        for(int i = 0; i < evaluatedLocs.length; i++){
 //            evaluatedLocs[i] = evaluation_function(toCheck[i], dicked, less_dicked, dicked_archons);
 //        }
-//        
+//        return evaluatedLocs;
 //    }
 //    
 //    public float evaluation_function(MapLocation check_this, ArrayList<TreeInfo> dickedTrees, ArrayList<TreeInfo> lessDickedTrees, ArrayList<MapLocation> dicked_archons) throws GameActionException{
-//
-//        
-//        getBuildDirection()
-//        // do math
-//        
-//        
+//        for(int i = 0; i < dicked_archons.size(); i++){
+//            if(check_this.distanceTo(dicked_archons.get(i))
+//        }
 //    }
+    
 	/**
 	 * uses indicator dots to illustrate the status of each potential pod location 
 	 * red = occupied by tree 
