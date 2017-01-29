@@ -65,6 +65,7 @@ public strictfp class HexGardener extends RobotBase
 						CommunicationsHandler.popOrder(rc);
 					}
 				}
+			}
 			//} else {
 				
 			//}
