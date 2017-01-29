@@ -60,6 +60,18 @@ public strictfp class FirstGardener extends HexGardener
 		updatePodStatus();
 		drawPodStatus();
 		
+		int numFree = 0;
+		for(int i : myPodStatus) {
+			if(i == FREE_SPOT) {
+				numFree ++;
+			}
+		}
+		
+		if(numFree <= 1) {
+			caseClosed();
+		}
+		
+		
 		/*
 		
 		// case 1 is we have 
