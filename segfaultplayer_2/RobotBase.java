@@ -1,4 +1,4 @@
-package segfaultplayer;
+package segfaultplayer_2;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -538,9 +538,8 @@ public strictfp abstract class RobotBase
 		//int myRatio = (int)(1.0 / (1.0 + Math.pow(Math.E,(myLocation.distanceTo(enemyArchons[0])/myLocation.distanceTo(allyArchons[0]))) )*1000.0 );
 		int realRatio = rc.readBroadcast(11);
 		if(myRatio>realRatio) {
-			rc.broadcast(11, ); //myRatio
+			rc.broadcast(11, 1);
 		}
-		//large number = lots of trees, small number = lots of troops
 	}
 	// =====================================================================================
 	//                              OLD METHODS (Useless?)

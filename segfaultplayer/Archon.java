@@ -124,6 +124,14 @@ public strictfp class Archon extends RobotBase
 					CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 				}
 			}
+			//Mihir Code MEME
+			if(rc.getRoundNum()%30==0) {
+				Direction dir = randomDirection();
+				if(rc.canBuildRobot(RobotType.GARDENER,dir)) {
+					rc.buildRobot(RobotType.GARDENER,dir);
+				}
+			}
+
 			Clock.yield();
 		}
 	}
@@ -184,6 +192,13 @@ public strictfp class Archon extends RobotBase
 				} else { // something weird happened, hope we can win on VP
 					CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 					CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+				}
+			}
+			//Mihir Code MEME
+			if(rc.getRoundNum()%30==0) {
+				Direction dir = randomDirection();
+				if(rc.canBuildRobot(RobotType.GARDENER,dir)) {
+					rc.buildRobot(RobotType.GARDENER,dir);
 				}
 			}
 			Clock.yield();
@@ -254,6 +269,13 @@ public strictfp class Archon extends RobotBase
 				} else { // something weird happened, hope we can win on VP
 					CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 					CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
+				}
+			}
+			//Mihir Code MEME
+			if(rc.getRoundNum()%30==0) {
+				Direction dir = randomDirection();
+				if(rc.canBuildRobot(RobotType.GARDENER,dir)) {
+					rc.buildRobot(RobotType.GARDENER,dir);
 				}
 			}
 			Clock.yield();
