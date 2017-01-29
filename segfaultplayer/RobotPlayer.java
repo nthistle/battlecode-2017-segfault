@@ -38,10 +38,10 @@ public strictfp class RobotPlayer {
     }
 
     public static void handleGardener(RobotController rc, int id) throws GameActionException {
-    	//HexGardener hg = new HexGardener(rc, id);
-    	//hg.run();
-        Gardener g = new Gardener(rc, id);
-        g.run();
+    	HexGardener hg = new HexGardener(rc, id);
+    	hg.run();
+        //Gardener g = new Gardener(rc, id);
+        //g.run();
         
         
         //g.runAlternate(RobotType.SOLDIER);
