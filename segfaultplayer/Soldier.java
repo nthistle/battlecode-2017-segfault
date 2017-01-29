@@ -6,6 +6,7 @@ public strictfp class Soldier extends RobotBase
 	public float curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
 	public float curdirection = (float) Math.random() * 2 * (float) Math.PI;
 	public int ctr = 0;
+	public int pushWave = 0;
 	
 	public Soldier(RobotController rc, int id) throws GameActionException {
 		super(rc, id);
@@ -76,8 +77,9 @@ public strictfp class Soldier extends RobotBase
 			System.out.println("Decided Move: "+Clock.getBytecodesLeft());
 		if(nearbyBullets.length>0) //if there are bullets, dodge
 			moveWithDodging(goal);
-		else //move normally
+		else if(rc.getRoundNum()<100 || pushWave<25)//move normally
 			pathFind(goal);
+		pushWave++;
 	}
 
 	//determines shooting for the turn
