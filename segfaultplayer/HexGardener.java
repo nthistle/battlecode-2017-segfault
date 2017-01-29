@@ -31,9 +31,11 @@ public strictfp class HexGardener extends RobotBase
 	public static final int FREE_SPOT = 3;
 	public static final int PLANTED_SPOT = 4;
 	
-	private int openDirection = -1;
+	public static final int PHASE_2_MAX_TREES = 4; // so that tanks can happen
 	
-	private int buildCooldown = 0;
+	private int numPodTrees = 0; // how many trees our pod currently has planted ((ignores destroyed))
+	private int openDirection = -1; // which direction we open in 
+	private int buildCooldown = 0; // ticks until we build again
 	
 	public static final int BUILD_COOLDOWN = 15;
 	
@@ -50,52 +52,107 @@ public strictfp class HexGardener extends RobotBase
 		
 		// first thing we have to do is fine a location for our pod
 
-		//findPodLocation();
+		findPodLocation();
 		setPodLocations();
 		updatePodStatus();
 		drawPodStatus();
 		setPodOpenDir();
 		drawPodOpenDir();
 		
+		
+		// phase 1
 		while(rc.getRoundNum() < 100) {
 			try {
+				// standard stuff we should do every turn
 				checkVPWin();
 				updatePodStatus();
 				drawPodStatus();
+				
+				// building stuff during phase 1 is done entirely through order queue
 				Order nextOrder = CommunicationsHandler.peekOrder(rc);
 				if(nextOrder.type == OrderType.TREE) {
-					if(isAbleToBuild()) {
+					if(isAbleToBuildTree()) {
 						if(addTreeToPod()) {
 							System.out.println("Filled a tree order");
 							CommunicationsHandler.popOrder(rc);
 						}
 					}
 				} else {
-					if(rc.getTeamBullets() > nextOrder.rt.bulletCost) {
-						Direction buildDir = getBuildDirection(nextOrder.rt);
-						if(buildDir == null) {
-							// can't build this, ohwell
-						} else {
-							System.out.println("Filled an order for " + nextOrder.rt.toString());
-							rc.buildRobot(nextOrder.rt, buildDir);
-							CommunicationsHandler.popOrder(rc);
+					if(buildCooldown <= 0) {
+						if(rc.getTeamBullets() > nextOrder.rt.bulletCost) {
+							Direction buildDir = getBuildDirection(nextOrder.rt);
+							if(buildDir == null) {
+								// can't build this, ohwell
+							} else {
+								System.out.println("Filled an order for " + nextOrder.rt.toString());
+								rc.buildRobot(nextOrder.rt, buildDir);
+								CommunicationsHandler.popOrder(rc);
+							}
 						}
 					}
 				}
+				
+				// more standard stuff
 				drawPodOpenDir();
 				waterLowest();
 				if(buildCooldown>0) buildCooldown--;
+				
 			} catch(Exception e) {
+				// should never trigger except in weird instances of buildRobot throwing GameActionException,
+				// here for security more than anything
 				e.printStackTrace();
 			}
 			Clock.yield();
 		}
 		// alright, now round num has exceeded 100
+		
+		// phase 2
 		int unitsBuilt = 0;
 		int treesPlanted = 0;
+		while(true) {
+			try {
+				// standard stuff
+				checkVPWin();
+				updatePodStatus();
+				drawPodStatus();
+				
+				if(buildCooldown <= 0) {
+					// build stuff for phase 2 is done based on ratio
+					if(numPodTrees >= PHASE_2_MAX_TREES || treesPlanted > getFloatRatio() * unitsBuilt) {
+						// build a unit to make up for it
+						//RobotType nextType = getNextRobotBuiltType();
+						
+						RobotType nextType = RobotType.SOLDIER;
+						Direction buildDir = getBuildDirection(nextType);
+						if(buildDir == null) {
+							// can't build this, ohwell
+						} else {
+							rc.buildRobot(nextType, buildDir);
+							unitsBuilt ++;
+						}
+					} else {
+						// plant a tree to make up for it
+						if(isAbleToBuildTree()) {
+							if(addTreeToPod()) {
+								treesPlanted ++;
+							}
+						}
+					}
+				}
+
+				
+				// more standard stuff
+				waterLowest();
+				if(buildCooldown>0) buildCooldown--;
+				
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+			Clock.yield();
+		}
 	}
 	
-	public boolean isAbleToBuild() {
+	public boolean isAbleToBuildTree() {
 		if(buildCooldown > 0)
 			return false;
 		int numFree = 0;
@@ -159,6 +216,7 @@ public strictfp class HexGardener extends RobotBase
 			if(bestIndex != -1) {
 				rc.plantTree(podDirs[bestIndex]);
 				myPodStatus[bestIndex] = PLANTED_SPOT;
+				numPodTrees ++;
 				buildCooldown = BUILD_COOLDOWN;
 				return true;
 			}

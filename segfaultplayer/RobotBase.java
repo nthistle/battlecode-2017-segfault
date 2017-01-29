@@ -508,7 +508,9 @@ public strictfp abstract class RobotBase
 	/**
 	 * Determines gardener unit vs. tree production ratio (for phase 2 of hex gardener)
 	 * based on the closest we've reached to an enemy archon.
-	 * @return
+	 * Specifically, ratio is [# of trees]:[# of units]
+	 * When low, we want lots of units, when high, we want to prioritize finishing pods
+	 * @return ratio of number of trees planted to number of units built, ideally
 	 * @throws GameActionException
 	 */
 	public float getFloatRatio() throws GameActionException {
