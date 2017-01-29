@@ -374,6 +374,51 @@ public strictfp class HexGardener extends RobotBase
 		}
 	}
 	
+    
+//    public void findTheOptimalShits() throws GameActionException{
+//        TreeInfo[] trees = rc.senseNearbyTrees();
+//        
+//        ArrayList<TreeInfo> dicked = new ArrayList<TreeInfo>();
+//        ArrayList<TreeInfo> less_dicked = new ArrayList<TreeInfo>();
+//        
+//        for(int i = 0; i < trees.length; i++){
+//            if(rc.getLocation().distanceTo(trees[i].location) - trees[i].radius < 3.0f){
+//                dicked.add(trees[i]);
+//            }
+//            if(rc.getLoction().distanceTo(trees[i]) - trees[i].radius > 5.0f){
+//                less_dicked.add(trees[i]);
+//            }
+//        }
+//        
+//        ArrayList<MapLocation> dicked_archons = new ArrayList<MapLocation>();
+//        for(int i = 0; i < allyArchons.length; i++){
+//            if(rc.getLocation.distanceTo[allyArchons[i]] > 5.0f){
+//                dicked_archons.add(allyArchons[i]);
+//            }
+//        }
+//        
+//        MapLocation[] toCheck = new MapLocation[8];
+//        float cur_rad = 0;
+//        for(int i = 0; i < toCheck.length; i++) {
+//            toCheck[i] = rc.getLocation().add(new Direction(cur_rad)); // 0.05f buffer
+//            cur_rad += ((2 * Math.PI) / toCheck.length);
+//        }
+//        
+//        float[] evaluatedLocs = new float[8];
+//        for(int i = 0; i < evaluatedLocs.length; i++){
+//            evaluatedLocs[i] = evaluation_function(toCheck[i], dicked, less_dicked, dicked_archons);
+//        }
+//        
+//    }
+//    
+//    public float evaluation_function(MapLocation check_this, ArrayList<TreeInfo> dickedTrees, ArrayList<TreeInfo> lessDickedTrees, ArrayList<MapLocation> dicked_archons) throws GameActionException{
+//
+//        
+//        getBuildDirection()
+//        // do math
+//        
+//        
+//    }
 	/**
 	 * uses indicator dots to illustrate the status of each potential pod location 
 	 * red = occupied by tree 
@@ -406,7 +451,7 @@ public strictfp class HexGardener extends RobotBase
 	}
 	
 	
-	private void waterLowest() throws GameActionException {
+	protected void waterLowest() throws GameActionException {
 		TreeInfo[] myTrees = rc.senseNearbyTrees(2.1f, rc.getTeam());
 
 		if (myTrees.length > 0) { // Waters lowest
