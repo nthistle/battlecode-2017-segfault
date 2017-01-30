@@ -548,7 +548,7 @@ public strictfp abstract class RobotBase
 				hyperMeme[i][1] = Float.MAX_VALUE;
 			}
 		}
-		System.out.println("Boost: "+6*getLifespan()/(1.0*rc.getRoundLimit()));
+		//System.out.println("Boost: "+6*getLifespan()/(1.0*rc.getRoundLimit()));
 		// sort the array
 		java.util.Arrays.sort(hyperMeme, new java.util.Comparator<float[]>() {
 			public int compare(float[] a, float[] b) {

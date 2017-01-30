@@ -3,6 +3,7 @@ import battlecode.common.*;
 
 public strictfp class Soldier extends RobotBase
 {
+	public static final int SWARM_ROUND_NUM = 800;
 	
 	public float curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
 	public float curdirection = (float) Math.random() * 2 * (float) Math.PI;
@@ -19,6 +20,10 @@ public strictfp class Soldier extends RobotBase
 				dailyTasks();
 				decideMove();
 				decideShoot();
+				if(rc.getRoundNum() > SWARM_ROUND_NUM) {
+					if(rc.readBroadcast(300) == 0)
+						rc.broadcast(300, 1);
+				}
 				Clock.yield();
 			}
 		} catch(Exception e) {
