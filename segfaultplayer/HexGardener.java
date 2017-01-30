@@ -274,17 +274,28 @@ public strictfp class HexGardener extends RobotBase
 	
 	
 	public void findPodLocation() throws GameActionException {
-		float currentValue = -1000000.0f;
+		float currentValue = 1000000.0f;
+		float newValue = currentValue - 1;
     	Direction[] myDirs = getDirections(Direction.NORTH, 60.0f);
-		float[][] intendedThing = findOptimalPlace(60.0f);;
-		float newValue = intendedThing[0][1];
-		for(int i = 0; i < intendedThing.length; i ++) {
-			int tval = (int)(10.0f*intendedThing[i][1]);
-			System.out.println("Value is " + tval);
-			rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(myDirs[(int)intendedThing[i][0]]),
-					tval, 0, 0);
+    	int t = 0;
+    	while(newValue < currentValue && t < 30) {
+    		currentValue = newValue;
+    		t++;
+			float[][] intendedThing = findOptimalPlace(60.0f);
+			newValue = intendedThing[0][1];
+			Direction intendedDirection = myDirs[(int)intendedThing[0][0]];
+			moveInDir(intendedDirection);
+			
+			rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(intendedDirection, 3.0f),
+					0, 255, 0);
+			for(int i = 0; i < intendedThing.length; i ++) {
+				int tval = (int)(10.0f*intendedThing[i][1]);
+				//System.out.println("Value is " + tval);
+				rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(myDirs[(int)intendedThing[i][0]]),
+						tval, 0, 0);
+			}
+			Clock.yield();
 		}
-		Clock.yield();
 	}
 	
 	
@@ -394,6 +405,9 @@ public strictfp class HexGardener extends RobotBase
 	
 	// first index is the direction, second index is the value
     public float[][] findOptimalPlace(float theta) throws GameActionException {
+    	float targetDistAwayFromArchons = 7.0f;
+    	if(getID() < 2)
+    		targetDistAwayFromArchons += 3.0f;
     	TreeInfo[] trees = rc.senseNearbyTrees();
     	Direction[] myDirs = getDirections(Direction.NORTH, theta);
     	float[][] heuristic = new float[myDirs.length][2];
@@ -403,16 +417,17 @@ public strictfp class HexGardener extends RobotBase
     		MapLocation newLoc = myLoc.add(myDirs[i]);
     		for (TreeInfo t : trees) {
     			float myDistance = newLoc.distanceTo(t.location);
-    			if(myDistance - t.radius < 3.0f) {
-    				heuristic[i][1] += (3.0 - (myDistance - t.radius));
-    			} else if (myDistance - t.radius > 5.0f) {
-    				heuristic[i][1] += (myDistance - t.radius) - 5.0f;
-    			}
+    			if(myDistance - t.radius < 3.5f) {
+    				heuristic[i][1] += (3.5 - (myDistance - t.radius));
+    			} //else if (myDistance - t.radius > 5.0f) {
+    			//	heuristic[i][1] += (myDistance - t.radius) - 5.0f;
+    			//}
     		}
     		for (MapLocation mL : allyArchons) {
     			float myDistance = newLoc.distanceTo(mL);
-    			if (myDistance < 5.0f) {
-    				heuristic[i][1] += 5.0f - myDistance;
+    			if (myDistance < targetDistAwayFromArchons) {
+    				rc.setIndicatorLine(newLoc, mL, 255, 255, 255);
+    				heuristic[i][1] += 3.0f * (targetDistAwayFromArchons - myDistance);
     			}
     		}
     	}
