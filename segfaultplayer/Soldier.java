@@ -135,7 +135,7 @@ public strictfp class Soldier extends RobotBase
 		if(ctr>=enemyArchons.length)
 			shoot(null);
 		else
-			shoot(rc.getLocation().directionTo(enemyArchons[ctr]));
+			shoot(rc.getLocation().directionTo(enemyArchons[ctr]),true);
 	}
 
 	public void shoot(Direction goal) throws GameActionException {
@@ -168,15 +168,37 @@ public strictfp class Soldier extends RobotBase
 				if(debug) {
 					System.out.println("vPentad: "+vPentad[0]+" "+vPentad[1]);
 					System.out.println("vTriad: "+vTriad[0]+" "+vTriad[1]);
+					System.out.println("vTriad: "+vSingle[0]+" "+vSingle[1]);
 				}
+			//	if(debug)
+			//		System.out.println(rc.canFirePentadShot() +" "+ (vPentad[1] > vPentad[0]) +" "+ (vPentad[1]>vTriad[1] || target.getType()==RobotType.SOLDIER)
+			//			+" "+ (target.getType()!=RobotType.LUMBERJACK || (rc.getLocation().distanceTo(target.getLocation())<3.0)));
+				if(debug)
+					System.out.println(rc.canFirePentadShot()+" "+(vPentad[1]>vPentad[0])+" "+(target.getType()==RobotType.SOLDIER));
 				//can fire pentad, pentad does less collateral, pentad does more than triad OR is soldier, is not LJ or is closer than 3
-				if (rc.canFirePentadShot() && vPentad[1] > vPentad[0] && (vPentad[1]>vTriad[1] || rc.getType()==RobotType.SOLDIER) && (rc.getType()!=RobotType.LUMBERJACK || rc.getLocation().distanceTo(target.getLocation())<3.0)) //does penta do more enemy dmg
+				//if (rc.canFirePentadShot() && vPentad[1] > vPentad[0] && (vPentad[1]>vTriad[1] || target.getType()==RobotType.SOLDIER) //TODO WTF IS THIS SHT
+				//		&& (target.getType()!=RobotType.LUMBERJACK || rc.getLocation().distanceTo(target.getLocation())<3.0)) {
+				if(rc.canFirePentadShot() && (vPentad[1] > vTriad[1] || target.getType()==RobotType.SOLDIER)) {
 					rc.firePentadShot(tDir);
-				//can fire triad, triad does no friendly, triad does more damage than single, is not LJ
-				else if (rc.canFireTriadShot() && vTriad[0] == 0 && vTriad[1]>vSingle[1] && rc.getType()!=RobotType.LUMBERJACK) //is triad safe
+					if(debug)
+						System.out.println("Fired Penta");
+				}
+				if(debug)
+					//System.out.println(rc.canFireTriadShot() +" "+ (vTriad[0] == 0) +" "+ (vTriad[1]>vSingle[1]) +" "+ (target.getType()!=RobotType.LUMBERJACK || vTriad[1]>=vPentad[1]));
+					System.out.println(rc.canFireTriadShot()+" "+(vTriad[1]>vSingle[1]));
+				//can fire triad, triad does no friendly, triad does more damage than single, is not LJ or was the triad does equal/more condition
+				else if (rc.canFireTriadShot() && vTriad[1]>vSingle[1]) {
 					rc.fireTriadShot(tDir);
-				else if (rc.canFireSingleShot() && isSingleShotClear(tDir))
+					if(debug)
+						System.out.println("Fired triad");
+				}
+				if(debug)
+					System.out.println((rc.canFireSingleShot() +" "+ isSingleShotClear(tDir)));
+				else if (rc.canFireSingleShot() && isSingleShotClear(tDir)) {
 					rc.fireSingleShot(tDir);
+					if(debug)
+						System.out.println("Fired single");
+				}
 			}
 		}
 		else if(rc.getRoundNum()>600 && rc.getTeamBullets()>200 && goal!=null && trees.length>0 && trees[0].getTeam()!=ally) { //are there nearby non-ally trees

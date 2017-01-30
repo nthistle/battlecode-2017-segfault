@@ -18,16 +18,16 @@ public strictfp class Lumberjack extends RobotBase
 				RobotInfo[] nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
 				if(!strike(true)) { //tries attacking first
 					TreeInfo target = getTarget(nearbyTrees,true); //finds best tree
-					if (target == null && nearbyRobots.length==0) //if no trees, random move
-						randomMove();
-					else if (nearbyRobots.length>0) { //TODO: Change to target==null && ... if this doesn't work
+					if (nearbyRobots.length>0) { //TODO: Change to target==null && ... if this doesn't work
 						pathFind(nearbyRobots[0].getLocation());
 					}
+					else if(target==null) ////if no trees, random move
+						randomMove();
 					else {
 						boolean struckTarget = tryChoppingTarget(target); //tries chopping best tree
 						if (!struckTarget) {
-							moveWithoutDodging(rc.getLocation().directionTo(target.getLocation())); //TODO: unselect this and select pathfind if fails
-							//pathFind(target.getLocation()); //moves if couldnt chop best tree
+							//moveWithoutDodging(rc.getLocation().directionTo(target.getLocation())); //TODO: unselect this and select pathfind if fails
+							pathFind(target.getLocation()); //moves if couldnt chop best tree
 							struckTarget = tryChoppingTarget(target); //tries chopping best tree post-mvoe
 							if (!struckTarget) //chops any nearby trees if still hasn't chopped
 								chopAnyTree(nearbyTrees,true);

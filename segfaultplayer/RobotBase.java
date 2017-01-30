@@ -493,7 +493,7 @@ public strictfp abstract class RobotBase
 			if(clear) {
 				if (rc.canMove(mapLocation)) {
 					rc.move(mapLocation);
-					System.out.println("i: "+i);
+					//System.out.println("i: "+i);
 					break;
 				}
 			}
