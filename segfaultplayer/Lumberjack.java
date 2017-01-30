@@ -20,6 +20,8 @@ public strictfp class Lumberjack extends RobotBase
 					TreeInfo target = getTarget(nearbyTrees,true); //finds best tree
 					if (nearbyRobots.length>0) { //TODO: Change to target==null && ... if this doesn't work
 						pathFind(nearbyRobots[0].getLocation());
+						MapLocation myLocation = nearbyRobots[0].getLocation();
+						rc.broadcast(301, CommunicationsHandler.pack(myLocation.x,myLocation.y));
 					}
 					else if(target==null) ////if no trees, random move
 						randomMove();

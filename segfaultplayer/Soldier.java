@@ -77,7 +77,7 @@ public strictfp class Soldier extends RobotBase
 			goal = robots[targetIndex].getLocation();
 			if(robots[0].getType()==RobotType.LUMBERJACK || rc.getLocation().distanceTo(robots[0].getLocation())<2.0)
 				goal = rc.getLocation().subtract(rc.getLocation().directionTo(robots[0].getLocation()));
-			MapLocation myLocation = rc.getLocation();
+			MapLocation myLocation = robots[0].getLocation();
 			rc.broadcast(301, CommunicationsHandler.pack(myLocation.x,myLocation.y));
 		}
 		else if(swarm==1 && swarmcoordinates!=0) {
