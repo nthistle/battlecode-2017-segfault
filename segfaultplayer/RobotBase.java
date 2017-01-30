@@ -613,6 +613,20 @@ public strictfp abstract class RobotBase
     	}
     	return dirs;
 	}
+
+	public static Direction[] getBestDirectionsMihir(Direction bestDir, float theta) throws GameActionException {
+		float initialtheta = theta;
+		Direction[] dirs = new Direction [(int)(360.0f/theta)];
+		dirs[0] = bestDir;
+		for (int j=1; j<dirs.length; j++) {
+			dirs[j] = bestDir.rotateLeftDegrees(theta);
+			if(j!=dirs.length-1) {
+				dirs[j] = bestDir.rotateRightDegrees(theta);
+				theta += initialtheta;
+			}
+		}
+		return dirs;
+	}
     
 	
 	public static Direction averageDirection(Direction a, Direction b) {
