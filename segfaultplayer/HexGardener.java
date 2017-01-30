@@ -565,7 +565,8 @@ public strictfp class HexGardener extends RobotBase
 					water = i;
 				}
 			}
-			rc.water(myTrees[water].getID());
+			if(rc.canWater(myTrees[water].getID()))
+				rc.water(myTrees[water].getID());
 		}
 	}
 }
