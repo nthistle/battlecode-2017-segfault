@@ -7,8 +7,6 @@ import battlecode.common.*;
 
 public strictfp class FirstGardener extends HexGardener
 {
-	
-
 	public FirstGardener(RobotController rc, int id) throws GameActionException {
 		super(rc, id);
 		myPodStatus = new int[6];
@@ -28,15 +26,11 @@ public strictfp class FirstGardener extends HexGardener
 		setPodLocations();
 		updatePodStatus();
 		drawPodStatus();
+		setPodOpenDir();
+		drawPodOpenDir();
+		Clock.yield();
 		
-		int numFree = 0;
-		for(int i : myPodStatus) {
-			if(i == FREE_SPOT) {
-				numFree ++;
-			}
-		}
-		
-		if(numFree <= 1) {
+		if(rc.senseNearbyTrees(3.5f, Team.NEUTRAL).length > 0) {
 			caseClosed();
 		} else if(rc.readBroadcast(2) == 2) {
 			caseFar();
@@ -75,6 +69,7 @@ public strictfp class FirstGardener extends HexGardener
 							// can't build this, ohwell
 						} else {
 							rc.buildRobot(nextOrder.rt, buildDir);
+							myOrders.pollFirst();
 							System.out.println("We succesfully built a " + nextOrder.rt.toString());
 							buildCooldown = 15;
 						}
@@ -126,6 +121,7 @@ public strictfp class FirstGardener extends HexGardener
 							// can't build this, ohwell
 						} else {
 							rc.buildRobot(nextOrder.rt, buildDir);
+							myOrders.pollFirst();
 							System.out.println("We succesfully built a " + nextOrder.rt.toString());
 							buildCooldown = 15;
 						}
@@ -177,6 +173,7 @@ public strictfp class FirstGardener extends HexGardener
 							// can't build this, ohwell
 						} else {
 							rc.buildRobot(nextOrder.rt, buildDir);
+							myOrders.pollFirst();
 							System.out.println("We succesfully built a " + nextOrder.rt.toString());
 							buildCooldown = 15;
 						}

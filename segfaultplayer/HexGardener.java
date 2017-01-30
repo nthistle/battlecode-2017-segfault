@@ -13,7 +13,7 @@ public strictfp class HexGardener extends RobotBase
 	
 	protected MapLocation[] myPodLocations;
 	
-	protected Direction[] podDirs = new Direction[] {
+	public static final Direction[] podDirs = new Direction[] {
 			new Direction(0),
 			new Direction((float)Math.PI/3.0f),
 			new Direction(2.0f*(float)Math.PI/3.0f),
