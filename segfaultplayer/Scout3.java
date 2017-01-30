@@ -8,6 +8,8 @@ import java.util.Set;
 
 public strictfp class Scout3 extends RobotBase
 {
+	public float curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
+	public float curdirection = (float) Math.random() * 2 * (float) Math.PI;
 
 	public Scout3(RobotController rc, int id) throws GameActionException {
 		super(rc, id);
@@ -44,8 +46,16 @@ public strictfp class Scout3 extends RobotBase
 						rc.move(rc.getLocation().directionTo(trees[i].getLocation()),rc.getType().strideRadius*.5f);
 					else
 						pathFind(trees[i].getLocation());
+					return;
 				}
 			}
+			if (Math.random() < 0.05)
+				curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
+			curdirection += curdiff + 2 * (float) Math.PI;
+			while (curdirection > 2 * (float) Math.PI)
+				curdirection -= 2 * (float) Math.PI;
+			MapLocation goal = rc.getLocation().add(new Direction(curdirection),rc.getType().strideRadius);
+			pathFind(goal);
 		}
 	}
 

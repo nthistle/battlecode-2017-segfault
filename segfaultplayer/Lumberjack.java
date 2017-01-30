@@ -26,7 +26,7 @@ public strictfp class Lumberjack extends RobotBase
 					else {
 						boolean struckTarget = tryChoppingTarget(target); //tries chopping best tree
 						if (!struckTarget) {
-							moveWithoutDodging(rc.getLocation().directionTo(target.getLocation()));
+							moveWithoutDodging(rc.getLocation().directionTo(target.getLocation())); //TODO: unselect this and select pathfind if fails
 							//pathFind(target.getLocation()); //moves if couldnt chop best tree
 							struckTarget = tryChoppingTarget(target); //tries chopping best tree post-mvoe
 							if (!struckTarget) //chops any nearby trees if still hasn't chopped
