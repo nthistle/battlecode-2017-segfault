@@ -38,16 +38,16 @@ public strictfp class RobotPlayer {
     }
 
     public static void handleGardener(RobotController rc, int id) throws GameActionException {
-//    	if(id == 0) {
-//    		FirstGardener fg = new FirstGardener(rc, id);
-//    		fg.run();
-//    	} else {
-//    		HexGardener hg = new HexGardener(rc, id);
-//    		hg.run();
-//    	}
-        Gardener g = new Gardener(rc, id);
-        g.run();
-        g.runAlternate(RobotType.SCOUT);
+    	if(id == 0) {
+    		FirstGardener fg = new FirstGardener(rc, id);
+    		fg.run();
+    	} else {
+    		HexGardener hg = new HexGardener(rc, id);
+    		hg.run();
+    	}
+        //Gardener g = new Gardener(rc, id);
+        //g.run();
+        //g.runAlternate(RobotType.SCOUT);
     }
 
     public static void handleSoldier(RobotController rc, int id) throws GameActionException {

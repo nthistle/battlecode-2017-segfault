@@ -121,6 +121,7 @@ public strictfp class HexGardener extends RobotBase
 		// phase 2
 		int unitsBuilt = 0;
 		int treesPlanted = 0;
+		boolean hasBroadcastedGardenerNecessity = false;
 		while(true) {
 			try {
 				// standard stuff
@@ -152,6 +153,10 @@ public strictfp class HexGardener extends RobotBase
 								treesPlanted ++;
 							}
 						}
+					}
+					if(numPodTrees >= PHASE_2_MAX_TREES && !hasBroadcastedGardenerNecessity) {
+						weNeedAnotherGardener();
+						hasBroadcastedGardenerNecessity = true;
 					}
 				}
 				
@@ -505,6 +510,13 @@ public strictfp class HexGardener extends RobotBase
     // =============END OLD CODE DOESNT WORK===================
     // ========================================================
 
+
+    
+	public void weNeedAnotherGardener() throws GameActionException {
+		rc.broadcast(21, 1);
+	}
+	
+	
 	/**
 	 * uses indicator dots to illustrate the status of each potential pod location 
 	 * red = occupied by tree 
