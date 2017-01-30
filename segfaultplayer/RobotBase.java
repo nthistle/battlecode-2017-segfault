@@ -572,9 +572,9 @@ public strictfp abstract class RobotBase
 	 * @throws GameActionException
 	 */
 	public float getFloatRatio() throws GameActionException {
-		return 1.0f; // some weird stuff was happening, so for debugging
+		return 2.1f; // some weird stuff was happening, so for debugging
 		// and because I'm not sure how well this method works, I just made
-		// this return 1
+		// this return 2.1
 		
 		/*int realRatio = rc.readBroadcast(11);
 		return (float)realRatio / 1000.0f;*/

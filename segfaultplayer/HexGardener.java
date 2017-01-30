@@ -130,11 +130,12 @@ public strictfp class HexGardener extends RobotBase
 				drawPodStatus();
 				
 				if(buildCooldown <= 0) {
+					System.out.println("Ready to build");
 					// build stuff for phase 2 is done based on ratio
 					//System.out.println("Ratio: "+getFloatRatio());
 					// build a unit to make up for it
-					if(numPodTrees >= PHASE_2_MAX_TREES || treesPlanted > getFloatRatio() * unitsBuilt) {
-
+					if(numPodTrees >= PHASE_2_MAX_TREES || treesPlanted > getFloatRatio() * (1+unitsBuilt)) {
+						System.out.println("Trying for a unit, T:" + treesPlanted + ",U:" + unitsBuilt);
 						RobotType nextType = getNextRobotBuildType();
 
 						Direction buildDir = getBuildDirection(nextType);
@@ -147,6 +148,7 @@ public strictfp class HexGardener extends RobotBase
 							unitsBuilt ++;
 						}
 					} else {
+						System.out.println("Trying for a tree");
 						// plant a tree to make up for it
 						if(isAbleToBuildTree()) {
 							if(addTreeToPod()) {
