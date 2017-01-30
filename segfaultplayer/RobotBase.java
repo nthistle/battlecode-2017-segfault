@@ -91,7 +91,7 @@ public strictfp abstract class RobotBase
 		if(vpNeeded*rc.getVictoryPointCost() < rc.getTeamBullets()) {
 			rc.donate(rc.getTeamBullets());
 		}
-		if(rc.getRoundNum()>rc.getRoundLimit()-3)
+		if(rc.getRoundNum()>rc.getRoundLimit()-5)
 			rc.donate(rc.getTeamBullets());
 	}
 	
@@ -448,6 +448,64 @@ public strictfp abstract class RobotBase
 				}
 			}
 		}
+	}
+
+	public void moveWithDodgingScout(MapLocation ml) throws GameActionException{
+		moveWithDodging(ml, false);
+	}
+
+	//moves arbitrarily with dodging, if all bullets are non-threatening moves using without dodging
+	public void moveWithDodgingScout(MapLocation ml, boolean debug) throws GameActionException {
+		Direction goal = rc.getLocation().directionTo(ml);
+		BulletInfo[] nearbyBullets = rc.senseNearbyBullets(5.0f);
+		int ctr=0;
+		for(int i=0; i<nearbyBullets.length; i++) {
+			if(rc.getLocation().directionTo(nearbyBullets[i].getLocation()).equals(nearbyBullets[i].getDir(),(float)(Math.PI/2.0)))
+				nearbyBullets[i] = null;
+			else
+				ctr++;
+		}
+		if(ctr==0) {
+			pathFind(ml);
+			return;
+		}
+		BulletInfo[] bi = new BulletInfo[ctr];
+		ctr=0;
+		for(int i=0; i<nearbyBullets.length; i++) {
+			if(nearbyBullets[i]!=null) {
+				bi[ctr] = nearbyBullets[i];
+				ctr++;
+			}
+		}
+		MapLocation[] moves = new MapLocation[25];
+		float dir = 0.0f;
+		for(int i=0; i<25; i++) {
+			MapLocation mapLocation = rc.getLocation().add(randomDirection(),(float)(.5+(Math.random()*.5)*rc.getType().strideRadius));
+			boolean clear = true;
+			for(BulletInfo bullet: bi) {
+				if(mapLocation.distanceTo(bullet.getLocation().add(bullet.getDir(),bullet.getSpeed()))<rc.getType().bodyRadius+.05
+						&& mapLocation.distanceTo(bullet.getLocation().add(bullet.getDir(),(float)(bullet.getSpeed()*.5)))<rc.getType().bodyRadius+.05) {
+					clear = false;
+					break;
+				}
+			}
+			if(clear)
+				moves[i] = mapLocation;
+			else
+				moves[i] = null;
+		}
+		for(BulletInfo bullet: bi) {
+			dir+=bullet.getDir().radians;
+		}
+		dir = dir / bi.length*1.0f;
+		Direction dodgeDir = new Direction(dir);
+		MapLocation move = moves[0];
+		for(int i=1; i<25; i++) {
+			if(move.distanceTo(rc.getLocation().add(dodgeDir,rc.getType().strideRadius)) > move.distanceTo(rc.getLocation().add(dodgeDir,rc.getType().strideRadius)))
+				move = moves[i];
+		}
+		if(rc.canMove(move))
+			rc.move(move);
 	}
 	
 

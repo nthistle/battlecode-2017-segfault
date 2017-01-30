@@ -60,6 +60,8 @@ public strictfp class Soldier extends RobotBase
 		BulletInfo[] nearbyBullets = rc.senseNearbyBullets();
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
 		MapLocation goal;
+		if(debug)
+			System.out.println((robots.length>0)+" "+(swarm==1 && swarmcoordinates!=0)+" "+(ctr<enemyArchons.length));
 		if(robots.length>0) { //if nearby units, move towards them
 			goal = robots[0].getLocation();
 			if(robots[0].getType()==RobotType.LUMBERJACK || rc.getLocation().distanceTo(robots[0].getLocation())<2.0)
@@ -85,7 +87,7 @@ public strictfp class Soldier extends RobotBase
 			System.out.println("Decided Move: "+Clock.getBytecodesLeft());
 		if(nearbyBullets.length>0) //if there are bullets, dodge
 			moveWithDodging(goal);
-		else if(rc.getRoundNum()<100)//  || pushWave<25 add swarm
+		else//  || pushWave<25 add swarm
 			pathFind(goal);
 		pushWave++;
 	}

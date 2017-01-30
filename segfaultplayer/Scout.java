@@ -1,88 +1,78 @@
 package segfaultplayer;
-import java.util.HashSet;
-import java.util.Set;
 
 import battlecode.common.*;
 
-
 public strictfp class Scout extends RobotBase
 {
+	public float curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
+	public float curdirection = (float) Math.random() * 2 * (float) Math.PI;
 
 	public Scout(RobotController rc, int id) throws GameActionException {
 		super(rc, id);
 	}
 
 	public void run() throws GameActionException {
-		MapLocation dank = rc.getInitialArchonLocations(enemy)[0];
-		System.out.println(dank);
-		bulletPath(dank);
+		while (true) {
+			checkVPWin();
+			boolean hasShaken = shake();
+			spot();
+			move();
+			if(!hasShaken)
+				shake();
+			spot();
+			Clock.yield();
+		}
 	}
 
-	public void bulletPath(MapLocation el) throws GameActionException {
-		Set<Integer> uniqueTrees = new HashSet<Integer>();
-		float scaledNumTrees = 0;
-		int steps = 0;
-		float sR = rc.getType().sensorRadius; // D Y N A M I C
-		float stride = rc.getType().strideRadius; // C O D E
-		System.out.println(rc.getLocation().distanceTo(el));
-		boolean isAtEnemy = false;
-		int counter = 0;
-		while (true) {
-			counter++;
-			Direction dir = rc.getLocation().directionTo(el);
-			if(rc.senseNearbyBullets().length>0) {
-				moveWithDodging(el);
-				Clock.yield();
-			} else {
-				MapLocation myLoc = rc.getLocation();
-				boolean hasShaken = false;
-				TreeInfo[] myTrees = rc.senseNearbyTrees(sR);
-				// going towards enemy archon when it doesn't have any bullets
-				if(!isAtEnemy) { 
-					isAtEnemy = rc.getLocation().distanceTo(el) < 10.0f;
-					float distance = myLoc.distanceTo(el);
-					//dir = myLoc.directionTo(el);
-				// go in random directions after reaching enemy archon
-				} else {
-					isAtEnemy=true;
-					if(counter%15==0) { // change direction
-						dir = randomDirection();
-						while(!rc.canMove(dir)) {
-							dir = randomDirection();
-						}
-					}
-				}
-				for (TreeInfo k : myTrees) {
-					float q = k.radius;
-					if(uniqueTrees.add(k.ID)) {
-						scaledNumTrees += (q*q);
-					}
-					if(k.containedBullets!=0) {
-						if(!hasShaken && rc.canShake(k.ID)){
-							rc.shake(k.ID);
-							hasShaken = true;
-						} else {
-							dir = myLoc.directionTo(k.location);
-							break;
-						}
-					}
-				}
-	
-				//broadcast tree data
-				rc.broadcast(151, uniqueTrees.size());
-				rc.broadcast(152, (int)scaledNumTrees);
-				//move
-				if(rc.canMove(dir, stride)) {
-					rc.move(dir, stride);
-					steps+=1;
-					rc.broadcast(150, steps);
-					Clock.yield();
-				} else {
-					Clock.yield();
+	public void spot() throws GameActionException {
+		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
+		if(robots.length>0)
+			rc.broadcast(301,CommunicationsHandler.pack(robots[0].getLocation().x,robots[0].getLocation().y));
+	}
+
+	public void move() throws GameActionException {
+		BulletInfo[] nearbyBullets = rc.senseNearbyBullets();
+		int ctr=0;
+		for(int i=0; i<nearbyBullets.length; i++) {
+			if(rc.getLocation().directionTo(nearbyBullets[i].getLocation()).equals(nearbyBullets[i].getDir(),(float)(Math.PI/2.0)))
+				nearbyBullets[i] = null;
+			else
+				ctr++;
+		}
+		if(ctr>0)
+			moveWithDodgingScout(enemyArchons[0]);
+		else {
+			TreeInfo[] trees = rc.senseNearbyTrees();
+			for(int i=0; i<trees.length; i++) {
+				if(trees[i].getContainedBullets()>0) {
+					if(rc.canMove(rc.getLocation().directionTo(trees[i].getLocation())))
+						rc.move(rc.getLocation().directionTo(trees[i].getLocation()));
+					else if(rc.canMove(rc.getLocation().directionTo(trees[i].getLocation()),rc.getType().strideRadius*.5f))
+						rc.move(rc.getLocation().directionTo(trees[i].getLocation()),rc.getType().strideRadius*.5f);
+					else
+						pathFind(trees[i].getLocation());
+					return;
 				}
 			}
-		
+			if (Math.random() < 0.05)
+				curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
+			curdirection += curdiff + 2 * (float) Math.PI;
+			while (curdirection > 2 * (float) Math.PI)
+				curdirection -= 2 * (float) Math.PI;
+			MapLocation goal = rc.getLocation().add(new Direction(curdirection),rc.getType().strideRadius);
+			pathFind(goal);
 		}
+	}
+
+	public boolean shake() throws GameActionException {
+		TreeInfo[] trees = rc.senseNearbyTrees();
+		for(TreeInfo tree: trees) {
+			if(rc.canShake(tree.getID())) {
+				rc.shake(tree.getID());
+				return true;
+			}
+		}
+		return false;
 	}
 
 }
