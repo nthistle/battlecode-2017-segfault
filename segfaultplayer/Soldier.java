@@ -83,6 +83,7 @@ public strictfp class Soldier extends RobotBase
 		else if(swarm==1 && swarmcoordinates!=0) {
 			float[] swarmHere = CommunicationsHandler.unpack(swarmcoordinates);
 			goal = new MapLocation(swarmHere[0],swarmHere[1]);
+			rc.setIndicatorLine(rc.getLocation(), goal, 115, 202, 226);
 		}
 		else if(ctr<enemyArchons.length) //elif archons are alive, move towards them
 			goal = enemyArchons[ctr];

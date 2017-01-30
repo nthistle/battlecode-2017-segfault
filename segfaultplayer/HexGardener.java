@@ -33,6 +33,8 @@ public strictfp class HexGardener extends RobotBase
 	
 	public static final int PHASE_2_MAX_TREES = 4; // so that tanks can happen
 	
+	public static final int TURNS_WITHOUT_TREES_TIMEOUT = 100;
+	
 	protected int numPodTrees = 0; // how many trees our pod currently has planted ((ignores destroyed))
 	protected int openDirection = -1; // which direction we open in 
 	protected int buildCooldown = 0; // ticks until we build again
@@ -122,6 +124,7 @@ public strictfp class HexGardener extends RobotBase
 		// phase 2
 		int unitsBuilt = 0;
 		int treesPlanted = 0;
+		int numTurnsNoTree = 0;
 		boolean hasBroadcastedGardenerNecessity = false;
 		while(true) {
 			try {
@@ -154,8 +157,13 @@ public strictfp class HexGardener extends RobotBase
 						if(isAbleToBuildTree()) {
 							if(addTreeToPod()) {
 								treesPlanted ++;
+								numTurnsNoTree = 0;
 							}
 						}
+					}
+					if(numTurnsNoTree >= TURNS_WITHOUT_TREES_TIMEOUT && !hasBroadcastedGardenerNecessity) {
+						weNeedAnotherGardener();
+						hasBroadcastedGardenerNecessity = true;
 					}
 					if(numPodTrees >= PHASE_2_MAX_TREES && !hasBroadcastedGardenerNecessity) {
 						weNeedAnotherGardener();
@@ -166,7 +174,7 @@ public strictfp class HexGardener extends RobotBase
 				// more standard stuff
 				waterLowest();
 				if(buildCooldown>0) buildCooldown--;
-				
+				numTurnsNoTree ++;
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
