@@ -9,11 +9,11 @@ public strictfp class Soldier extends RobotBase
 	public float curdirection = (float) Math.random() * 2 * (float) Math.PI;
 	public int ctr = 0;
 	public int pushWave = 0;
-	
+
 	public Soldier(RobotController rc, int id) throws GameActionException {
 		super(rc, id);
 	}
-	
+
 	public void run() throws GameActionException {
 		try {
 			while(true) {
@@ -69,7 +69,12 @@ public strictfp class Soldier extends RobotBase
 		if(debug)
 			System.out.println((robots.length>0)+" "+(swarm==1 && swarmcoordinates!=0)+" "+(ctr<enemyArchons.length));
 		if(robots.length>0) { //if nearby units, move towards them
-			goal = robots[0].getLocation();
+			int targetIndex = 0;
+			for(int i=1; i<robots.length; i++) {
+				if(scoreRobot(robots[targetIndex],targetIndex)<scoreRobot(robots[i],i))
+					targetIndex = i;
+			}
+			goal = robots[targetIndex].getLocation();
 			if(robots[0].getType()==RobotType.LUMBERJACK || rc.getLocation().distanceTo(robots[0].getLocation())<2.0)
 				goal = rc.getLocation().subtract(rc.getLocation().directionTo(robots[0].getLocation()));
 			MapLocation myLocation = rc.getLocation();
@@ -96,6 +101,33 @@ public strictfp class Soldier extends RobotBase
 		else//  || pushWave<25 add swarm
 			pathFind(goal);
 		pushWave++;
+	}
+
+	public int scoreRobot(RobotInfo robot, int index) {
+		int score = index;
+		switch (rc.getType()) {
+			case TANK:
+				score+=120;
+				break;
+			case SOLDIER:
+				score+=100;
+				break;
+			case GARDENER:
+				score+=80;
+				break;
+			case LUMBERJACK:
+				score+=60;
+				break;
+			case ARCHON:
+				score+=40;
+				break;
+			case SCOUT:
+				score+=20;
+				break;
+			default:
+				break;
+		}
+		return score;
 	}
 
 	//determines shooting for the turn
