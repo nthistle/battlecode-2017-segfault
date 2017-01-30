@@ -27,10 +27,10 @@ public strictfp class Scout3 extends RobotBase
 		System.out.println(rc.getLocation().distanceTo(el));
 		boolean isAtEnemy = false;
 		int counter = 0;
+		Direction dir = rc.getLocation().directionTo(el);
 		while (true) {
 			counter++;
-			Direction dir = rc.getLocation().directionTo(el);
-			if(rc.senseNearbyBullets().length>0) {
+			if(rc.senseNearbyBullets(5f).length>0) {
 				moveWithDodging(el);
 				Clock.yield();
 			} else {
@@ -38,6 +38,7 @@ public strictfp class Scout3 extends RobotBase
 				boolean hasShaken = false;
 				TreeInfo[] myTrees = rc.senseNearbyTrees(sR);
 				// going towards enemy archon when it doesn't have any bullets
+				/*
 				if(!isAtEnemy) {
 					isAtEnemy = rc.getLocation().distanceTo(el) < 10.0f;
 					float distance = myLoc.distanceTo(el);
@@ -50,6 +51,13 @@ public strictfp class Scout3 extends RobotBase
 						while(!rc.canMove(dir)) {
 							dir = randomDirection();
 						}
+					}
+				}
+				*/
+				if(counter%15==0) { // change direction
+					dir = randomDirection();
+					while(!rc.canMove(dir)) {
+						dir = randomDirection();
 					}
 				}
 				for (TreeInfo k : myTrees) {
