@@ -532,7 +532,7 @@ public strictfp abstract class RobotBase
 		//P(x) is 1 when at enemy, 0 at friendly robot
 		//Big x means P(x) is 1, Small X is means P(x) is 0
 		double distance = allyArchons[0].distanceTo(enemyArchons[0]);
-		double myScore = allyArchons.length * distance * ( 1.0 / ( 1 + Math.exp( -rc.getLocation().distanceTo(allyArchons[0]) + distance/2.0) ) + .1 );
+		double myScore = allyArchons.length * distance / 100.0 * ( 1.0 / ( 1 + Math.exp( -rc.getLocation().distanceTo(allyArchons[0]) + distance/2.0) ) + .1 );
 
 		int myRatio = (int)(myScore*1000);
 		int realRatio = rc.readBroadcast(11);
