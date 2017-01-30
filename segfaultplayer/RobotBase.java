@@ -283,6 +283,51 @@ public strictfp abstract class RobotBase
 		return true;
 	}
 
+	public double[] isSingleShotClearValue(Direction tDir) throws GameActionException {
+		return isSingleShotClearValue(tDir, false);
+	}
+
+	public double[] isSingleShotClearValue(Direction tDir, boolean drawIndicators) throws GameActionException {
+		double[] ret = {0.0,0.0};
+		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
+		TreeInfo[] trees = rc.senseNearbyTrees();
+
+		if(drawIndicators)
+			rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(tDir,Float.valueOf(100.0+"")),0,255,255);
+
+		for(int i=0; i<robots.length; i++) {
+			Direction fDir = rc.getLocation().directionTo(robots[i].getLocation());
+			double length = (double)rc.getLocation().distanceTo(robots[i].getLocation());
+			double dist = Math.sqrt(2*length*length - 2*length*length*Math.cos(tDir.radiansBetween(fDir)));
+			if (dist < robots[i].getRadius()+.1) {
+				double score = 2.0;
+				if(robots[i].getType()==RobotType.ARCHON)
+					score+=4.0;
+				if(robots[i].getTeam()==rc.getTeam())
+					ret[0]+=score;
+				else
+					ret[1]+=score;
+			}
+		}
+		for(int i=0; i<trees.length; i++) {
+			if(trees[i].getTeam()==ally) {
+				if (drawIndicators)
+					rc.setIndicatorDot(trees[i].getLocation(), 0, 0, 255);
+				Direction fDir = rc.getLocation().directionTo(trees[i].getLocation());
+				double length = (double) rc.getLocation().distanceTo(trees[i].getLocation());
+				double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
+				if (dist < trees[i].getRadius() + .1) {
+					double score = 1.0;
+					if (trees[i].getTeam() == rc.getTeam())
+						ret[0] += score;
+					else
+						ret[1] += score;
+				}
+			}
+		}
+		return ret;
+	}
+
 	public double[] isTriadShotClear(Direction tDir) throws GameActionException {
 		return isTriadShotClear(tDir, false);
 	}

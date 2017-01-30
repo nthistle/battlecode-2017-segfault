@@ -164,13 +164,16 @@ public strictfp class Soldier extends RobotBase
 				Direction tDir = rc.getLocation().directionTo(target.getLocation());
 				double[] vPentad = isPentadShotClear(tDir);
 				double[] vTriad = isTriadShotClear(tDir);
+				double[] vSingle = isSingleShotClearValue(tDir);
 				if(debug) {
 					System.out.println("vPentad: "+vPentad[0]+" "+vPentad[1]);
 					System.out.println("vTriad: "+vTriad[0]+" "+vTriad[1]);
 				}
-				if (rc.canFirePentadShot() && vPentad[1] > vPentad[0] && rc.getRoundNum()>300) //does penta do more enemy dmg
+				//can fire pentad, pentad does less collateral, pentad does more than triad OR is soldier, is not LJ or is closer than 3
+				if (rc.canFirePentadShot() && vPentad[1] > vPentad[0] && (vPentad[1]>vTriad[1] || rc.getType()==RobotType.SOLDIER) && (rc.getType()!=RobotType.LUMBERJACK || rc.getLocation().distanceTo(target.getLocation())<3.0)) //does penta do more enemy dmg
 					rc.firePentadShot(tDir);
-				else if (rc.canFireTriadShot() && vTriad[0] == 0) //is triad safe
+				//can fire triad, triad does no friendly, triad does more damage than single, is not LJ
+				else if (rc.canFireTriadShot() && vTriad[0] == 0 && vTriad[1]>vSingle[1] && rc.getType()!=RobotType.LUMBERJACK) //is triad safe
 					rc.fireTriadShot(tDir);
 				else if (rc.canFireSingleShot() && isSingleShotClear(tDir))
 					rc.fireSingleShot(tDir);
