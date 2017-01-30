@@ -82,6 +82,7 @@ public strictfp class HexGardener extends RobotBase
 				
 				// building stuff during phase 1 is done entirely through order queue
 				Order nextOrder = CommunicationsHandler.peekOrder(rc);
+				if(nextOrder == null) break;
 				if(nextOrder.type == OrderType.TREE) {
 					if(isAbleToBuildTree()) {
 						if(addTreeToPod()) {
