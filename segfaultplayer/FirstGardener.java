@@ -47,7 +47,6 @@ public strictfp class FirstGardener extends HexGardener
 		myOrders.addLast(new Order(OrderType.TREE));
 		myOrders.addLast(new Order(OrderType.ROBOT, RobotType.SCOUT));
 		myOrders.addLast(new Order(OrderType.TREE));
-		myOrders.addLast(new Order(OrderType.TREE));
 		while(myOrders.size() > 0) {
 			checkVPWin();
 			updatePodStatus();
@@ -85,12 +84,7 @@ public strictfp class FirstGardener extends HexGardener
 		weNeedAnotherGardener();
 		
 		// TODO: make this main loop a little more sophisticated
-		while(true) {
-			checkVPWin();
-			waterLowest();
-			Clock.yield();
-		}
-		
+		normalBehavior();
 	}
 	
 	public void caseFar() throws GameActionException {
@@ -137,11 +131,7 @@ public strictfp class FirstGardener extends HexGardener
 		weNeedAnotherGardener();
 		
 		// TODO: make this main loop a little more sophisticated
-		while(true) {
-			checkVPWin();
-			waterLowest();
-			Clock.yield();
-		}
+		normalBehavior();
 	}
 	
 	public void caseNear() throws GameActionException {
@@ -149,7 +139,6 @@ public strictfp class FirstGardener extends HexGardener
 		LinkedList<Order> myOrders = new LinkedList<Order>();
 		myOrders.addLast(new Order(OrderType.ROBOT, RobotType.SOLDIER));
 		myOrders.addLast(new Order(OrderType.ROBOT, RobotType.SOLDIER));
-		myOrders.addLast(new Order(OrderType.TREE));
 		myOrders.addLast(new Order(OrderType.TREE));
 		myOrders.addLast(new Order(OrderType.TREE));
 		while(myOrders.size() > 0) {
@@ -188,10 +177,55 @@ public strictfp class FirstGardener extends HexGardener
 		
 		weNeedAnotherGardener();
 		
-		// TODO: make this main loop a little more sophisticated
+		normalBehavior();
+	}
+	
+	// this is basically just phase 2 code
+	public void normalBehavior() throws GameActionException {
+
+		int unitsBuilt = 0;
+		int treesPlanted = 0;
 		while(true) {
-			checkVPWin();
-			waterLowest();
+			try {
+				// standard stuff
+				checkVPWin();
+				updatePodStatus();
+				drawPodStatus();
+				
+				if(buildCooldown <= 0) {
+					// build stuff for phase 2 is done based on ratio
+					System.out.println("Ratio: "+getFloatRatio());
+						// build a unit to make up for it
+					if(numPodTrees >= PHASE_2_MAX_TREES || treesPlanted > getFloatRatio() * unitsBuilt) {
+
+						RobotType nextType = getNextRobotBuildType();
+
+						Direction buildDir = getBuildDirection(nextType);
+						if(buildDir == null) {
+							// can't build this, ohwell
+						} else {
+							rc.buildRobot(nextType, buildDir);
+							hasBuiltType(nextType);
+							buildCooldown = 15; //replace with actual constant
+							unitsBuilt ++;
+						}
+					} else {
+						// plant a tree to make up for it
+						if(isAbleToBuildTree()) {
+							if(addTreeToPod()) {
+								treesPlanted ++;
+							}
+						}
+					}
+				}
+				
+				// more standard stuff
+				waterLowest();
+				if(buildCooldown>0) buildCooldown--;
+				
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
 			Clock.yield();
 		}
 	}

@@ -131,10 +131,10 @@ public strictfp class HexGardener extends RobotBase
 				if(buildCooldown <= 0) {
 					// build stuff for phase 2 is done based on ratio
 					System.out.println("Ratio: "+getFloatRatio());
-						// build a unit to make up for it
-						if(numPodTrees >= PHASE_2_MAX_TREES || treesPlanted > getFloatRatio() * unitsBuilt) {
+					// build a unit to make up for it
+					if(numPodTrees >= PHASE_2_MAX_TREES || treesPlanted > getFloatRatio() * unitsBuilt) {
 
-							RobotType nextType = getNextRobotBuildType();
+						RobotType nextType = getNextRobotBuildType();
 
 						Direction buildDir = getBuildDirection(nextType);
 						if(buildDir == null) {
@@ -186,6 +186,9 @@ public strictfp class HexGardener extends RobotBase
 	 * @return
 	 */
 	public RobotType getNextRobotBuildType() {
+		if(rc.senseNearbyTrees(4.5f, Team.NEUTRAL).length > 0) {
+			return RobotType.LUMBERJACK;
+		}
 		if(rc.getRoundNum() < 300) {
 			return RobotType.SOLDIER;
 		} else {
