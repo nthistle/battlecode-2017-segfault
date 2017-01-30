@@ -402,7 +402,7 @@ public strictfp class HexGardener extends RobotBase
     	}
 		java.util.Arrays.sort(heuristic, new java.util.Comparator<float[]>() {
 			public int compare(float[] a, float[] b) {
-				return Float.compare(a[1], b[1]); // sort by heuristic if damage is equal (lower = closer to goal)
+				return Float.compare(a[1], b[1]); // lower = more optimal
 			}
 		});
 		
