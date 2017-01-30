@@ -13,6 +13,7 @@ public strictfp class Scout extends RobotBase
 
 	public void run() throws GameActionException {
 		while (true) {
+			checkVPWin();
 			boolean hasShaken = shake();
 			spot();
 			move();
