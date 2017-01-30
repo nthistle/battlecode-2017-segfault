@@ -374,49 +374,94 @@ public strictfp class HexGardener extends RobotBase
 		}
 	}
 	
+    public float[][] findOptimalPlace(float theta) throws GameActionException {
+    	TreeInfo[] trees = rc.senseNearbyTrees();
+    	Direction[] myDirs = getDirections(Direction.NORTH, theta);
+    	float[][] heuristic = new float[myDirs.length][2];
+    	MapLocation myLoc = rc.getLocation();
+    	for (int i=0; i<myDirs.length; i++) {
+    		heuristic[i][0] = i+0.01f;
+    		MapLocation newLoc = myLoc.add(myDirs[i]);
+    		for (TreeInfo t : trees) {
+    			float myDistance = newLoc.distanceTo(t.location);
+    			if(myDistance - t.radius < 3.0f) {
+    				heuristic[i][1] += (3.0 - (myDistance - t.radius));
+    			} else if (myDistance - t.radius > 5.0f) {
+    				heuristic[i][1] += (myDistance - t.radius) - 5.0f;
+    			}
+    		}
+    		for (MapLocation mL : allyArchons) {
+    			float myDistance = newLoc.distanceTo(mL);
+    			if (myDistance < 5.0f) {
+    				heuristic[i][1] += 5.0f - myDistance;
+    			}
+    		}
+    	}
+		java.util.Arrays.sort(heuristic, new java.util.Comparator<float[]>() {
+			public int compare(float[] a, float[] b) {
+				return Float.compare(a[1], b[1]); // sort by heuristic if damage is equal (lower = closer to goal)
+			}
+		});
+		
+		return heuristic;
+    }
+    // ========================================================
+    // ================OLD CODE DOESNT WORK====================
+    // ========================================================
+    /*
+    public float[] findTheOptimalShits() throws GameActionException{
+        TreeInfo[] trees = rc.senseNearbyTrees();
+        
+        ArrayList<TreeInfo> dicked = new ArrayList<TreeInfo>();
+        ArrayList<TreeInfo> less_dicked = new ArrayList<TreeInfo>();
+        
+        for(int i = 0; i < trees.length; i++){
+            if(rc.getLocation().distanceTo(trees[i].location) - trees[i].radius < 3.0f){
+                dicked.add(trees[i]);
+            }
+            if(rc.getLocation().distanceTo(trees[i]) - trees[i].radius > 5.0f){
+                less_dicked.add(trees[i]);
+            }
+        }
+        
+        ArrayList<MapLocation> dicked_archons = new ArrayList<MapLocation>();
+        for(int i = 0; i < allyArchons.length; i++){
+            if(rc.getLocation().distanceTo[allyArchons[i]] < 5.0f){
+                dicked_archons.add(allyArchons[i]);
+            }
+        }
+        
+        MapLocation[] toCheck = new MapLocation[8];
+        float cur_rad = 0;
+        for(int i = 0; i < toCheck.length; i++) {
+            toCheck[i] = rc.getLocation().add(new Direction(cur_rad)); // 
+            cur_rad += ((2 * Math.PI) / toCheck.length);
+        }
+        
+        float[] evaluatedLocs = new float[8];
+        for(int i = 0; i < evaluatedLocs.length; i++){
+            evaluatedLocs[i] = evaluation_function(toCheck[i], dicked, less_dicked, dicked_archons);
+        }
+        return evaluatedLocs;
+    }
     
-//    public float[] findTheOptimalShits() throws GameActionException{
-//        TreeInfo[] trees = rc.senseNearbyTrees();
-//        
-//        ArrayList<TreeInfo> dicked = new ArrayList<TreeInfo>();
-//        ArrayList<TreeInfo> less_dicked = new ArrayList<TreeInfo>();
-//        
-//        for(int i = 0; i < trees.length; i++){
-//            if(rc.getLocation().distanceTo(trees[i].location) - trees[i].radius < 3.0f){
-//                dicked.add(trees[i]);
-//            }
-//            if(rc.getLoction().distanceTo(trees[i]) - trees[i].radius > 5.0f){
-//                less_dicked.add(trees[i]);
-//            }
-//        }
-//        
-//        ArrayList<MapLocation> dicked_archons = new ArrayList<MapLocation>();
-//        for(int i = 0; i < allyArchons.length; i++){
-//            if(rc.getLocation.distanceTo[allyArchons[i]] > 5.0f){
-//                dicked_archons.add(allyArchons[i]);
-//            }
-//        }
-//        
-//        MapLocation[] toCheck = new MapLocation[8];
-//        float cur_rad = 0;
-//        for(int i = 0; i < toCheck.length; i++) {
-//            toCheck[i] = rc.getLocation().add(new Direction(cur_rad)); // 
-//            cur_rad += ((2 * Math.PI) / toCheck.length);
-//        }
-//        
-//        float[] evaluatedLocs = new float[8];
-//        for(int i = 0; i < evaluatedLocs.length; i++){
-//            evaluatedLocs[i] = evaluation_function(toCheck[i], dicked, less_dicked, dicked_archons);
-//        }
-//        return evaluatedLocs;
-//    }
-//    
-//    public float evaluation_function(MapLocation check_this, ArrayList<TreeInfo> dickedTrees, ArrayList<TreeInfo> lessDickedTrees, ArrayList<MapLocation> dicked_archons) throws GameActionException{
-//        for(int i = 0; i < dicked_archons.size(); i++){
-//            if(check_this.distanceTo(dicked_archons.get(i))
-//        }
-//    }
-    
+    public float evaluation_function(MapLocation check_this, ArrayList<TreeInfo> dickedTrees, ArrayList<TreeInfo> lessDickedTrees, ArrayList<MapLocation> dicked_archons) throws GameActionException{
+        float heuristicValue = 0f;
+    	for(int i = 0; i < dicked_archons.size(); i++){
+    		float distanceToArchon = check_this.distanceTo(dicked_archons.get(i));
+    		if(distanceToArchon < 5f) { // archons have
+    			heuristicValue += (5f-distanceToArchon);
+    		}
+        }
+    	heuristicValue += dickedTrees.size()*2f; // trees that are really close to you
+    	heuristicValue += lessDickedTrees.size()*1f; // trees that aren't really close to you
+    	return heuristicValue;
+    }
+    */
+    // ========================================================
+    // =============END OLD CODE DOESNT WORK===================
+    // ========================================================
+
 	/**
 	 * uses indicator dots to illustrate the status of each potential pod location 
 	 * red = occupied by tree 
