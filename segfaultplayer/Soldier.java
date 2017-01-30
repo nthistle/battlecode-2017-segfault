@@ -55,6 +55,8 @@ public strictfp class Soldier extends RobotBase
 
 	//determines movement for the turn
 	public void decideMove(boolean debug) throws GameActionException {
+		int swarm = rc.readBroadcast(300);
+		int swarmcoordinates = rc.readBroadcast(301);
 		BulletInfo[] nearbyBullets = rc.senseNearbyBullets();
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
 		MapLocation goal;
@@ -62,6 +64,14 @@ public strictfp class Soldier extends RobotBase
 			goal = robots[0].getLocation();
 			if(robots[0].getType()==RobotType.LUMBERJACK || rc.getLocation().distanceTo(robots[0].getLocation())<2.0)
 				goal = rc.getLocation().subtract(rc.getLocation().directionTo(robots[0].getLocation()));
+			if(swarm==1) {
+				MapLocation myLocation = rc.getLocation();
+				rc.broadcast(301, CommunicationsHandler.pack(myLocation.x,myLocation.y));
+			}
+		}
+		else if(swarm==1 && swarmcoordinates!=0) {
+			float[] swarmHere = CommunicationsHandler.unpack(swarmcoordinates);
+			goal = new MapLocation(swarmHere[0],swarmHere[1]);
 		}
 		else if(ctr<enemyArchons.length) //elif archons are alive, move towards them
 			goal = enemyArchons[ctr];

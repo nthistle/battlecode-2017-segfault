@@ -3,8 +3,6 @@ Communications Slots
 2		- 	gardener plan (2 is far, 1 is close)
 11		-	ratio of soldiers to trees	
 21      -   alpha archon gardener build (right now used by all)
-42		-	soldier game plan (1=blitz,2=patrol,3=swarm) (OLD MEME)
-43		-	soldier game plan real
 101 	-	total number of gardeners created (id of new gardener)
 102 	-	total number of scouts created (id of new scout)
 103 	-	total number of soldiers created (id of new soldier)
@@ -16,6 +14,8 @@ Communications Slots
 200-203	-	alpha archon self-assignment
 210-213	-	also alpha archon self-assignment
 220-223	-	alpha archon self-assignment tiebreaking
+300     -   swarm: 0 to stay, 1 to swarm
+301     -   coordinates of swarm
 400 	-	current round number as reported by reporting frontier gardeners (every 50)
 401 	-	total number of friendly lumberjacks seen by frontier gardeners (every 50)
 402 	-	total number of neutral trees seen by frontier gardeners (every 50)
