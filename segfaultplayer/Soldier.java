@@ -3,6 +3,7 @@ import battlecode.common.*;
 
 public strictfp class Soldier extends RobotBase
 {
+	
 	public float curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
 	public float curdirection = (float) Math.random() * 2 * (float) Math.PI;
 	public int ctr = 0;

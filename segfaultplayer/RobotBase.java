@@ -10,7 +10,10 @@ import battlecode.common.*;
 public strictfp abstract class RobotBase
 {
 	private static final int randSeed = 10385;
-	public static Random rand = new Random(randSeed);
+	
+	public Random rand;
+	
+	public static Random staticRand = new Random(randSeed);
 	
 	protected final RobotController rc;
 	
@@ -34,6 +37,7 @@ public strictfp abstract class RobotBase
 		ally = rc.getTeam();
 		firstTurn = rc.getRoundNum();
 		setAndSortArchons();
+		rand = new Random(randSeed + rc.getID());
 	}
 	
 	public RobotBase(RobotController rc, int id) throws GameActionException {
@@ -43,6 +47,7 @@ public strictfp abstract class RobotBase
 		ally = rc.getTeam();
 		firstTurn = rc.getRoundNum();
 		setAndSortArchons();
+		rand = new Random(randSeed + rc.getID());
 	}
 	
 	/**
@@ -732,7 +737,7 @@ public strictfp abstract class RobotBase
 		return closest;
 	}
 	
-	public static Direction randomDirection() {
+	public Direction randomDirection() {
 		return new Direction(rand.nextFloat() * 2 * (float)Math.PI);
 	}
     

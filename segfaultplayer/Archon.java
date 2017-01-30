@@ -325,7 +325,7 @@ public strictfp class Archon extends RobotBase
 				gardenerCooldown --;
 			}
 			if(CommunicationsHandler.peekOrder(rc) == null) {
-				if(RobotBase.rand.nextBoolean())
+				if(rand.nextBoolean())
 					CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.TANK));
 				else
 					CommunicationsHandler.queueOrder(rc, new Order(OrderType.ROBOT, RobotType.SOLDIER));
@@ -497,11 +497,15 @@ public strictfp class Archon extends RobotBase
 					break;
 				}
 			}
+			Direction curDir = randomDirection();
+			MapLocation initLoc = rc.getLocation();
 			while(true) {
-				buildDirections = getBestDirections2(rc.getLocation().directionTo(enemyArchons[0]),1.0f);
+				buildDirections = getBestDirectionsMihir(rc.getLocation().directionTo(enemyArchons[0]),1.0f);
+				int minDir = rand.nextInt(50);
 				if(rc.readBroadcast(21)==1) {
 					System.out.println("I'm trying to make another gardener, buildDirection is length " + buildDirections.length);
 					for(int i=0; i<buildDirections.length; i++) {
+						if(i<minDir)continue;
 						rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(buildDirections[i], 1.0f),
 								i, i, i);
 						if(rc.canBuildRobot(RobotType.GARDENER, buildDirections[i])) {
@@ -511,8 +515,18 @@ public strictfp class Archon extends RobotBase
 						}
 					}
 				}
+				if(rc.canMove(curDir) && rc.getLocation().distanceTo(initLoc) < 10.0f) {
+					rc.move(curDir);
+				} else {
+					curDir = randomDirection();
+					if(rc.canMove(curDir) && rc.getLocation().add(curDir,RobotType.ARCHON.strideRadius).distanceTo(initLoc) < 10.5f) {
+						rc.move(curDir);
+					}
+				}
+				
 				if(Clock.getBytecodesLeft()>20000 && doge==true)
 					drawDoge(rc.getLocation(),0.65f);
+				
 				Clock.yield();
 			}
 
@@ -644,13 +658,24 @@ public strictfp class Archon extends RobotBase
 			//CommunicationsHandler.queueOrder(rc, new Order(OrderType.TREE));
 			//System.out.println("Queued three trees");
 		} else {
+			
+			// as non alphas, wait 150 turns before doing anything
+			for(int i = 0; i < 150; i ++) {
+				drawDoge(rc.getLocation(),0.65f);
+				Clock.yield();
+			}
+			
+			boolean myFirstGardener = true;
 			while(true) {
 				Direction[] buildDirections = getBestDirections(rc.getLocation().directionTo(enemyArchons[0]),1.0f);
-				if(rc.readBroadcast(21)==1) {
+				if(myFirstGardener || rc.readBroadcast(21)==1) {
 					for(int i=0; i<buildDirections.length; i++) {
 						if(rc.canBuildRobot(RobotType.GARDENER,buildDirections[i])) {
 							rc.buildRobot(RobotType.GARDENER, buildDirections[i]);
-							rc.broadcast(21,0);
+							if(myFirstGardener)
+								myFirstGardener = false;
+							else
+								rc.broadcast(21,0);
 							break;
 						}
 					}
