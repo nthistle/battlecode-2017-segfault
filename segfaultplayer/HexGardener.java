@@ -193,6 +193,9 @@ public strictfp class HexGardener extends RobotBase
 	 * @return
 	 */
 	public RobotType getNextRobotBuildType() {
+		if(rc.senseNearbyRobots(5.0f, enemy).length > 0) {
+			return RobotType.SOLDIER;
+		}
 		if(rc.senseNearbyTrees(4.5f, Team.NEUTRAL).length > 0) {
 			return RobotType.LUMBERJACK;
 		}
