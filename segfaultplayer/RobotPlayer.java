@@ -46,7 +46,7 @@ public strictfp class RobotPlayer {
 //    		hg.run();
 //    	}
         Gardener g = new Gardener(rc, id);
-        //g.run();
+        g.run();
         g.runAlternate(RobotType.SCOUT);
     }
 
