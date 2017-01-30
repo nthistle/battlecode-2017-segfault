@@ -147,27 +147,28 @@ public strictfp class Soldier extends RobotBase
 					rc.fireSingleShot(tDir);
 			}
 		}
-		else if(nearbyBullets.length>0 && rc.getTeamBullets()>50) {
-			int ctr=0;
-			for(int i=0; i<nearbyBullets.length; i++) {
-				if(rc.getLocation().directionTo(nearbyBullets[i].getLocation()).equals(nearbyBullets[i].getDir(),(float)(Math.PI/2.0)))
-					nearbyBullets[i] = null;
-				else
-					ctr++;
-			}
-			if(ctr!=0) {
-				for(int i=0; i<nearbyBullets.length; i++) {
-					if(nearbyBullets[i]!=null) {
-						Direction tDir = rc.getLocation().directionTo(nearbyBullets[i].getLocation());
-						double[] vTriad = isTriadShotClear(tDir);
-						if(rc.canFireTriadShot() && vTriad[0]==0)
-							rc.fireTriadShot(tDir);
-						else if(rc.canFireSingleShot() && isSingleShotClear(tDir))
-							rc.fireSingleShot(tDir);
-						break;
-					}
-				}
-			}
-		}
+		//TODO: Make soldiers not rape each other
+//		else if(nearbyBullets.length>0 && rc.getTeamBullets()>50) {
+//			int ctr=0;
+//			for(int i=0; i<nearbyBullets.length; i++) {
+//				if(rc.getLocation().directionTo(nearbyBullets[i].getLocation()).equals(nearbyBullets[i].getDir(),(float)(Math.PI/2.0)))
+//					nearbyBullets[i] = null;
+//				else
+//					ctr++;
+//			}
+//			if(ctr!=0) {
+//				for(int i=0; i<nearbyBullets.length; i++) {
+//					if(nearbyBullets[i]!=null) {
+//						Direction tDir = rc.getLocation().directionTo(nearbyBullets[i].getLocation());
+//						double[] vTriad = isTriadShotClear(tDir);
+//						if(rc.canFireTriadShot() && vTriad[0]==0)
+//							rc.fireTriadShot(tDir);
+//						else if(rc.canFireSingleShot() && isSingleShotClear(tDir))
+//							rc.fireSingleShot(tDir);
+//						break;
+//					}
+//				}
+//			}
+//		}
 	}
 }
