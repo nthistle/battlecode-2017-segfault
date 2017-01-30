@@ -7,38 +7,6 @@ import battlecode.common.*;
 
 public strictfp class FirstGardener extends HexGardener
 {
-	private float[] aArch;
-	private MapLocation alphaLoc;
-	
-	private int[] myPodStatus;
-	
-	private MapLocation[] myPodLocations;
-	
-	private Direction[] podDirs = new Direction[] {
-			new Direction(0),
-			new Direction((float)Math.PI/3.0f),
-			new Direction(2.0f*(float)Math.PI/3.0f),
-			new Direction(3.0f*(float)Math.PI/3.0f),
-			new Direction(4.0f*(float)Math.PI/3.0f),
-			new Direction(5.0f*(float)Math.PI/3.0f)
-	};
-	
-	public static final float halfDirection = (float)Math.PI/6.0f;
-
-	// tree blocked is considered more "permanently" blocked than unit blocked,
-	// and so takes precedence
-	public static final int TREE_BLOCKED_SPOT = 1;
-	public static final int UNIT_BLOCKED_SPOT = 2;
-	public static final int FREE_SPOT = 3;
-	public static final int PLANTED_SPOT = 4;
-	
-	public static final int PHASE_2_MAX_TREES = 4; // so that tanks can happen
-	
-	private int numPodTrees = 0; // how many trees our pod currently has planted ((ignores destroyed))
-	private int openDirection = -1; // which direction we open in 
-	private int buildCooldown = 0; // ticks until we build again
-	
-	public static final int BUILD_COOLDOWN = 15;
 	
 
 	public FirstGardener(RobotController rc, int id) throws GameActionException {

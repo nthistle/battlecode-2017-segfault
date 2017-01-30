@@ -6,14 +6,14 @@ import battlecode.common.*;
 
 public strictfp class HexGardener extends RobotBase
 {
-	private float[] aArch;
-	private MapLocation alphaLoc;
+	protected float[] aArch;
+	protected MapLocation alphaLoc;
 	
-	private int[] myPodStatus;
+	protected int[] myPodStatus;
 	
-	private MapLocation[] myPodLocations;
+	protected MapLocation[] myPodLocations;
 	
-	private Direction[] podDirs = new Direction[] {
+	protected Direction[] podDirs = new Direction[] {
 			new Direction(0),
 			new Direction((float)Math.PI/3.0f),
 			new Direction(2.0f*(float)Math.PI/3.0f),
@@ -33,9 +33,9 @@ public strictfp class HexGardener extends RobotBase
 	
 	public static final int PHASE_2_MAX_TREES = 4; // so that tanks can happen
 	
-	private int numPodTrees = 0; // how many trees our pod currently has planted ((ignores destroyed))
-	private int openDirection = -1; // which direction we open in 
-	private int buildCooldown = 0; // ticks until we build again
+	protected int numPodTrees = 0; // how many trees our pod currently has planted ((ignores destroyed))
+	protected int openDirection = -1; // which direction we open in 
+	protected int buildCooldown = 0; // ticks until we build again
 	
 	public static final int BUILD_COOLDOWN = 15;
 	
