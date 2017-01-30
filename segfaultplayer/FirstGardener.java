@@ -233,6 +233,27 @@ public strictfp class FirstGardener extends HexGardener
 	}
 	
 	public void findFirstPodLocation() throws GameActionException {
-		this.findPodLocation();
+		float currentValue = 1000000.0f;
+		float newValue = currentValue - 1;
+    	Direction[] myDirs = getDirections(Direction.NORTH, 60.0f);
+    	int t = 0;
+    	while(newValue < currentValue && t < 5) {
+    		currentValue = newValue;
+    		t++;
+			float[][] intendedThing = findOptimalPlace(60.0f);
+			newValue = intendedThing[0][1];
+			Direction intendedDirection = myDirs[(int)intendedThing[0][0]];
+			moveInDir(intendedDirection);
+			
+			rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(intendedDirection, 3.0f),
+					0, 255, 0);
+			for(int i = 0; i < intendedThing.length; i ++) {
+				int tval = (int)(10.0f*intendedThing[i][1]);
+				//System.out.println("Value is " + tval);
+				rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(myDirs[(int)intendedThing[i][0]]),
+						tval, 0, 0);
+			}
+			Clock.yield();
+		}
 	}
 }
