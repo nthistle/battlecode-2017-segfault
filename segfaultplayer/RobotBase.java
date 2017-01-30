@@ -91,7 +91,7 @@ public strictfp abstract class RobotBase
 		if(vpNeeded*rc.getVictoryPointCost() < rc.getTeamBullets()) {
 			rc.donate(rc.getTeamBullets());
 		}
-		if(rc.getRoundNum()>rc.getRoundLimit()-3)
+		if(rc.getRoundNum()>rc.getRoundLimit()-5)
 			rc.donate(rc.getTeamBullets());
 	}
 	
