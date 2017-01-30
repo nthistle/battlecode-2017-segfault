@@ -503,10 +503,10 @@ public strictfp class Archon extends RobotBase
 					for(int i=0; i<buildDirections.length; i++) {
 						if(rc.canBuildRobot(RobotType.GARDENER,buildDirections[i])) {
 							rc.buildRobot(RobotType.GARDENER, buildDirections[i]);
+							rc.broadcast(21,0);
 							break;
 						}
 					}
-					rc.broadcast(21,0);
 				}
 				if(Clock.getBytecodesLeft()>20000 && doge==true)
 					drawDoge(rc.getLocation(),0.65f);
@@ -647,10 +647,10 @@ public strictfp class Archon extends RobotBase
 					for(int i=0; i<buildDirections.length; i++) {
 						if(rc.canBuildRobot(RobotType.GARDENER,buildDirections[i])) {
 							rc.buildRobot(RobotType.GARDENER, buildDirections[i]);
+							rc.broadcast(21,0);
 							break;
 						}
 					}
-					rc.broadcast(21,0);
 				}
 				Clock.yield();
 			}
