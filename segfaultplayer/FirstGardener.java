@@ -194,7 +194,7 @@ public strictfp class FirstGardener extends HexGardener
 				
 				if(buildCooldown <= 0) {
 					// build stuff for phase 2 is done based on ratio
-					System.out.println("Ratio: "+getFloatRatio());
+					//System.out.println("Ratio: "+getFloatRatio());
 						// build a unit to make up for it
 					if(numPodTrees >= PHASE_2_MAX_TREES || treesPlanted > getFloatRatio() * unitsBuilt) {
 
