@@ -601,6 +601,19 @@ public strictfp abstract class RobotBase
     	}
     	return dirs;
 	}
+    
+
+    public static Direction[] getBestDirections2(Direction bestDir, float theta) throws GameActionException {
+    	float initialtheta = theta;
+    	Direction[] dirs = new Direction [(int)(360.0f/theta)];
+    	dirs[0] = bestDir;
+    	for (int j=1; j<dirs.length; j++) {
+    		bestDir = bestDir.rotateLeftDegrees(theta);
+    		dirs[j] = bestDir;
+    	}
+    	return dirs;
+	}
+    
 	
 	public static Direction averageDirection(Direction a, Direction b) {
 		float adeg = a.radians;

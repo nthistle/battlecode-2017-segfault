@@ -498,11 +498,13 @@ public strictfp class Archon extends RobotBase
 				}
 			}
 			while(true) {
-				buildDirections = getBestDirections(rc.getLocation().directionTo(enemyArchons[0]),1.0f);
+				buildDirections = getBestDirections2(rc.getLocation().directionTo(enemyArchons[0]),1.0f);
 				if(rc.readBroadcast(21)==1) {
-					System.out.println("I'm trying to make another gardener");
+					System.out.println("I'm trying to make another gardener, buildDirection is length " + buildDirections.length);
 					for(int i=0; i<buildDirections.length; i++) {
-						if(rc.canBuildRobot(RobotType.GARDENER,buildDirections[i])) {
+						rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(buildDirections[i], 1.0f),
+								i, i, i);
+						if(rc.canBuildRobot(RobotType.GARDENER, buildDirections[i])) {
 							rc.buildRobot(RobotType.GARDENER, buildDirections[i]);
 							rc.broadcast(21,0);
 							break;
