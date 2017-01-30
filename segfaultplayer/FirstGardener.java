@@ -20,6 +20,8 @@ public strictfp class FirstGardener extends HexGardener
 		
 		// first thing we have to do is fine a location for our pod
 
+		
+		
 		findFirstPodLocation(); // TODO: cap this version to 5 turns
 		
 		
@@ -228,10 +230,6 @@ public strictfp class FirstGardener extends HexGardener
 			}
 			Clock.yield();
 		}
-	}
-
-	public void weNeedAnotherGardener() throws GameActionException {
-		rc.broadcast(21, 1);
 	}
 	
 	public void findFirstPodLocation() throws GameActionException {

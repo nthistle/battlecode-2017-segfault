@@ -121,6 +121,7 @@ public strictfp class HexGardener extends RobotBase
 		// phase 2
 		int unitsBuilt = 0;
 		int treesPlanted = 0;
+		boolean hasBroadcastedGardenerNecessity = false;
 		while(true) {
 			try {
 				// standard stuff
@@ -152,6 +153,10 @@ public strictfp class HexGardener extends RobotBase
 								treesPlanted ++;
 							}
 						}
+					}
+					if(numPodTrees >= PHASE_2_MAX_TREES && !hasBroadcastedGardenerNecessity) {
+						weNeedAnotherGardener();
+						hasBroadcastedGardenerNecessity = true;
 					}
 				}
 				
@@ -278,7 +283,7 @@ public strictfp class HexGardener extends RobotBase
 		float newValue = currentValue - 1;
     	Direction[] myDirs = getDirections(Direction.NORTH, 60.0f);
     	int t = 0;
-    	while(newValue < currentValue && t < 30) {
+    	while(newValue < currentValue && t < 60) {
     		currentValue = newValue;
     		t++;
 			float[][] intendedThing = findOptimalPlace(60.0f);
@@ -409,6 +414,7 @@ public strictfp class HexGardener extends RobotBase
     	if(getID() < 2)
     		targetDistAwayFromArchons += 3.0f;
     	TreeInfo[] trees = rc.senseNearbyTrees();
+    	RobotInfo[] nearbyRobots = rc.senseNearbyRobots(-1, ally);
     	Direction[] myDirs = getDirections(Direction.NORTH, theta);
     	float[][] heuristic = new float[myDirs.length][2];
     	MapLocation myLoc = rc.getLocation();
@@ -417,17 +423,25 @@ public strictfp class HexGardener extends RobotBase
     		MapLocation newLoc = myLoc.add(myDirs[i]);
     		for (TreeInfo t : trees) {
     			float myDistance = newLoc.distanceTo(t.location);
-    			if(myDistance - t.radius < 3.5f) {
-    				heuristic[i][1] += (3.5 - (myDistance - t.radius));
-    			} //else if (myDistance - t.radius > 5.0f) {
-    			//	heuristic[i][1] += (myDistance - t.radius) - 5.0f;
-    			//}
+    			if(myDistance - t.radius < 3.0f) {
+    				heuristic[i][1] += (3.0 - (myDistance - t.radius));
+    			} else if (myDistance - t.radius > 5.0f) {
+    				heuristic[i][1] += 0.1 * ((myDistance - t.radius) - 5.0f);
+    			}
     		}
     		for (MapLocation mL : allyArchons) {
     			float myDistance = newLoc.distanceTo(mL);
     			if (myDistance < targetDistAwayFromArchons) {
     				rc.setIndicatorLine(newLoc, mL, 255, 255, 255);
     				heuristic[i][1] += 3.0f * (targetDistAwayFromArchons - myDistance);
+    			}
+    		}
+    		for(RobotInfo ri : nearbyRobots) {
+    			if(ri.getType() == RobotType.GARDENER) {
+    				float mdist = newLoc.distanceTo(ri.getLocation());
+    				if(mdist < 6.0) {
+    					heuristic[i][1] += 6.0 * (6.5 - mdist); // intentionally not 6, little bonus falloff here
+    				}
     			}
     		}
     	}
@@ -496,6 +510,13 @@ public strictfp class HexGardener extends RobotBase
     // =============END OLD CODE DOESNT WORK===================
     // ========================================================
 
+
+    
+	public void weNeedAnotherGardener() throws GameActionException {
+		rc.broadcast(21, 1);
+	}
+	
+	
 	/**
 	 * uses indicator dots to illustrate the status of each potential pod location 
 	 * red = occupied by tree 
