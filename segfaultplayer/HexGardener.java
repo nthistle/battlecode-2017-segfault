@@ -199,6 +199,8 @@ public strictfp class HexGardener extends RobotBase
 		if(rc.getRoundNum() < 300) {
 			return RobotType.SOLDIER;
 		} else {
+			if(rand.nextFloat() < 0.05f)
+				return RobotType.LUMBERJACK;
 			// make it 50/50 after round 300 on tanks vs soldiers
 			if(rand.nextBoolean()) {
 				return RobotType.TANK;
