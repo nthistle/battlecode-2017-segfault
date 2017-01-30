@@ -62,6 +62,9 @@ public final strictfp class CommunicationsHandler
 				}
 			}
 		}
+		if(rank == 0) {
+			a.rc.broadcast(1, CommunicationsHandler.pack(a.rc.getLocation().x, a.rc.getLocation().y));
+		}
 		if(debugPrint)
 			System.out.println("[ID" + a.getID() + "] self assigned as rank " + rank);
 		return rank;
