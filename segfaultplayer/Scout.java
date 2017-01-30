@@ -31,7 +31,7 @@ public strictfp class Scout extends RobotBase
 	}
 
 	public void move() throws GameActionException {
-		BulletInfo[] nearbyBullets = rc.senseNearbyBullets();
+		BulletInfo[] nearbyBullets = rc.senseNearbyBullets(5.5f);
 		int ctr=0;
 		for(int i=0; i<nearbyBullets.length; i++) {
 			if(rc.getLocation().directionTo(nearbyBullets[i].getLocation()).equals(nearbyBullets[i].getDir(),(float)(Math.PI/2.0)))
