@@ -303,6 +303,8 @@ public strictfp abstract class RobotBase
 			double dist = Math.sqrt(2*length*length - 2*length*length*Math.cos(tDir.radiansBetween(fDir)));
 			if (dist < robots[i].getRadius()+.1) {
 				double score = 2.0;
+				if(robots[i].getType()==RobotType.GARDENER)
+					score+=1.0;
 				if(robots[i].getType()==RobotType.ARCHON)
 					score+=4.0;
 				if(robots[i].getTeam()==rc.getTeam())
@@ -355,6 +357,8 @@ public strictfp abstract class RobotBase
 				double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
 				if (dist < robots[i].getRadius()+.1) {
 					double score = 2.0;
+					if(robots[i].getType()==RobotType.GARDENER)
+						score+=1.0;
 					if(robots[i].getType()==RobotType.ARCHON)
 						score+=4.0;
 					if(robots[i].getTeam()==rc.getTeam())
@@ -408,6 +412,8 @@ public strictfp abstract class RobotBase
 				double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
 				if (dist < robots[i].getRadius()+.1) {
 					double score = 2.0;
+					if(robots[i].getType()==RobotType.GARDENER)
+						score+=1.0;
 					if(robots[i].getType()==RobotType.ARCHON)
 						score+=4.0;
 					if(robots[i].getTeam()==rc.getTeam())

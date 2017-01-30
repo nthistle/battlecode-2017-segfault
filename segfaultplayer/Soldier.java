@@ -182,8 +182,8 @@ public strictfp class Soldier extends RobotBase
 					if(debug)
 						System.out.println("Fired Penta");
 				}
-				//can fire triad, triad does no friendly, triad does more damage than single, is not LJ or was the triad does equal/more condition
-				else if (rc.canFireTriadShot() && vTriad[1]>vSingle[1]) {
+				//can fire triad,  triad does more damage than single, triad only at max hits 1 friendly non-gardener/archon unit
+				else if (rc.canFireTriadShot() && vTriad[1]>vSingle[1] && vTriad[0]<3) {
 					rc.fireTriadShot(tDir);
 					if(debug)
 						System.out.println("Fired triad");
