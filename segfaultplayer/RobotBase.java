@@ -26,6 +26,8 @@ public strictfp abstract class RobotBase
 	public MapLocation marker  = null;
 	public MapLocation marker2 = null; // what are these?
 	
+	public float[][] pathMatrix;
+	
 	public int firstTurn;
 	
 	private int myID;
@@ -563,39 +565,38 @@ public strictfp abstract class RobotBase
 	// ==================== PATHFINDING ========================
 	// =========================================================
 	public void pathFind(MapLocation endLoc) throws GameActionException {
+		Direction[] myDirs = getDirections(Direction.getNorth(), 30f); // not pointed towards enemy archon so it can move straight up and down
+		pathMatrix = new float[myDirs.length][2];
 		float stride = (float)(rc.getType().strideRadius);
 		MapLocation myLoc = rc.getLocation();
-		updateRatio(myLoc);
+		updateRatio(myLoc);;
 		Direction toEnd = myLoc.directionTo(endLoc);
-		Direction[] myDirs = getDirections(Direction.getNorth(), 30f); // not pointed towards enemy archon so it can move straight up and down
-		float[][] hyperMeme = new float[myDirs.length][2];
-		
 		for(int i=0; i<myDirs.length; i++) {
 			if(rc.canMove(myDirs[i], stride)) {
-				hyperMeme[i][0] = i;
+				pathMatrix[i][0] = i;
 				MapLocation newLoc = myLoc.add(myDirs[i], stride);
-				hyperMeme[i][1] = newLoc.distanceTo(endLoc);
-				//System.out.print(hyperMeme[i][1] + " ");
+				pathMatrix[i][1] = newLoc.distanceTo(endLoc);
+				//System.out.print(pathMatrix[i][1] + " ");
 				if(marker!=null) {
-					hyperMeme[i][1] -= newLoc.distanceTo(marker)*1.6;//(1.6+2*getLifespan()/rc.getRoundLimit()); //*1.6;
+					pathMatrix[i][1] -= newLoc.distanceTo(marker)*1.6;//(1.6+2*getLifespan()/rc.getRoundLimit()); //*1.6;
 					rc.setIndicatorLine(myLoc, marker, 255, 0, 0);
 					//System.out.print(newLoc.distanceTo(marker) + " ");
 				}
 				if(marker2!=null) {
-					hyperMeme[i][1] -= newLoc.distanceTo(marker2)*.4;//(.4+2*getLifespan()/rc.getRoundLimit()); //*.4;
+					pathMatrix[i][1] -= newLoc.distanceTo(marker2)*.4;//(.4+2*getLifespan()/rc.getRoundLimit()); //*.4;
 					rc.setIndicatorLine(myLoc, marker, 255, 0, 0);
 					//System.out.println(newLoc.distanceTo(marker2) + " ");
 				}
-				rc.setIndicatorLine(myLoc,newLoc, 0, (int)hyperMeme[i][1]*5, 0);
+				rc.setIndicatorLine(myLoc,newLoc, 0, (int)pathMatrix[i][1]*5, 0);
 			} else {
 				// theres something in the way
-				hyperMeme[i][0] = i;
-				hyperMeme[i][1] = Float.MAX_VALUE;
+				pathMatrix[i][0] = i;
+				pathMatrix[i][1] = Float.MAX_VALUE;
 			}
 		}
 		//System.out.println("Boost: "+6*getLifespan()/(1.0*rc.getRoundLimit()));
 		// sort the array
-		java.util.Arrays.sort(hyperMeme, new java.util.Comparator<float[]>() {
+		java.util.Arrays.sort(pathMatrix, new java.util.Comparator<float[]>() {
 			public int compare(float[] a, float[] b) {
 				return Float.compare(a[1], b[1]); // sort by heuristic if damage is equal (lower = closer to goal)
 			}
@@ -606,8 +607,8 @@ public strictfp abstract class RobotBase
 		
 		//actually move
 		for (int j=0; j<myDirs.length; j++) {
-			if(rc.canMove(myDirs[(int)hyperMeme[j][0]])) {
-				rc.move(myDirs[(int)hyperMeme[j][0]]);
+			if(rc.canMove(myDirs[(int)pathMatrix[j][0]])) {
+				rc.move(myDirs[(int)pathMatrix[j][0]]);
 				break;
 			}
 		}

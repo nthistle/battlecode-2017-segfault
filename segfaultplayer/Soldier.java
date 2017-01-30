@@ -135,7 +135,7 @@ public strictfp class Soldier extends RobotBase
 		if(ctr>=enemyArchons.length)
 			shoot(null);
 		else
-			shoot(rc.getLocation().directionTo(enemyArchons[ctr]),true);
+			shoot(rc.getLocation().directionTo(enemyArchons[ctr]));//,true);
 	}
 
 	public void shoot(Direction goal) throws GameActionException {
