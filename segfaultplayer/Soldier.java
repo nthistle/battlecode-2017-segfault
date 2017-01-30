@@ -130,7 +130,7 @@ public strictfp class Soldier extends RobotBase
 					System.out.println("vPentad: "+vPentad[0]+" "+vPentad[1]);
 					System.out.println("vTriad: "+vTriad[0]+" "+vTriad[1]);
 				}
-				if (rc.canFirePentadShot() && vPentad[1] > vPentad[0]) //does penta do more enemy dmg
+				if (rc.canFirePentadShot() && vPentad[1] > vPentad[0] && rc.getRoundNum()>300) //does penta do more enemy dmg
 					rc.firePentadShot(tDir);
 				else if (rc.canFireTriadShot() && vTriad[0] == 0) //is triad safe
 					rc.fireTriadShot(tDir);
@@ -138,7 +138,7 @@ public strictfp class Soldier extends RobotBase
 					rc.fireSingleShot(tDir);
 			}
 		}
-		else if(rc.getRoundNum()>400 && rc.getTeamBullets()>200 && goal!=null && trees.length>0 && trees[0].getTeam()!=ally) { //are there nearby non-ally trees
+		else if(rc.getRoundNum()>600 && rc.getTeamBullets()>200 && goal!=null && trees.length>0 && trees[0].getTeam()!=ally) { //are there nearby non-ally trees
 			Direction tDir = rc.getLocation().directionTo(trees[0].getLocation());
 			if( tDir.equals(goal,(float)(Math.PI/4.0)) && rc.getLocation().distanceTo(trees[0].getLocation())<3.0) { //are they in our way
 				if (rc.canFireTriadShot()) //shoot em down
