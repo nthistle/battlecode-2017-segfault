@@ -20,7 +20,7 @@ public strictfp class Lumberjack extends RobotBase
 					TreeInfo target = getTarget(nearbyTrees,true); //finds best tree
 					if (target == null && nearbyRobots.length==0) //if no trees, random move
 						randomMove();
-					else if (target == null && nearbyRobots.length>0) {
+					else if (nearbyRobots.length>0) { //TODO: Change to target==null && ... if this doesn't work
 						pathFind(nearbyRobots[0].getLocation());
 					}
 					else {
@@ -161,8 +161,6 @@ public strictfp class Lumberjack extends RobotBase
 		double[] score = {0.0,0.0};
 		for(int i=0; i<robots.length; i++) {
 			double value = 8.0;
-			if(robots[i].getType()==RobotType.ARCHON)
-				value+=10.0;
 			if(robots[i].getTeam()==ally)
 				score[0]+=value;
 			else
