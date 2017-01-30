@@ -273,12 +273,27 @@ public strictfp class HexGardener extends RobotBase
 	}
 	
 	
+	public void findPodLocation() throws GameActionException {
+		float currentValue = -1000000.0f;
+    	Direction[] myDirs = getDirections(Direction.NORTH, 60.0f);
+		float[][] intendedThing = findOptimalPlace(60.0f);;
+		float newValue = intendedThing[0][1];
+		for(int i = 0; i < intendedThing.length; i ++) {
+			int tval = (int)(10.0f*intendedThing[i][1]);
+			System.out.println("Value is " + tval);
+			rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(myDirs[(int)intendedThing[i][0]]),
+					tval, 0, 0);
+		}
+		Clock.yield();
+	}
+	
+	
 	/**
 	 * by the termination of this method, the gardener will be in an optimal (decent)
 	 * location to build a hex pod
 	 * @throws GameActionException
 	 */
-	public void findPodLocation() throws GameActionException {
+	public void findPodLocationOld() throws GameActionException {
 		// for now, simplistic move 15 steps away from archon that spawned us
 		Direction dir = alphaLoc.directionTo(rc.getLocation());
 		for(int i = 0; i < 15; i ++) {
@@ -377,6 +392,7 @@ public strictfp class HexGardener extends RobotBase
 		}
 	}
 	
+	// first index is the direction, second index is the value
     public float[][] findOptimalPlace(float theta) throws GameActionException {
     	TreeInfo[] trees = rc.senseNearbyTrees();
     	Direction[] myDirs = getDirections(Direction.NORTH, theta);
