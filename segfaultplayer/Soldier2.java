@@ -55,7 +55,7 @@ public strictfp class Soldier2 extends RobotBase
                             System.out.println("Dodge");
                         }
 
-                        if(target!=null) {//shoot at target IF TARGET (port over nikhil's firing) TODO: Make sure u can hit it /  FRIENDLY FIRE
+                        if(target!=null) {//shoot at target IF TARGET (port over nikhil's firing) TODO: Make sure u can hit it /  FRIENDLY FIRE (shouldnt occur)
                             if (rc.canFireTriadShot() && !altShot) {
                                 rc.fireTriadShot(rc.getLocation().directionTo(target));
                                 altShot = true;
@@ -68,7 +68,7 @@ public strictfp class Soldier2 extends RobotBase
                         if(targetRobot!=null)
                             combatCounter = 5;
                     }
-                    else {//fire at enemy's last location case //TODO ACCOUNT FOR FRIENDLY FIRE
+                    else {//fire at enemy's last location case //TODO ACCOUNT FOR FRIENDLY FIRE (shouldnt occur)
                         combatCounter--;
                         if(rc.canFireTriadShot() && combatCounter%2==1 && target!=null) //odd counter fire at enemy
                             rc.fireSingleShot(rc.getLocation().directionTo(target));
