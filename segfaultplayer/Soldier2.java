@@ -32,10 +32,12 @@ public strictfp class Soldier2 extends RobotBase
     			if(nearbyRobots.length>0)
     			    pathCounter = 5;
     			if(nearbyBullets.length>0 || combatCounter>0 && rc.getTeamBullets()>30) { //COMBAT CASE. Combat counter maintains 5 turn fire TODO: Tune minimum bullets needed
+                    //System.out.println("Combat");
     				if(nearbyBullets.length>0 || tankCounter>0) {//normal case
     					RobotInfo targetRobot = combatTarget(nearbyRobots); //find target if applicable
     					if(targetRobot!=null)
     						target = targetRobot.getLocation();
+                        //System.out.println(targetRobot);
     					//System.out.println(rc.getRoundNum()+" "+tankCounter);
     					Direction front = null;
     					if(nearbyBullets.length>0)
@@ -96,6 +98,7 @@ public strictfp class Soldier2 extends RobotBase
     			}
     			else if(nearbyRobots.length>0) { //TODO: account for sht theres a tank/soldier but it hasnt fired yet (Fire at soldier and it will fire back = good, for tank set target and combatcounter then back up)
     				//TODO: Hunting case
+                    //System.out.println("Hunting");
     				MapLocation huntLoc = hunting(nearbyRobots, nearbyTrees, rc.getLocation());
     				if(huntLoc!=null) {
     					if(huntLoc==rc.getLocation()) {
@@ -252,6 +255,8 @@ public strictfp class Soldier2 extends RobotBase
                     break;
                 case ARCHON:
                     myScore += 100;
+                    if(rc.getRoundNum()<300)
+                        myScore = MAX_INT;
                     break;
             }
             if (myScore < score) {
@@ -259,6 +264,8 @@ public strictfp class Soldier2 extends RobotBase
                 index = i;
             }
         }
+        if(score == MAX_INT)
+            return null;
         return nearbyRobots[index];
     }
 
@@ -319,57 +326,57 @@ public strictfp class Soldier2 extends RobotBase
         boolean topFlag = true;
         boolean bottomFlag = true;
         for(TreeInfo t : trees) {
-            rc.setIndicatorDot(t.location, 255, 0, 0);
+            //rc.setIndicatorDot(t.location, 255, 0, 0);
             if(middleFlag) {
                 if(distance(t.location, thisLoc, middle) < t.radius) {
                     middleFlag = false;
-                    rc.setIndicatorDot(t.location, 255, 255, 255);
+                    //rc.setIndicatorDot(t.location, 255, 255, 255);
                 }
             }
             if(topFlag) {
                 if(distance(t.location, thisLoc, top) < t.radius) {
                     topFlag = false;
-                    rc.setIndicatorDot(t.location, 255, 255, 255);
+                    //rc.setIndicatorDot(t.location, 255, 255, 255);
                 }
             }
             if(bottomFlag) {
                 if(distance(t.location, thisLoc, bottom) < t.radius) {
                     bottomFlag = false;
-                    rc.setIndicatorDot(t.location, 255, 255, 255);
+                    //rc.setIndicatorDot(t.location, 255, 255, 255);
                 }
             }
         }
         for(RobotInfo r : team) {
-            rc.setIndicatorDot(r.location, 255, 0, 0);
+            //rc.setIndicatorDot(r.location, 255, 0, 0);
             if(middleFlag) {
                 if(distance(r.location, thisLoc, middle) < r.getType().bodyRadius) {
                     middleFlag = false;
-                    rc.setIndicatorDot(r.location, 255, 255, 255);
+                    //rc.setIndicatorDot(r.location, 255, 255, 255);
                 }
             }
             if(topFlag) {
                 if(distance(r.location, thisLoc, top) < r.getType().bodyRadius) {
                     topFlag = false;
-                    rc.setIndicatorDot(r.location, 255, 255, 255);
+                    //rc.setIndicatorDot(r.location, 255, 255, 255);
                 }
             }
             if(bottomFlag) {
                 if(distance(r.location, thisLoc, bottom) < r.getType().bodyRadius) {
                     bottomFlag = false;
-                    rc.setIndicatorDot(r.location, 255, 255, 255);
+                    //rc.setIndicatorDot(r.location, 255, 255, 255);
                 }
             }
         }
         if(middleFlag) {
-            System.out.println("middle");
+            //System.out.println("middle");
             return middle;
         }
         if(topFlag) {
-            System.out.println("top");
+            //System.out.println("top");
             return top;
         }
         if(bottomFlag) {
-            System.out.println("bottom");
+            //System.out.println("bottom");
             return bottom;
         }
         return null;
@@ -440,7 +447,7 @@ public strictfp class Soldier2 extends RobotBase
                             break;
                         }
                     }
-                    System.out.println(robots[i].getType());
+                    //System.out.println(robots[i].getType());
                 }
                 z++;
             }
