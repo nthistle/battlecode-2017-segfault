@@ -271,7 +271,7 @@ public strictfp class Soldier2 extends RobotBase
 
     //gets bullets being fired towards me
     public BulletInfo[] getBullets() throws GameActionException {
-        BulletInfo[] nearbyBullets = rc.senseNearbyBullets(rc.getType().sensorRadius); //TODO: Change with bytecode limit
+        BulletInfo[] nearbyBullets = rc.senseNearbyBullets(6.0f); //TODO: Change with bytecode limit
         int ctr=0;
         for(int i=0; i<nearbyBullets.length; i++) {
             if(rc.getLocation().directionTo(nearbyBullets[i].getLocation()).equals(nearbyBullets[i].getDir(),(float)(Math.PI/2.0)))
