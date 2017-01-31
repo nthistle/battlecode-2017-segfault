@@ -6,7 +6,7 @@ import java.awt.*;
 public strictfp class Soldier2 extends RobotBase
 {
     public static final int SWARM_ROUND_NUM = 800;
-
+    public static final int MAX_INT =  147483647;
     public float curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
     public float curdirection = (float) Math.random() * 2 * (float) Math.PI;
     public int ctr = 0;
@@ -18,20 +18,20 @@ public strictfp class Soldier2 extends RobotBase
     public void run() throws GameActionException {
         int combatCounter = 0;
         MapLocation target = null;
+        boolean altShot = false;
         try {
             while(true) {
                 dailyTasks(); //checks VP win and shaking and if archon needs to be progressed
                 BulletInfo[] nearbyBullets = getBullets();
-                RobotInfo[] nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy); //TODO: Log coordinates into swarm
+                RobotInfo[] nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
                 if(nearbyBullets.length>0 || combatCounter>0) { //COMBAT CASE. Combat counter maintains 5 turn fire
                     if(nearbyBullets.length>0) {//normal case
-                        //find target if applicable
-                        RobotInfo targetRobot = combatTarget(nearbyRobots);
+                        RobotInfo targetRobot = combatTarget(nearbyRobots); //find target if applicable
                         if(targetRobot!=null)
                             target = targetRobot.getLocation();
 
                         Direction front = getFront(nearbyBullets);
-                        if(isSafe(rc.getLocation().add(front, rc.getType().strideRadius),nearbyBullets)==0) { //can I safely move backwards IF TARGET (length>0) TODO: Account for potentailly rapidly yielding ground (switch stay case)
+                        if(isSafe(rc.getLocation().add(front, rc.getType().strideRadius),nearbyBullets)==0) { //can I safely move backwards IF TARGET (length>0)
                             rc.move(rc.getLocation().add(front, rc.getType().strideRadius));
                             System.out.println("Backwards");
                         }
@@ -39,15 +39,22 @@ public strictfp class Soldier2 extends RobotBase
                             System.out.println("Stay");
                         }
                         else {   // can I safely dodge sideways
-                            dodge(front, nearbyBullets);
+                            dodge(front, nearbyBullets,true);
                             System.out.println("Dodge");
                         }
-                        //shoot at target IF TARGET (port over nikhil's firing)
-                        if(target!=null)
-                            if(rc.canFireTriadShot())
-                                rc.fireTriadShot(rc.getLocation().directionTo(target));
 
-                        combatCounter = 5;
+                        if(target!=null) {//shoot at target IF TARGET (port over nikhil's firing) TODO: Make sure u can hit it
+                            if (rc.canFireTriadShot() && !altShot) {
+                                rc.fireTriadShot(rc.getLocation().directionTo(target));
+                                altShot = true;
+                            }
+                            else if(rc.canFireTriadShot() && altShot) {
+                                rc.fireTriadShot(rc.getLocation().directionTo(target).rotateRightDegrees(10.0f));
+                                altShot = false;
+                            }
+                        }
+                        if(targetRobot!=null)
+                            combatCounter = 5;
                     }
                     else {//fire at enemy's last location case
                         combatCounter--;
@@ -88,53 +95,36 @@ public strictfp class Soldier2 extends RobotBase
 
     //tries dodging to the side, failing that attempts to move backwards regardless of price
     public void dodge(Direction front, BulletInfo[] nearbyBullets, boolean debug) throws GameActionException {
-        if(debug)
-            rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(front,rc.getType().strideRadius),255,0,0);
-        Direction left = front.rotateLeftDegrees(90.0f);
-        Direction leftFar = front.rotateLeftDegrees(45.0f);
-        Direction right = front.rotateRightDegrees(90.0f);
-        Direction rightFar = front.rotateRightDegrees(45.0f);
-        MapLocation[] moves = new MapLocation[2*5];
-        int[] damage = new int[2*5];
-        for(int i=0; i<5; i++) {
-            if(debug && i==9) {
-                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(left,(5+i)/9.0f*rc.getType().strideRadius),255,0,0);
-                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(right,(5+i)/9.0f*rc.getType().strideRadius),255,0,0);
-                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(leftFar,(5+i)/9.0f*rc.getType().strideRadius),255,0,0);
-                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(rightFar,(5+i)/9.0f*rc.getType().strideRadius),255,0,0);
+
+        MapLocation[] moves = new MapLocation[8*1];
+        int[] damage = new int[8*1];
+        for(int i=0; i<1; i++) {
+            for(int z=0; z<8; z++) {
+
+                moves[i*8+z] = rc.getLocation().add( front.rotateRightDegrees(45.0f*z) ,(9 + i) / 9.0f * rc.getType().strideRadius );
+                if(debug)
+                    rc.setIndicatorLine(rc.getLocation(),moves[i*8+z],255,0,0);
+                damage[i*8+z] = 100*isSafe(moves[i*8+z],nearbyBullets) + Math.abs((int)front.degreesBetween(front.rotateRightDegrees(45.0f*z)));
             }
-            if(debug) {
-                System.out.println(i);
-                System.out.println(isSafe(rc.getLocation().add(left, (5+i) / 9.0f * rc.getType().strideRadius), nearbyBullets));
-                System.out.println(isSafe(rc.getLocation().add(right, (5+i) / 9.0f * rc.getType().strideRadius), nearbyBullets));
-                System.out.println(isSafe(rc.getLocation().add(leftFar, (5+i) / 9.0f * rc.getType().strideRadius), nearbyBullets));
-                System.out.println(isSafe(rc.getLocation().add(rightFar, (5+i) / 9.0f * rc.getType().strideRadius), nearbyBullets));
+//            moves[i * 4] = rc.getLocation().add(leftFar, (9 + i) / 9.0f * rc.getType().strideRadius);
+//            moves[i * 4 + 1] = rc.getLocation().add(rightFar, (9 + i) / 9.0f * rc.getType().strideRadius);
+//            moves[i * 4 + 2] = rc.getLocation().add(left, (9 + i) / 9.0f * rc.getType().strideRadius);
+//            moves[i * 4 + 3] = rc.getLocation().add(right, (9 + i) / 9.0f * rc.getType().strideRadius);
+//
+//            damage[i*4] = isSafe(moves[i*4],nearbyBullets);
+//            damage[i*4+1] = isSafe(moves[i*4+1],nearbyBullets);
+//            damage[i*4+2] = isSafe(moves[i*4+2],nearbyBullets);
+//            damage[i*4+3] = isSafe(moves[i*4+3],nearbyBullets);
+        }
+        if(debug) {
+            for (int i = 0; i < 8; i++) {
+                System.out.println(damage[i]);
             }
-            moves[i*2] = rc.getLocation().add(left,(5+i)/9.0f*rc.getType().strideRadius);
-            moves[i*2+1] = rc.getLocation().add(leftFar,(5+i)/9.0f*rc.getType().strideRadius);
-            damage[i*2] = isSafe(moves[i*2],nearbyBullets);
-            damage[i*2+1] = isSafe(moves[i*2+1],nearbyBullets);
-//            if(isSafe(rc.getLocation().add(left,i/9.0f*rc.getType().strideRadius),nearbyBullets)) {
-//                rc.move(rc.getLocation().add(left,i/9.0f*rc.getType().strideRadius));
-//                return;
-//            }
-//            if(isSafe(rc.getLocation().add(right,i/9.0f*rc.getType().strideRadius),nearbyBullets)) {
-//                rc.move(rc.getLocation().add(left,i/9.0f*rc.getType().strideRadius));
-//                return;
-//            }
-//            if(isSafe(rc.getLocation().add(leftFar,i/9.0f*rc.getType().strideRadius),nearbyBullets)) {
-//                rc.move(rc.getLocation().add(leftFar,i/9.0f*rc.getType().strideRadius));
-//                return;
-//            }
-//            if(isSafe(rc.getLocation().add(rightFar,i/9.0f*rc.getType().strideRadius),nearbyBullets)) {
-//                rc.move(rc.getLocation().add(rightFar,i/9.0f*rc.getType().strideRadius));
-//                return;
-//            }
         }
         int index =0;
         for(int i=0; i<damage.length; i++)
             if(damage[i]<damage[index])
-                index =i;
+                index = i;
         if(rc.canMove(moves[index]))
             rc.move(moves[index]);
     }
@@ -151,12 +141,12 @@ public strictfp class Soldier2 extends RobotBase
     public int isSafe(MapLocation ml, BulletInfo[] nearbyBullets) {
         int score = 0;
         if(!rc.canMove(ml))
-            return 99999999;
+            return MAX_INT;
         for(BulletInfo bullet: nearbyBullets) {
             if(rc.getType().bodyRadius>willHitMe(ml,bullet.getLocation(),bullet.getLocation().add(bullet.getDir(),bullet.getSpeed()))) {
                 score += bullet.getDamage();
-                if(score>=6)
-                    return 99999999;
+                if(score>=8)
+                    return MAX_INT;
             }
         }
         return score;
@@ -165,7 +155,7 @@ public strictfp class Soldier2 extends RobotBase
     public RobotInfo combatTarget(RobotInfo[] nearbyRobots) {
         if(nearbyRobots.length==0)
             return null;
-        int score = 999999999;
+        int score = MAX_INT;
         int index = -1;
         for(int i=0; i<nearbyRobots.length; i++) {
             int myScore = i;
@@ -197,8 +187,7 @@ public strictfp class Soldier2 extends RobotBase
     }
 
     //returns smallest distance between point and line segment  from l1 to l2
-    private double willHitMe(MapLocation p, MapLocation l1, MapLocation l2)
-    {
+    private double willHitMe(MapLocation p, MapLocation l1, MapLocation l2) {
         float x1 = p.x;
         float y1 = p.y;
         float x2 = l1.x;
@@ -226,7 +215,7 @@ public strictfp class Soldier2 extends RobotBase
 
     //gets bullets being fired towards me
     public BulletInfo[] getBullets() throws GameActionException {
-        BulletInfo[] nearbyBullets = rc.senseNearbyBullets(8.0f); //TODO: Change with bytecode limit
+        BulletInfo[] nearbyBullets = rc.senseNearbyBullets(rc.getType().sensorRadius); //TODO: Change with bytecode limit
         int ctr=0;
         for(int i=0; i<nearbyBullets.length; i++) {
             if(rc.getLocation().directionTo(nearbyBullets[i].getLocation()).equals(nearbyBullets[i].getDir(),(float)(Math.PI/2.0)))

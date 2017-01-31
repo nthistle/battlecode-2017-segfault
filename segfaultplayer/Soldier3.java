@@ -3,23 +3,23 @@ import battlecode.common.*;
 
 public strictfp class Soldier3 extends RobotBase
 {
-	public static final int SWARM_ROUND_NUM = 800;
-	
-	public float curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
-	public float curdirection = (float) Math.random() * 2 * (float) Math.PI;
-	public int ctr = 0;
-	public int gardenerHarassCounter = 0;
-	public float offset = 0f;
-	public Soldier3(RobotController rc, int id) throws GameActionException {
-		super(rc, id);
-	}
+    public static final int SWARM_ROUND_NUM = 800;
 
-	public void run() throws GameActionException {
+    public float curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
+    public float curdirection = (float) Math.random() * 2 * (float) Math.PI;
+    public int ctr = 0;
+    public int gardenerHarassCounter = 0;
+    public float offset = 0f;
+    public Soldier3(RobotController rc, int id) throws GameActionException {
+        super(rc, id);
+    }
+
+    public void run() throws GameActionException {
         int combatCounter = 0;
         MapLocation target = null;
         try {
             while(true) {
-        		TreeInfo[] nearbyTrees = rc.senseNearbyTrees(); //shake nearby bullet trees
+                TreeInfo[] nearbyTrees = rc.senseNearbyTrees(); //shake nearby bullet trees
                 dailyTasks(nearbyTrees); //checks VP win and shaking and if archon needs to be progressed
                 BulletInfo[] nearbyBullets = getBullets();
                 RobotInfo[] nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy); //TODO: Log coordinates into swarm
@@ -62,122 +62,117 @@ public strictfp class Soldier3 extends RobotBase
         }
     }
 
-	public MapLocation isClear(RobotInfo myRobot, TreeInfo[] trees) {
-		// method returns null if robot can't be hit. returns maplocation of part of robot (middle, top, bottom) that can be hit if !null
-		Direction backToMe = myRobot.location.directionTo(rc.getLocation());
-		MapLocation middle = myRobot.location.add(backToMe, rc.getType().bodyRadius);
-		MapLocation top = myRobot.location.add(backToMe.rotateLeftDegrees(90f), rc.getType().bodyRadius);
-		MapLocation bottom = myRobot.location.add(backToMe.rotateRightDegrees(90f), rc.getType().bodyRadius);
-		rc.setIndicatorLine(rc.getLocation(), middle, 0, 0, 255);
-		rc.setIndicatorLine(rc.getLocation(), top, 0, 0, 255);
-		rc.setIndicatorLine(rc.getLocation(), bottom, 0, 0, 255);
+    public MapLocation isClear(RobotInfo myRobot, TreeInfo[] trees) {
+        // method returns null if robot can't be hit. returns maplocation of part of robot (middle, top, bottom) that can be hit if !null
+        Direction backToMe = myRobot.location.directionTo(rc.getLocation());
+        MapLocation middle = myRobot.location.add(backToMe, rc.getType().bodyRadius);
+        MapLocation top = myRobot.location.add(backToMe.rotateLeftDegrees(90f), rc.getType().bodyRadius);
+        MapLocation bottom = myRobot.location.add(backToMe.rotateRightDegrees(90f), rc.getType().bodyRadius);
+        rc.setIndicatorLine(rc.getLocation(), middle, 0, 0, 255);
+        rc.setIndicatorLine(rc.getLocation(), top, 255, 0, 0);
+        rc.setIndicatorLine(rc.getLocation(), bottom, 0, 0, 255);
 
-		boolean middleFlag = true; // i know boolean markers are bad but whatever
-		boolean topFlag = true;
-		boolean bottomFlag = true;
-		for(TreeInfo t : trees) {
-			if(middleFlag) {
-				if(willHitMe(t.location, rc.getLocation(), middle) < t.radius) {
-					System.out.println("Fuck");
-					middleFlag = false;
-					rc.setIndicatorDot(t.location, 255, 0, 0);
-				}
-			}
-			if(topFlag) {
-				if(willHitMe(t.location, rc.getLocation(), top) < t.radius) {
-					System.out.println("Fuck");
-					topFlag = false;
-					rc.setIndicatorDot(t.location, 255, 0, 0);
-				}
-			}
-			if(bottomFlag) {
-				if(willHitMe(t.location, rc.getLocation(), bottom) < t.radius) {
-					System.out.println("Fuck");
-					bottomFlag = false;
-					rc.setIndicatorDot(t.location, 255, 0, 0);
-				}
-			}
-		}
-		if(middleFlag) {
-			System.out.println("middle");
-			return middle;
-		}
-		if(topFlag) {
-			System.out.println("top");
-			return top;
-		}
-		if(bottomFlag) {
-			System.out.println("bottom");
-			return bottom;
-		}
-		return null;
-	}
-
-	public void hunting(RobotInfo[] robots, TreeInfo[] trees) throws GameActionException {
-		// Figure out which robot to shoot at
-		RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SCOUT, RobotType.ARCHON}; //priority of shooting
-		RobotInfo target = null;
-		MapLocation shootMe = null; // 
-		int z = 0;
-		while (target == null && (z < priority.length && rc.getRoundNum() > 300 || z < priority.length - 1)) {
-			for (int i = 0; i < robots.length; i++) {
-				if (robots[i].getType() == priority[z]) {
-					shootMe = isClear(robots[i], trees);
-					if(shootMe!=null) {
-						target=robots[i];
-						break;
-					}
-				}
-			}
-			z++;
-		}		
-		//shooting
-		if (shootMe != null && target != null) {
-			rc.setIndicatorLine(rc.getLocation(), shootMe, 0, 255, 0);
-			Direction tDir = rc.getLocation().directionTo(shootMe);
-			double[] vTriad = isTriadShotClear(tDir);
-			double[] vSingle = isSingleShotClearValue(tDir);
-			//can fire triad,  triad does more damage than single, triad only at max hits 1 friendly non-gardener/archon unit
-			if (rc.canFireTriadShot() && vTriad[1] > vSingle[1] && vTriad[0] < 3) {
-				rc.fireTriadShot(tDir.rotateLeftDegrees(offset));
-			} else if (rc.canFireSingleShot() && isSingleShotClear(tDir)) {
-				rc.fireSingleShot(tDir);
-			}
-			// alternate offset
-		}
-	}
-	
-	
-    private double willHitMe(MapLocation p, MapLocation l1, MapLocation l2)
-    {
-        float x1 = p.x;
-        float y1 = p.y;
-        float x2 = l1.x;
-        float y2 = l1.y;
-        float x3 = l2.x;
-        float y3 = l2.y;
-        float px=x2-x1;
-        float py=y2-y1;
-        float temp=(px*px)+(py*py);
-        float u=((x3 - x1) * px + (y3 - y1) * py) / (temp);
-        if(u>1){
-            u=1;
+        boolean middleFlag = true; // i know boolean markers are bad but whatever
+        boolean topFlag = true;
+        boolean bottomFlag = true;
+        for(TreeInfo t : trees) {
+            rc.setIndicatorDot(t.location, 255, 0, 0);
+            if(middleFlag) {
+                if(distance(t.location, rc.getLocation(), middle) < t.radius) {
+                    middleFlag = false;
+                    rc.setIndicatorDot(t.location, 255, 255, 255);
+                }
+            }
+            if(topFlag) {
+                if(distance(t.location, rc.getLocation(), top) < t.radius) {
+                    topFlag = false;
+                    rc.setIndicatorDot(t.location, 255, 255, 255);
+                }
+            }
+            if(bottomFlag) {
+                if(distance(t.location, rc.getLocation(), bottom) < t.radius) {
+                    bottomFlag = false;
+                    rc.setIndicatorDot(t.location, 255, 255, 255);
+                }
+            }
         }
-        else if(u<0){
-            u=0;
+        if(middleFlag) {
+            System.out.println("middle");
+            return middle;
         }
-        float x = x1 + u * px;
-        float y = y1 + u * py;
-
-        float dx = x - x3;
-        float dy = y - y3;
-        double dist = Math.sqrt(dx*dx + dy*dy);
-        return dist;
+        if(topFlag) {
+            System.out.println("top");
+            return top;
+        }
+        if(bottomFlag) {
+            System.out.println("bottom");
+            return bottom;
+        }
+        return null;
     }
-	
-	
-	
-	//Does fire action
+
+    public void hunting(RobotInfo[] robots, TreeInfo[] trees) throws GameActionException {
+        // Figure out which robot to shoot at
+        RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SCOUT, RobotType.ARCHON}; //priority of shooting
+        RobotInfo target = null;
+        MapLocation shootMe = null; //
+        int z = 0;
+        // TODO: Make more efficient Mihir
+        while (target == null && (z < priority.length && rc.getRoundNum() > 300 || z < priority.length - 1)) {
+            for (int i = 0; i < robots.length; i++) {
+                if (robots[i].getType() == priority[z]) {
+                    shootMe = isClear(robots[i], trees);
+                    if(shootMe!=null) {
+                        target=robots[i];
+                        break;
+                    }
+                }
+            }
+            z++;
+        }
+        //shooting
+        if (shootMe != null && target != null) {
+            rc.setIndicatorLine(rc.getLocation(), shootMe, 0, 255, 0);
+            Direction tDir = rc.getLocation().directionTo(shootMe);
+            double[] vTriad = isTriadShotClear(tDir);
+            double[] vSingle = isSingleShotClearValue(tDir);
+            //can fire triad,  triad does more damage than single, triad only at max hits 1 friendly non-gardener/archon unit
+            if (rc.canFireTriadShot() && vTriad[1] > vSingle[1] && vTriad[0] < 3) {
+                rc.fireTriadShot(tDir);
+            } else if (rc.canFireSingleShot() && isSingleShotClear(tDir)) {
+                rc.fireSingleShot(tDir);
+            }
+            // alternate offset
+        }
+    }
+    //===========================================
+    //==========DISTANCE FROM POINT TO LINE======
+    //===========================================
+    private double sqr(double x) {
+        return x*x;
+    }
+    private double dist2(MapLocation v, MapLocation w) {
+        return (sqr(v.x - w.x) + sqr(v.y - w.y));
+    }
+    private double distToSegmentSquared(MapLocation p, MapLocation v, MapLocation w) {
+        double l2 = dist2(v, w);
+        if(l2==0) {
+            return dist2(p, v);
+        }
+        double t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+        t = Math.max(0, Math.min(1, t));
+        MapLocation newLoc = new MapLocation((float)(v.x + t * (w.x - v.x)), (float)(v.y + t * (w.y - v.y)));
+        return dist2(p, newLoc);
+    }
+    private double distance(MapLocation p, MapLocation v, MapLocation w) {
+        return Math.sqrt(distToSegmentSquared(p, v, w));
+    }
+    //===============================================
+    //==========END DISTANCE FROM POINT TO LINE======
+    //===============================================
+
+
+    //Does fire action
     // =================================================================
     // ========================OLD CODE===============================
     // =================================================================
@@ -215,7 +210,6 @@ public strictfp class Soldier3 extends RobotBase
 						System.out.println(rc.canFireTriadShot() + " " + (vTriad[1] > vSingle[1]));
 						System.out.println((rc.canFireSingleShot() + " " + isSingleShotClear(tDir)));
 					}
-
 					if (rc.canFirePentadShot() && (vPentad[1] > vTriad[1] || target.getType() == RobotType.SOLDIER)) {
 						rc.firePentadShot(tDir);
 						if (debug)
@@ -270,32 +264,32 @@ public strictfp class Soldier3 extends RobotBase
     // =================================================================
     // ======================END OLD CODE===============================
     // =================================================================
-    
-    
-	//daily non-movement/shooting tasks
-	public void dailyTasks(TreeInfo[] nearbyTrees) throws  GameActionException {
-		checkVPWin(); //check if can win game on VPs
-		for(int i=0; i<nearbyTrees.length; i++) {
-			if(nearbyTrees[i].getContainedBullets() > 0 && rc.canShake(nearbyTrees[i].getID())) {
-				rc.shake(nearbyTrees[i].getID());
-				break;
-			}
-		}
-		if(ctr<enemyArchons.length && rc.getLocation().distanceTo(enemyArchons[ctr])<4 && isArchonDead()) //if archon is dead, move to next one
-			ctr++;
-	}
-
-	//is the enemy archon here dead?
-	public boolean isArchonDead() throws GameActionException {
-		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
-		for(int i=0; i<robots.length; i++)
-			if(robots[i].getType() == RobotType.ARCHON)
-				return false;
-		return true;
-	}
 
 
-	
+    //daily non-movement/shooting tasks
+    public void dailyTasks(TreeInfo[] nearbyTrees) throws  GameActionException {
+        checkVPWin(); //check if can win game on VPs
+        for(int i=0; i<nearbyTrees.length; i++) {
+            if(nearbyTrees[i].getContainedBullets() > 0 && rc.canShake(nearbyTrees[i].getID())) {
+                rc.shake(nearbyTrees[i].getID());
+                break;
+            }
+        }
+        if(ctr<enemyArchons.length && rc.getLocation().distanceTo(enemyArchons[ctr])<4 && isArchonDead()) //if archon is dead, move to next one
+            ctr++;
+    }
+
+    //is the enemy archon here dead?
+    public boolean isArchonDead() throws GameActionException {
+        RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
+        for(int i=0; i<robots.length; i++)
+            if(robots[i].getType() == RobotType.ARCHON)
+                return false;
+        return true;
+    }
+
+
+
     public BulletInfo[] getBullets() throws GameActionException {
         BulletInfo[] nearbyBullets = rc.senseNearbyBullets(6.0f); //TODO: Change with bytecode limit
         int ctr=0;
