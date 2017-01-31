@@ -21,9 +21,10 @@ public strictfp class Soldier2 extends RobotBase
                 dailyTasks(); //checks VP win and shaking and if archon needs to be progressed
                 BulletInfo[] nearbyBullets = getBullets();
                 RobotInfo[] nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy); //TODO: Log coordinates into swarm
-                if(nearbyBullets.length>0 || combatCounter>0) { //combat counter maintains 5 turn fire
-                    if(nearbyBullets.length>0) //normal case
-                        combatCounter=5;
+                if(nearbyBullets.length>0 || combatCounter>0) { //COMBAT CASE. Combat counter maintains 5 turn fire
+                    if(nearbyBullets.length>0) {//normal case
+                        combatCounter = 5;
+                    }
                     else {//fire at enemy's last location case
                         combatCounter--;
                         if(rc.canFireTriadShot() && combatCounter%2==1) //odd counter fire at enemy
@@ -31,7 +32,6 @@ public strictfp class Soldier2 extends RobotBase
                         else if(rc.canFireTriadShot()) //offset shot on even counters
                             rc.fireTriadShot(rc.getLocation().directionTo(target).rotateRightDegrees(10.0f));
                     }
-                    //TODO: Combat case
                 }
                 else if(nearbyRobots.length>0) {
                     //TODO: Hunting case
@@ -56,6 +56,34 @@ public strictfp class Soldier2 extends RobotBase
             e.printStackTrace();
             System.out.println("Soldier Error");
         }
+    }
+
+    //returns smallest distance between point and line segment  from l1 to l2
+    private double willHitMe(MapLocation p, MapLocation l1, MapLocation l2)
+    {
+        float x1 = p.x;
+        float y1 = p.y;
+        float x2 = l1.x;
+        float y2 = l1.y;
+        float x3 = l2.x;
+        float y3 = l2.y;
+        float px=x2-x1;
+        float py=y2-y1;
+        float temp=(px*px)+(py*py);
+        float u=((x3 - x1) * px + (y3 - y1) * py) / (temp);
+        if(u>1){
+            u=1;
+        }
+        else if(u<0){
+            u=0;
+        }
+        float x = x1 + u * px;
+        float y = y1 + u * py;
+
+        float dx = x - x3;
+        float dy = y - y3;
+        double dist = Math.sqrt(dx*dx + dy*dy);
+        return dist;
     }
 
     //gets bullets being fired towards me
