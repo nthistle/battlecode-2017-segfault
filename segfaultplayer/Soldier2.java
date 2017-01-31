@@ -32,7 +32,7 @@ public strictfp class Soldier2 extends RobotBase
                         RobotInfo targetRobot = combatTarget(nearbyRobots); //find target if applicable
                         if(targetRobot!=null)
                             target = targetRobot.getLocation();
-                        System.out.println(rc.getRoundNum()+" "+tankCounter);
+                        //System.out.println(rc.getRoundNum()+" "+tankCounter);
                         Direction front = null;
                         if(nearbyBullets.length>0)
                             front = getFront(nearbyBullets);

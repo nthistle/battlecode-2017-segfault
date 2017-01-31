@@ -33,7 +33,10 @@ public strictfp class HexGardener extends RobotBase
 	
 	public static final int PHASE_2_MAX_TREES = 4; // so that tanks can happen
 	
-	public static final int TURNS_WITHOUT_TREES_TIMEOUT = 100;
+	public static final int TURNS_WITHOUT_TREES_TIMEOUT = 100; // note that this should conflict with the 
+	// similar counter inside the archon, bc it will take 160+ turns for this one to broadcast, whereas the
+	// archon himself will make the executive decision at only 100 turns
+	// you could try to fix this, but it seems to result in more gardeners, which is, generally, good
 	
 	protected int numPodTrees = 0; // how many trees our pod currently has planted ((ignores destroyed))
 	protected int openDirection = -1; // which direction we open in 
@@ -223,7 +226,8 @@ public strictfp class HexGardener extends RobotBase
 		
 		Direction dir = father.directionTo(rc.getLocation());
 		
-		int searchTurns = getID() * 15;
+		int searchTurns = getID() * 8;
+		if(searchTurns > 30) searchTurns = 30;
 		
 		while(moveInDir(dir) != null && searchTurns > 0) {
 			if(searchTurns < 255) 

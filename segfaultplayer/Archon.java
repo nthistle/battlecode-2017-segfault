@@ -13,7 +13,7 @@ public strictfp class Archon extends RobotBase
 	private float[] farTreeMassSmoothed;
 	private float[] farTreeMassByDirection;
 	private static final float TREE_BLOCKED_THRESHOLD = 10.0f;
-	private static final int GARDENER_SPAWN_TIMEOUT = 200;
+	private static final int GARDENER_SPAWN_TIMEOUT = 100;
 	private MapLocation enemyArch;
 	
 	int xoffset;		// x-offset of grid
