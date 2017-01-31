@@ -78,13 +78,28 @@ public strictfp class Soldier2 extends RobotBase
         }
     }
 
+    public void dodge(Direction front, BulletInfo[] nearbyBullets) {
+        dodge(front, nearbyBullets,false);
+    }
+
     //tries dodging to the side, failing that attempts to move backwards regardless of price
-    public void dodge(Direction front, BulletInfo[] nearbyBullets) throws GameActionException {
+    public void dodge(Direction front, BulletInfo[] nearbyBullets, boolean debug) throws GameActionException {
         Direction left = front.rotateLeftDegrees(90.0f);
         Direction leftFar = front.rotateLeftDegrees(135.0f);
         Direction right = front.rotateRightDegrees(90.0f);
         Direction rightFar = front.rotateRightDegrees(135.0f);
         for(int i=0; i<10; i++) {
+            if(debug && i==9) {
+                rc.setIndicatorDot(rc.getLocation().add(left,i/9.0f*rc.getType().strideRadius),255,0,0);
+                rc.setIndicatorDot(rc.getLocation().add(right,i/9.0f*rc.getType().strideRadius),255,0,0);
+                rc.setIndicatorDot(rc.getLocation().add(leftFar,i/9.0f*rc.getType().strideRadius),255,0,0);
+                rc.setIndicatorDot(rc.getLocation().add(rightFar,i/9.0f*rc.getType().strideRadius),255,0,0);
+            }
+            System.out.println(i);
+            System.out.println(isSafe(rc.getLocation().add(left,i/9.0f*rc.getType().strideRadius),nearbyBullets));
+            System.out.println(isSafe(rc.getLocation().add(right,i/9.0f*rc.getType().strideRadius),nearbyBullets));
+            System.out.println(isSafe(rc.getLocation().add(leftFar,i/9.0f*rc.getType().strideRadius),nearbyBullets));
+            System.out.println(isSafe(rc.getLocation().add(rightFar,i/9.0f*rc.getType().strideRadius),nearbyBullets));
             if(isSafe(rc.getLocation().add(left,i/10.0f*rc.getType().strideRadius),nearbyBullets)) {
                 rc.move(rc.getLocation().add(left,i/10.0f*rc.getType().strideRadius));
                 return;
