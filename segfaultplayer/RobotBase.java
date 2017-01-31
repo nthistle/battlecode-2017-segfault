@@ -10,26 +10,26 @@ import battlecode.common.*;
 public strictfp abstract class RobotBase
 {
 	private static final int randSeed = 10385;
-	
+
 	public Random rand;
-	
+
 	public static Random staticRand = new Random(randSeed);
-	
+
 	protected final RobotController rc;
-	
+
 	public final Team enemy;
 	public final Team ally;
-	
+
 	public MapLocation[] enemyArchons;
 	public MapLocation[] allyArchons;
-	
+
 	public MapLocation marker  = null;
 	public MapLocation marker2 = null; // what are these?
-	
+
 	public float[][] pathMatrix;
-	
+
 	public int firstTurn;
-	
+
 	private int myID;
 
 	public RobotBase(RobotController rc) throws GameActionException {
@@ -41,7 +41,7 @@ public strictfp abstract class RobotBase
 		setAndSortArchons();
 		rand = new Random(randSeed + rc.getID());
 	}
-	
+
 	public RobotBase(RobotController rc, int id) throws GameActionException {
 		this.rc = rc;
 		myID = id;
@@ -51,7 +51,7 @@ public strictfp abstract class RobotBase
 		setAndSortArchons();
 		rand = new Random(randSeed + rc.getID());
 	}
-	
+
 	/**
 	 * Sets enemyArchons and allyArchons correspondingly, and sorts them according to this robot's
 	 * current location (starting location, since called once upon spawn)
@@ -79,15 +79,15 @@ public strictfp abstract class RobotBase
 			}
 		}
 	}
-	
-	
+
+
 	/**
 	 * Implemented by subclass robots, is called by handler methods in RobotPlayer.java
 	 * @throws GameActionException
 	 */
 	public abstract void run() throws GameActionException;
 
-	
+
 	/**
 	 * Checks if our current bullet stockpile is enough to win the game on victory points, and
 	 * if it is, attempts to cash in and win.
@@ -101,7 +101,7 @@ public strictfp abstract class RobotBase
 		if(rc.getRoundNum()>rc.getRoundLimit()-5)
 			rc.donate(rc.getTeamBullets());
 	}
-	
+
 	//Srinidi: Add move with dodge.
 	//Parameter: Destination
 	//Moves 1 move without getting hit (dodge) towards destination as best as possible
@@ -109,11 +109,11 @@ public strictfp abstract class RobotBase
 	public RobotController getRC() {
 		return rc;
 	}
-	
+
 	public int getID() {
 		return myID;
 	}
-	
+
 
 	// =====================================================================================
 	//                              INSTANCE  HELPER  METHODS
@@ -126,40 +126,40 @@ public strictfp abstract class RobotBase
 	public int getLifespan() {
 		return rc.getRoundNum()-firstTurn;
 	}
-	
+
 	public void setIndicatorPlus(MapLocation ml, int r, int g, int b) throws GameActionException {
 		rc.setIndicatorLine(ml.add(new Direction(0),1.0f),
 				ml.add(new Direction((float)Math.PI),1.0f), r, g, b);
 		rc.setIndicatorLine(ml.add(new Direction((float)Math.PI/2.0f),1.0f),
 				ml.add(new Direction(3.0f*(float)Math.PI/2.0f),1.0f), r, g, b);
 	}
-	
+
 	public void setIndicatorX(MapLocation ml, int r, int g, int b) throws GameActionException {
 		rc.setIndicatorLine(ml.add(new Direction((float)Math.PI/4.0f),1.0f),
 				ml.add(new Direction(5.0f*(float)Math.PI/4.0f),1.0f), r, g, b);
 		rc.setIndicatorLine(ml.add(new Direction(3.0f*(float)Math.PI/4.0f),1.0f),
 				ml.add(new Direction(7.0f*(float)Math.PI/4.0f),1.0f), r, g, b);
 	}
-	
+
 	public float getDist(float x1, float y1, float x2, float y2) {
 		float dx = x2-x1;
 		float dy = y2-y1;
-		return (float)Math.sqrt(dx*dx+dy*dy); 
+		return (float)Math.sqrt(dx*dx+dy*dy);
 	}
-	
-	
+
+
 	public boolean moveTowards(MapLocation cur, MapLocation goal) throws GameActionException {
 		return moveTowards(cur, goal, (float)Math.PI/16.0f, 8);
 	}
-	
+
 	public Direction moveInDir(Direction ideal) throws GameActionException {
 		return moveInDir(ideal, (float)Math.PI/16.0f, 8);
 	}
-	
+
 	/**
 	 * Trys to move from the current location towards the given goal location (just used for direction)
 	 * while slowly tweaking angle in either direction, according to offset and max
-	 * 
+	 *
 	 * @param cur current location you're at
 	 * @param goal goal location you want to get to
 	 * @param offset the increment to attempt directions in, maximum offset used is offset*max
@@ -176,7 +176,7 @@ public strictfp abstract class RobotBase
 			return moveInDir(ideal, offset, max) != null;
 		}
 	}
-	
+
 	public Direction moveInDir(Direction ideal, float offset, int max) throws GameActionException {
 		Direction dir;
 		for(int i = 1; i < max; i ++) {
@@ -194,11 +194,11 @@ public strictfp abstract class RobotBase
 		return null;
 		// unable to move
 	}
-	
+
 	// NOTE: if we ever need to cut down bytecodes, they changed the senseNearby
 	// methods to return things in order of nearest, could just take the first one
 	// that matches appropriate type
-	
+
 	public RobotInfo getNearest(RobotType rt, Team t) {
 		RobotInfo nearest = null;
 		RobotInfo[] sensed = rc.senseNearbyRobots(rc.getType().sensorRadius, t);
@@ -259,10 +259,10 @@ public strictfp abstract class RobotBase
 	public boolean isSingleShotClear(Direction tDir, boolean drawIndicators) throws GameActionException {
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
 		TreeInfo[] trees = rc.senseNearbyTrees();
-		
+
 		if(drawIndicators)
 			rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(tDir,Float.valueOf(100.0+"")),0,255,255);
-		
+
 		for(int i=0; i<robots.length; i++) {
 			Direction fDir = rc.getLocation().directionTo(robots[i].getLocation());
 			double length = (double)rc.getLocation().distanceTo(robots[i].getLocation());
@@ -460,11 +460,12 @@ public strictfp abstract class RobotBase
 	// =========================================================
 	// ======================= DODGING =========================
 	// =========================================================
-	
+
 	public void moveWithDodging(MapLocation ml) throws GameActionException{
 		moveWithDodging(ml, false);
 	}
 
+	//moves arbitrarily with dodging, if all bullets are non-threatening moves using without dodging
 	public void moveWithDodging(MapLocation ml, boolean debug) throws GameActionException {
 		Direction goal = rc.getLocation().directionTo(ml);
 		BulletInfo[] nearbyBullets = rc.senseNearbyBullets(5.0f);
@@ -508,121 +509,6 @@ public strictfp abstract class RobotBase
 				}
 			}
 		}
-	}
-
-	//moves arbitrarily with dodging, if all bullets are non-threatening moves using without dodging
-	public void moveWithDodgingMEME(MapLocation ml, boolean debug) throws GameActionException {
-		Direction goal = rc.getLocation().directionTo(ml);
-		BulletInfo[] nearbyBullets = rc.senseNearbyBullets(rc.getType().bodyRadius+rc.getType().strideRadius+2.2f);
-		int ctr=0;
-		for(int i=0; i<nearbyBullets.length; i++) {
-			if(rc.getLocation().directionTo(nearbyBullets[i].getLocation()).equals(nearbyBullets[i].getDir(),(float)(Math.PI/2.0)))
-				nearbyBullets[i] = null;
-			else
-				ctr++;
-		}
-		if(ctr==0) {
-			pathFind(ml);
-			return;
-		}
-		BulletInfo[] bi = new BulletInfo[ctr];
-		ctr=0;
-		for(int i=0; i<nearbyBullets.length; i++) {
-			if(nearbyBullets[i]!=null) {
-				bi[ctr] = nearbyBullets[i];
-				ctr++;
-			}
-		}
-//		for(BulletInfo bullet: bi) {
-//			System.out.println("New Bullet");
-//			System.out.println(bullet.getLocation()+" "+bullet.getLocation().add(bullet.getDir(),bullet.getSpeed()*.25f)+" "+bullet.getLocation().add(bullet.getDir(),bullet.getSpeed()*.75f));
-//		}
-		int bLength = 3;
-		if(bi.length<bLength)
-			bLength = bi.length;
-		float rads = 0.0f;
-		for(int i=0; i<bLength; i++)
-			rads+=bi[0].getDir().radians;
-		Direction front = new Direction( rads/((float)bLength) );
-		Direction[] myDirs = getSidewaysDirections(front);
-		for(int i=0; i<myDirs.length; i++) {
-			MapLocation mapLocation = rc.getLocation().add(myDirs[i],(float)( (.5+Math.random()*.5) * rc.getType().strideRadius)); //(.5+(Math.random()*.5))
-			rc.setIndicatorLine(rc.getLocation(),mapLocation,255,255,0);
-			boolean clear = true;
-			//System.out.println("New step");
-			for(BulletInfo bullet: bi) {
-				if(willHit(mapLocation, bullet.getLocation(), bullet.getLocation().add(bullet.getDir(), bullet.getSpeed()) )) {
-					clear = false;
-					break;
-				}
-//				for(int z=0; z<5; z++) {
-//					if (mapLocation.distanceTo(bullet.getLocation().add(bullet.getDir(), bullet.getSpeed() * z * .25f)) < rc.getType().bodyRadius * 1.1) {
-//						clear = false;
-//						break;
-//					}
-//				}
-			}
-			if(clear) {
-				if (rc.canMove(mapLocation)) {
-					rc.move(mapLocation);
-					if(debug) {
-						System.out.println("i: " + i);
-//						System.out.println(mapLocation);
-//						for(BulletInfo bullet: bi) {
-//							System.out.println("New Bullet");
-//							for(int z=0; z<5; z++) {
-//								System.out.print(bullet.getLocation().add(bullet.getDir(), bullet.getSpeed() * z *.25f).distanceTo(mapLocation)+" ");
-//							}
-//							System.out.println();
-//						}
-					}
-					break;
-				}
-			}
-			//System.out.println(Clock.getBytecodesLeft());
-		}
-		System.out.println("Done moving");
-	}
-
-	public Direction[] getSidewaysDirections(Direction front) {
-		Direction[] myDirs = new Direction[20];
-		for(int i=0; i<10; i++) {
-			myDirs[i*2] = front.rotateRightDegrees((float)(i*10+45));
-			myDirs[i*2+1] = front.rotateLeftDegrees((float)(i*10+45));
-		}
-		return myDirs;
-	}
-
-	public boolean willHit(MapLocation point, MapLocation line1, MapLocation line2) //float x1,float y1,float x2,float y2,float x3,float y3
-	{
-		float x1 = point.x;
-		float y1 = point.y;
-		float x2 = line1.x;
-		float y2 = line1.y;
-		float x3 = line2.x;
-		float y3 = line2.y;
-
-		float px=x2-x1;
-		float py=y2-y1;
-		float temp=(px*px)+(py*py);
-		float u=((x3 - x1) * px + (y3 - y1) * py) / (temp);
-		if(u>1){
-			u=1;
-		}
-		else if(u<0){
-			u=0;
-		}
-		float x = x1 + u * px;
-		float y = y1 + u * py;
-
-		float dx = x - x3;
-		float dy = y - y3;
-		double dist = Math.sqrt(dx*dx + dy*dy);
-		//System.out.println("  "+dist);
-		if(dist<rc.getType().bodyRadius)
-			return true;
-		else
-			return false;
 	}
 
 	public void moveWithDodgingScout(MapLocation ml) throws GameActionException{
@@ -682,7 +568,7 @@ public strictfp abstract class RobotBase
 		if(rc.canMove(move))
 			rc.move(move);
 	}
-	
+
 
 	// =========================================================
 	// ==================== PATHFINDING ========================
@@ -727,7 +613,7 @@ public strictfp abstract class RobotBase
 		//update markers
 		marker2 = marker;
 		marker = myLoc;
-		
+
 		//actually move
 		for (int j=0; j<myDirs.length; j++) {
 			if(rc.canMove(myDirs[(int)pathMatrix[j][0]]) && canTankMove(rc.getLocation().add(myDirs[(int)pathMatrix[j][0]],rc.getType().strideRadius) )) {
@@ -736,7 +622,7 @@ public strictfp abstract class RobotBase
 			}
 		}
 	}
-	
+
 	/**
 	 * Determines gardener unit vs. tree production ratio (for phase 2 of hex gardener)
 	 * based on the closest we've reached to an enemy archon.
@@ -749,11 +635,11 @@ public strictfp abstract class RobotBase
 		return 2.1f; // some weird stuff was happening, so for debugging
 		// and because I'm not sure how well this method works, I just made
 		// this return 2.1
-		
+
 		/*int realRatio = rc.readBroadcast(11);
 		return (float)realRatio / 1000.0f;*/
 	}
-	
+
 	/**
 	 * Updates the ratio for gardener unit vs. tree production as a function of how close
 	 * to enemy archon we've made it.
@@ -828,37 +714,37 @@ public strictfp abstract class RobotBase
 	// =====================================================================================
 	//                              STATIC  HELPER  METHODS
 	// =====================================================================================
-	
+
 	// consider moving to a static class later
-	
+
 	//fans out directions from initial direction by delta theta
 	// returns array of directions best arr[0] to worst arr[arr.len-1]
-    public static Direction[] getBestDirections(Direction bestDir, float theta) throws GameActionException {
-    	float initialtheta = theta;
-    	Direction[] dirs = new Direction [(int)(360.0f/theta)];
-    	dirs[0] = bestDir;
-    	for (int j=1; j<dirs.length; j++) {
-    		bestDir = bestDir.rotateLeftDegrees(theta);
-    		dirs[j] = bestDir;
-    		if (theta>0f) {
-    			theta = theta*-1f;
-    		} else {
-    			theta = theta*-1f + initialtheta;
-    		}
-    	}
-    	return dirs;
+	public static Direction[] getBestDirections(Direction bestDir, float theta) throws GameActionException {
+		float initialtheta = theta;
+		Direction[] dirs = new Direction [(int)(360.0f/theta)];
+		dirs[0] = bestDir;
+		for (int j=1; j<dirs.length; j++) {
+			bestDir = bestDir.rotateLeftDegrees(theta);
+			dirs[j] = bestDir;
+			if (theta>0f) {
+				theta = theta*-1f;
+			} else {
+				theta = theta*-1f + initialtheta;
+			}
+		}
+		return dirs;
 	}
-    
 
-    public static Direction[] getBestDirections2(Direction bestDir, float theta) throws GameActionException {
-    	float initialtheta = theta;
-    	Direction[] dirs = new Direction [(int)(360.0f/theta)];
-    	dirs[0] = bestDir;
-    	for (int j=1; j<dirs.length; j++) {
-    		bestDir = bestDir.rotateLeftDegrees(theta);
-    		dirs[j] = bestDir;
-    	}
-    	return dirs;
+
+	public static Direction[] getBestDirections2(Direction bestDir, float theta) throws GameActionException {
+		float initialtheta = theta;
+		Direction[] dirs = new Direction [(int)(360.0f/theta)];
+		dirs[0] = bestDir;
+		for (int j=1; j<dirs.length; j++) {
+			bestDir = bestDir.rotateLeftDegrees(theta);
+			dirs[j] = bestDir;
+		}
+		return dirs;
 	}
 
 	public static Direction[] getBestDirectionsMihir(Direction bestDir, float theta) throws GameActionException {
@@ -874,8 +760,8 @@ public strictfp abstract class RobotBase
 		}
 		return dirs;
 	}
-    
-	
+
+
 	public static Direction averageDirection(Direction a, Direction b) {
 		float adeg = a.radians;
 		float bdeg = b.radians;
@@ -893,19 +779,19 @@ public strictfp abstract class RobotBase
 			avg -= 2.0f*(float)Math.PI;
 		return new Direction(avg);
 	}
-	
-    public static Direction[] getDirections(Direction startDir, float theta) throws GameActionException {
-    	float initialtheta = theta;
-    	Direction[] dirs = new Direction [(int)(360.0f/theta)];
-    	Direction bestdir = startDir;
-    	dirs[0] = bestdir;
-    	for (int j=1; j<dirs.length; j++) {
-    		bestdir = bestdir.rotateLeftDegrees(theta);
-    		dirs[j] = bestdir;
-    	}
-    	return dirs;
+
+	public static Direction[] getDirections(Direction startDir, float theta) throws GameActionException {
+		float initialtheta = theta;
+		Direction[] dirs = new Direction [(int)(360.0f/theta)];
+		Direction bestdir = startDir;
+		dirs[0] = bestdir;
+		for (int j=1; j<dirs.length; j++) {
+			bestdir = bestdir.rotateLeftDegrees(theta);
+			dirs[j] = bestdir;
+		}
+		return dirs;
 	}
-	
+
 	public static MapLocation findClosest(MapLocation to, MapLocation[] poss) {
 		if(poss.length == 0)
 			return null;
@@ -916,48 +802,48 @@ public strictfp abstract class RobotBase
 		}
 		return closest;
 	}
-	
+
 	public Direction randomDirection() {
 		return new Direction(rand.nextFloat() * 2 * (float)Math.PI);
 	}
-    
+
 	public static int getAndAssignNextID(RobotController rc) throws GameActionException {
 		int num = typeToNum(rc.getType());
 		int nextID = rc.readBroadcast(100+num);
 		rc.broadcast(100+num, nextID+1);
 		return nextID;
 	}
-	
-	
-    public static int typeToNum(RobotType rt) {
-    	if(rt == RobotType.ARCHON)
-    		return 0;
-    	if(rt == RobotType.GARDENER)
-    		return 1;
-    	if(rt == RobotType.SCOUT)
-    		return 2;
-    	if(rt == RobotType.SOLDIER)
-    		return 3;
-    	if(rt == RobotType.LUMBERJACK)
-    		return 4;
-    	if(rt == RobotType.TANK)
-    		return 5;
-    	return -1;
-    }
-    
-    public static RobotType numToType(int t) {
-    	if(t == 0)
-    		return RobotType.ARCHON;
-    	if(t == 1)
-    		return RobotType.GARDENER;
-    	if(t == 2)
-    		return RobotType.SCOUT;
-    	if(t == 3)
-    		return RobotType.SOLDIER;
-    	if(t == 4)
-    		return RobotType.LUMBERJACK;
-    	if(t == 5)
-    		return RobotType.TANK;
-    	return null;
-    }
+
+
+	public static int typeToNum(RobotType rt) {
+		if(rt == RobotType.ARCHON)
+			return 0;
+		if(rt == RobotType.GARDENER)
+			return 1;
+		if(rt == RobotType.SCOUT)
+			return 2;
+		if(rt == RobotType.SOLDIER)
+			return 3;
+		if(rt == RobotType.LUMBERJACK)
+			return 4;
+		if(rt == RobotType.TANK)
+			return 5;
+		return -1;
+	}
+
+	public static RobotType numToType(int t) {
+		if(t == 0)
+			return RobotType.ARCHON;
+		if(t == 1)
+			return RobotType.GARDENER;
+		if(t == 2)
+			return RobotType.SCOUT;
+		if(t == 3)
+			return RobotType.SOLDIER;
+		if(t == 4)
+			return RobotType.LUMBERJACK;
+		if(t == 5)
+			return RobotType.TANK;
+		return null;
+	}
 }
