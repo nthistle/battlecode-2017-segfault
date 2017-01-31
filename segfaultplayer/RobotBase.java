@@ -511,6 +511,97 @@ public strictfp abstract class RobotBase
 		}
 	}
 
+	public void moveWithDodgingMEME(MapLocation ml, boolean debug) throws GameActionException {
+		Direction goal = rc.getLocation().directionTo(ml);
+		BulletInfo[] nearbyBullets = rc.senseNearbyBullets(5.0f);
+		int ctr=0;
+		for(int i=0; i<nearbyBullets.length; i++) {
+			if(rc.getLocation().directionTo(nearbyBullets[i].getLocation()).equals(nearbyBullets[i].getDir(),(float)(Math.PI/2.0)))
+				nearbyBullets[i] = null;
+			else
+				ctr++;
+		}
+		if(ctr==0) {
+			pathFind(ml);
+			return;
+		}
+		BulletInfo[] bi = new BulletInfo[ctr];
+		ctr=0;
+		for(int i=0; i<nearbyBullets.length; i++) {
+			if(nearbyBullets[i]!=null) {
+				bi[ctr] = nearbyBullets[i];
+				ctr++;
+			}
+		}
+		int bLength = 3;
+		if(bi.length<bLength)
+			bLength = bi.length;
+		float rads = 0.0f;
+		for(int i=0; i<bLength; i++) {
+			rads+=bi[i].getDir().radians;
+		}
+		Direction[] myDirs = getDirectionsMEME(new Direction(rads/(bLength*1.0f)));
+		for(int i=0; i<myDirs.length; i++) {
+			MapLocation mapLocation = rc.getLocation().add(myDirs[i],(float)( (.5+(Math.random()*.5)) * rc.getType().strideRadius));
+			boolean clear = true;
+			for(BulletInfo bullet: bi) {
+				if (willHitMe(rc.getLocation(),bullet.getLocation(),bullet.getLocation().add(bullet.getDir(),bullet.getSpeed()))) {
+					clear = false;
+					break;
+				}
+			}
+			if(clear) {
+				if (rc.canMove(mapLocation)) {
+					rc.move(mapLocation);
+					if(debug) {
+						System.out.println("i: " + i);
+						rc.setIndicatorDot(mapLocation,0,255,255);
+					}
+					break;
+				}
+			}
+		}
+	}
+
+	public Direction[] getDirectionsMEME(Direction front) {
+		Direction[] myDirs = new Direction[20];
+		for(int i=0; i<10; i++) {
+			myDirs[i*2] = front.rotateRightDegrees(i*10.0f+45.0f);
+			myDirs[i*2+1] = front.rotateLeftDegrees(i*10.0f+45.0f);
+		}
+		return myDirs;
+	}
+
+	private boolean willHitMe(MapLocation p, MapLocation l1, MapLocation l2)
+	{
+		float x1 = p.x;
+		float y1 = p.y;
+		float x2 = l1.x;
+		float y2 = l1.y;
+		float x3 = l2.x;
+		float y3 = l2.y;
+		float px=x2-x1;
+		float py=y2-y1;
+		float temp=(px*px)+(py*py);
+		float u=((x3 - x1) * px + (y3 - y1) * py) / (temp);
+		if(u>1){
+			u=1;
+		}
+		else if(u<0){
+			u=0;
+		}
+		float x = x1 + u * px;
+		float y = y1 + u * py;
+
+		float dx = x - x3;
+		float dy = y - y3;
+		double dist = Math.sqrt(dx*dx + dy*dy);
+		if(dist<rc.getType().bodyRadius)
+			return true;
+		return false;
+
+	}
+
 	public void moveWithDodgingScout(MapLocation ml) throws GameActionException{
 		moveWithDodging(ml, false);
 	}
