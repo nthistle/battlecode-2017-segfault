@@ -1,6 +1,8 @@
 package segfaultplayer;
 import battlecode.common.*;
 
+import java.awt.*;
+
 public strictfp class Soldier2 extends RobotBase
 {
     public static final int SWARM_ROUND_NUM = 800;
@@ -23,17 +25,28 @@ public strictfp class Soldier2 extends RobotBase
                 RobotInfo[] nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy); //TODO: Log coordinates into swarm
                 if(nearbyBullets.length>0 || combatCounter>0) { //COMBAT CASE. Combat counter maintains 5 turn fire
                     if(nearbyBullets.length>0) {//normal case
+                        //find target if applicable
+                        RobotInfo targetRobot = combatTarget(nearbyRobots);
+                        target = targetRobot.getLocation();
+
+                        Direction front = getFront(nearbyBullets);
+                        if(isSafe(rc.getLocation().subtract(front, rc.getType().strideRadius),nearbyBullets)) //can I safely move backwards IF TARGET (length>0) TODO: Account for potentailly rapidly yielding ground (switch stay case)
+                            rc.move(rc.getLocation().subtract(front, rc.getType().strideRadius));
+                        else if(isSafe(rc.getLocation(),nearbyBullets)) {} //can I safely stay
+                        else     // can I safely dodge sideways
+                            dodge(front, nearbyBullets);
+                        //shoot at target IF TARGET (port over nikhil's firing)
                         combatCounter = 5;
                     }
                     else {//fire at enemy's last location case
                         combatCounter--;
-                        if(rc.canFireTriadShot() && combatCounter%2==1) //odd counter fire at enemy
+                        if(rc.canFireTriadShot() && combatCounter%2==1 && target!=null) //odd counter fire at enemy
                             rc.fireSingleShot(rc.getLocation().directionTo(target));
-                        else if(rc.canFireTriadShot()) //offset shot on even counters
+                        else if(rc.canFireTriadShot() && target!=null) //offset shot on even counters
                             rc.fireTriadShot(rc.getLocation().directionTo(target).rotateRightDegrees(10.0f));
                     }
                 }
-                else if(nearbyRobots.length>0) {
+                else if(nearbyRobots.length>0) { //TODO: account for sht theres a tank/soldier but it hasnt fired yet (Fire at soldier and it will fire back = good, for tank set target and combatcounter then back up)
                     //TODO: Hunting case
                 }
                 else { //default case
@@ -56,6 +69,77 @@ public strictfp class Soldier2 extends RobotBase
             e.printStackTrace();
             System.out.println("Soldier Error");
         }
+    }
+
+    //tries dodging to the side, failing that attempts to move backwards regardless of price
+    public void dodge(Direction front, BulletInfo[] nearbyBullets) throws GameActionException {
+        Direction left = front.rotateLeftDegrees(90.0f);
+        Direction right = front.rotateRightDegrees(90.0f);
+        for(int i=0; i<10; i++) {
+            if(isSafe(rc.getLocation().add(left,i/10.0f*rc.getType().strideRadius),nearbyBullets)) {
+                rc.move(rc.getLocation().add(left,i/10.0f*rc.getType().strideRadius));
+                return;
+            }
+            if(isSafe(rc.getLocation().add(right,i/10.0f*rc.getType().strideRadius),nearbyBullets)) {
+                rc.move(rc.getLocation().add(left,i/10.0f*rc.getType().strideRadius));
+                return;
+            }
+        }
+        if(rc.canMove(rc.getLocation().subtract(front, rc.getType().strideRadius)))
+            rc.move(rc.getLocation().subtract(front, rc.getType().strideRadius));
+    }
+
+    //returns avg bullet direction
+    public Direction getFront(BulletInfo[] nearbyBullets) {
+        float rads = 0.0f;
+        for(BulletInfo bullet: nearbyBullets)
+            rads+=bullet.getDir().radians;
+        return new Direction(rads / (nearbyBullets.length*1.0f));
+    }
+
+    //checks if space is safe from bullets and movable
+    public boolean isSafe(MapLocation ml, BulletInfo[] nearbyBullets) {
+        if(!rc.canMove(ml))
+            return false;
+        for(BulletInfo bullet: nearbyBullets) {
+            if(rc.getType().bodyRadius>willHitMe(ml,bullet.getLocation(),bullet.getLocation().add(bullet.getDir(),bullet.getSpeed())))
+                return false;
+        }
+        return true;
+    }
+
+    public RobotInfo combatTarget(RobotInfo[] nearbyRobots) {
+        if(nearbyRobots.length>0)
+            return null;
+        int score = Integer.MAX_VALUE;
+        int index = -1;
+        for(int i=0; i<nearbyRobots.length; i++) {
+            int myScore = i;
+            switch (rc.getType()) {
+                case TANK:
+                    myScore+=100;
+                    break;
+                case SOLDIER:
+                    score+=80;
+                    break;
+                case GARDENER:
+                    score+=60;
+                    break;
+                case LUMBERJACK:
+                    score+=40;
+                    break;
+                case SCOUT:
+                    score+=20;
+                    break;
+                case ARCHON:
+                    break;
+            }
+            if(myScore<score) {
+                score = myScore;
+                index = i;
+            }
+        }
+        return nearbyRobots[index];
     }
 
     //returns smallest distance between point and line segment  from l1 to l2
