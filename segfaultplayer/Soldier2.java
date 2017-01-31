@@ -17,6 +17,7 @@ public strictfp class Soldier2 extends RobotBase
 
     public void run() throws GameActionException {
         int combatCounter = 0;
+        int tankCounter = 0;
         MapLocation target = null;
         boolean altShot = false;
         try {
@@ -25,13 +26,24 @@ public strictfp class Soldier2 extends RobotBase
                 BulletInfo[] nearbyBullets = getBullets();
                 RobotInfo[] nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
                 if(nearbyBullets.length>0 || combatCounter>0) { //COMBAT CASE. Combat counter maintains 5 turn fire
-                    if(nearbyBullets.length>0) {//normal case
+                    if(nearbyBullets.length>0 || tankCounter>0) {//normal case
                         RobotInfo targetRobot = combatTarget(nearbyRobots); //find target if applicable
                         if(targetRobot!=null)
                             target = targetRobot.getLocation();
+                        System.out.println(rc.getRoundNum()+" "+tankCounter);
+                        Direction front = null;
+                        if(nearbyBullets.length>0)
+                            front = getFront(nearbyBullets);
+                        if((targetRobot!=null && targetRobot.getType()==RobotType.TANK) || tankCounter>0) { // Run.
 
-                        Direction front = getFront(nearbyBullets);
-                        if(isSafe(rc.getLocation().add(front, rc.getType().strideRadius),nearbyBullets)==0) { //can I safely move backwards IF TARGET (length>0)
+                            if(rc.canMove(rc.getLocation().subtract(rc.getLocation().directionTo(target))))
+                                rc.move(rc.getLocation().subtract(rc.getLocation().directionTo(target)));
+                            if(tankCounter>0)
+                                tankCounter--;
+                            else
+                                tankCounter = 3;
+                        }
+                        else if(isSafe(rc.getLocation().add(front, rc.getType().strideRadius),nearbyBullets)==0) { //can I safely move backwards IF TARGET (length>0)
                             rc.move(rc.getLocation().add(front, rc.getType().strideRadius));
                             System.out.println("Backwards");
                         }
@@ -43,7 +55,7 @@ public strictfp class Soldier2 extends RobotBase
                             System.out.println("Dodge");
                         }
 
-                        if(target!=null) {//shoot at target IF TARGET (port over nikhil's firing) TODO: Make sure u can hit it
+                        if(target!=null) {//shoot at target IF TARGET (port over nikhil's firing) TODO: Make sure u can hit it /  FRIENDLY FIRE
                             if (rc.canFireTriadShot() && !altShot) {
                                 rc.fireTriadShot(rc.getLocation().directionTo(target));
                                 altShot = true;
@@ -56,7 +68,7 @@ public strictfp class Soldier2 extends RobotBase
                         if(targetRobot!=null)
                             combatCounter = 5;
                     }
-                    else {//fire at enemy's last location case
+                    else {//fire at enemy's last location case //TODO ACCOUNT FOR FRIENDLY FIRE
                         combatCounter--;
                         if(rc.canFireTriadShot() && combatCounter%2==1 && target!=null) //odd counter fire at enemy
                             rc.fireSingleShot(rc.getLocation().directionTo(target));
@@ -95,26 +107,18 @@ public strictfp class Soldier2 extends RobotBase
 
     //tries dodging to the side, failing that attempts to move backwards regardless of price
     public void dodge(Direction front, BulletInfo[] nearbyBullets, boolean debug) throws GameActionException {
-
-        MapLocation[] moves = new MapLocation[8*1];
-        int[] damage = new int[8*1];
-        for(int i=0; i<1; i++) {
-            for(int z=0; z<8; z++) {
-
-                moves[i*8+z] = rc.getLocation().add( front.rotateRightDegrees(45.0f*z) ,(9 + i) / 9.0f * rc.getType().strideRadius );
+        int imax = 1;
+        int zmax = 8;
+        MapLocation[] moves = new MapLocation[zmax*imax];
+        int[] damage = new int[zmax*imax];
+        for(int i=0; i<imax; i++) {
+            for(int z=0; z<zmax; z++) {
+                moves[i*zmax+z] = rc.getLocation().add( front.rotateRightDegrees(45.0f*z) ,(9 + i) / 9.0f * rc.getType().strideRadius );
                 if(debug)
-                    rc.setIndicatorLine(rc.getLocation(),moves[i*8+z],255,0,0);
-                damage[i*8+z] = 100*isSafe(moves[i*8+z],nearbyBullets) + Math.abs((int)front.degreesBetween(front.rotateRightDegrees(45.0f*z)));
+                    rc.setIndicatorLine(rc.getLocation(),moves[i*zmax+z],255,0,0);
+                damage[i*zmax+z] = 1000*isSafe(moves[i*zmax+z],nearbyBullets) + (int)(moves[i*zmax+z].distanceTo(allyArchons[0]));//
+                //Math.abs((int)(rc.getLocation().directionTo(moves[i*zmax+z]).degreesBetween(front))
             }
-//            moves[i * 4] = rc.getLocation().add(leftFar, (9 + i) / 9.0f * rc.getType().strideRadius);
-//            moves[i * 4 + 1] = rc.getLocation().add(rightFar, (9 + i) / 9.0f * rc.getType().strideRadius);
-//            moves[i * 4 + 2] = rc.getLocation().add(left, (9 + i) / 9.0f * rc.getType().strideRadius);
-//            moves[i * 4 + 3] = rc.getLocation().add(right, (9 + i) / 9.0f * rc.getType().strideRadius);
-//
-//            damage[i*4] = isSafe(moves[i*4],nearbyBullets);
-//            damage[i*4+1] = isSafe(moves[i*4+1],nearbyBullets);
-//            damage[i*4+2] = isSafe(moves[i*4+2],nearbyBullets);
-//            damage[i*4+3] = isSafe(moves[i*4+3],nearbyBullets);
         }
         if(debug) {
             for (int i = 0; i < 8; i++) {
