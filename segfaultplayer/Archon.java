@@ -508,7 +508,7 @@ public strictfp class Archon extends RobotBase
 				buildDirections = getBestDirectionsMihir(rc.getLocation().directionTo(enemyArchons[0]),1.0f);
 				int minDir = rand.nextInt(50);
 				if(rc.readBroadcast(21)==1 || turnsSinceGardenerSpawn > GARDENER_SPAWN_TIMEOUT) {
-					System.out.println("I'm trying to make another gardener, buildDirection is length " + buildDirections.length);
+					//System.out.println("I'm trying to make another gardener, buildDirection is length " + buildDirections.length);
 					for(int i=0; i<buildDirections.length; i++) {
 						if(i<minDir)continue;
 						rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(buildDirections[i], 1.0f),

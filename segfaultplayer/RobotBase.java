@@ -40,6 +40,7 @@ public strictfp abstract class RobotBase
 		firstTurn = rc.getRoundNum();
 		setAndSortArchons();
 		rand = new Random(randSeed + rc.getID());
+		pathMatrix = new float[12][2];
 	}
 
 	public RobotBase(RobotController rc, int id) throws GameActionException {
@@ -50,6 +51,7 @@ public strictfp abstract class RobotBase
 		firstTurn = rc.getRoundNum();
 		setAndSortArchons();
 		rand = new Random(randSeed + rc.getID());
+		pathMatrix = new float[12][2];
 	}
 
 	/**
@@ -672,7 +674,11 @@ public strictfp abstract class RobotBase
 	// =========================================================
 	public void pathFind(MapLocation endLoc) throws GameActionException {
 		Direction[] myDirs = getDirections(rc.getLocation().directionTo(endLoc), 30f); // not pointed towards enemy archon so it can move straight up and down
-		pathMatrix = new float[myDirs.length][2];
+		//pathMatrix = new float[myDirs.length][2];
+		for(int i = 0; i < myDirs.length; i ++) {
+			pathMatrix[i][0] = 0;
+			pathMatrix[i][1] = 0;
+		}
 		float stride = (float)(rc.getType().strideRadius);
 		MapLocation myLoc = rc.getLocation();
 		updateRatio(myLoc);
