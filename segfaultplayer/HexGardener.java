@@ -37,6 +37,8 @@ public strictfp class HexGardener extends RobotBase
 	
 	protected int numPodTrees = 0; // how many trees our pod currently has planted ((ignores destroyed))
 	protected int openDirection = -1; // which direction we open in 
+	protected int secondaryOpenDir = -1;
+	
 	protected int buildCooldown = 0; // ticks until we build again
 	
 	public static final int BUILD_COOLDOWN = 15;
@@ -126,6 +128,13 @@ public strictfp class HexGardener extends RobotBase
 		int treesPlanted = 0;
 		int numTurnsNoTree = 0;
 		boolean hasBroadcastedGardenerNecessity = false;
+		
+		
+		if(numPodTrees < PHASE_2_MAX_TREES) {
+			
+		}
+		
+		
 		while(true) {
 			try {
 				// standard stuff
@@ -200,27 +209,46 @@ public strictfp class HexGardener extends RobotBase
 	 * right now returns soldier at round 300 and before, and 50/50 tank or soldier
 	 * after that
 	 * @return
+	 * @throws GameActionException 
 	 */
-	public RobotType getNextRobotBuildType() {
+	public RobotType getNextRobotBuildType() throws GameActionException {
 		if(rc.senseNearbyRobots(5.0f, enemy).length > 0) {
 			return RobotType.SOLDIER;
 		}
 		if(rc.senseNearbyTrees(4.5f, Team.NEUTRAL).length > 0) {
 			return RobotType.LUMBERJACK;
 		}
-		if(rc.getRoundNum() < 300) {
-			return RobotType.SOLDIER;
+		float myRatio = rc.readBroadcast(13)/1000.0f;
+		System.out.println("Ratio I'm seeing is " + myRatio);
+		if(rand.nextFloat() < myRatio) {
+			return RobotType.LUMBERJACK;
 		} else {
-			if(rand.nextFloat() < 0.05f)
-				return RobotType.LUMBERJACK;
-			// make it 50/50 after round 300 on tanks vs soldiers
-			if(rand.nextBoolean()) {
+			if(rand.nextBoolean())
 				return RobotType.TANK;
-			} else {
+			else
 				return RobotType.SOLDIER;
-			}
 		}
 	}
+//	public RobotType getNextRobotBuildType() {
+//		if(rc.senseNearbyRobots(5.0f, enemy).length > 0) {
+//			return RobotType.SOLDIER;
+//		}
+//		if(rc.senseNearbyTrees(4.5f, Team.NEUTRAL).length > 0) {
+//			return RobotType.LUMBERJACK;
+//		}
+//		if(rc.getRoundNum() < 300) {
+//			return RobotType.SOLDIER;
+//		} else {
+//			if(rand.nextFloat() < 0.05f)
+//				return RobotType.LUMBERJACK;
+//			// make it 50/50 after round 300 on tanks vs soldiers
+//			if(rand.nextBoolean()) {
+//				return RobotType.TANK;
+//			} else {
+//				return RobotType.SOLDIER;
+//			}
+//		}
+//	}
 	
 	/**
 	 * used in conjunction with getNextRobotBuildType so we know what to make next,
@@ -273,7 +301,8 @@ public strictfp class HexGardener extends RobotBase
 			Direction goalDir = myLoc.directionTo(closest);
 			int bestIndex = -1;
 			for(int i = 0; i < 6; i ++) {
-				if(i == openDirection) continue;
+				if(i == openDirection || i == secondaryOpenDir) continue;
+				
 				if(bestIndex == -1 || Math.abs(podDirs[i].degreesBetween(goalDir)) < Math.abs(podDirs[bestIndex].degreesBetween(goalDir))) {
 					if(myPodStatus[i] == FREE_SPOT) {
 						if(rc.canPlantTree(podDirs[i])) {
@@ -364,6 +393,11 @@ public strictfp class HexGardener extends RobotBase
 			if(closestIndex != -1) {
 				openDirection = closestIndex;
 				System.out.println("Pod open direction is " + openDirection);
+				if(myPodStatus[(openDirection+1)%6] == FREE_SPOT || myPodStatus[(openDirection+1)%6] == UNIT_BLOCKED_SPOT)
+					secondaryOpenDir = (openDirection+1)%6;
+				else if(myPodStatus[(openDirection+1)%6] == FREE_SPOT || myPodStatus[(openDirection+1)%6] == UNIT_BLOCKED_SPOT)
+					secondaryOpenDir = (openDirection+1)%6;
+				
 				// open direction is the closest one towards direction pointing to enemy archon 
 				// that is free or blocked by a unit (no tree blocked)
 			} else {
@@ -562,6 +596,9 @@ public strictfp class HexGardener extends RobotBase
 	public void drawPodOpenDir() throws GameActionException {
 		rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(podDirs[openDirection], 2.0f),
 				255,255,255);
+		if(secondaryOpenDir != -1)
+			rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(podDirs[secondaryOpenDir], 2.0f),
+					125,125,125);
 	}
 	
 	
