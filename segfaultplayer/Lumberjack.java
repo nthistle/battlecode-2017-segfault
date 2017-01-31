@@ -167,7 +167,7 @@ public strictfp class Lumberjack extends RobotBase
 			if(robots[i].getTeam()==ally)
 				score[0]+=value;
 			else
-				score[1]+=value;
+				score[1]+=value*.8;
 		}
 		for(int i=0; i<trees.length; i++) {
 			double value = 2.0;
