@@ -78,7 +78,7 @@ public strictfp class Soldier2 extends RobotBase
         }
     }
 
-    public void dodge(Direction front, BulletInfo[] nearbyBullets) {
+    public void dodge(Direction front, BulletInfo[] nearbyBullets) throws GameActionException {
         dodge(front, nearbyBullets,false);
     }
 
