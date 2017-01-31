@@ -61,6 +61,7 @@ public strictfp class Soldier3 extends RobotBase
             System.out.println("Soldier Error");
         }
     }
+
     public MapLocation isClear(RobotInfo myRobot, TreeInfo[] trees) {
         // method returns null if robot can't be hit. returns maplocation of part of robot (middle, top, bottom) that can be hit if !null
         Direction backToMe = myRobot.location.directionTo(rc.getLocation());
@@ -172,7 +173,6 @@ public strictfp class Soldier3 extends RobotBase
 
 
     //Does fire action
-
     // =================================================================
     // ========================OLD CODE===============================
     // =================================================================
