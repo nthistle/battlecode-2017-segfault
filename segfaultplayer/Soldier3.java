@@ -116,7 +116,8 @@ public strictfp class Soldier3 extends RobotBase
 			z++;
 		}		
 		//shooting
-		if (shootMe != null && target != null) { 
+		if (shootMe != null && target != null) {
+			rc.setIndicatorLine(rc.getLocation(), shootMe, 0, 255, 0);
 			Direction tDir = rc.getLocation().directionTo(shootMe);
 			double[] vTriad = isTriadShotClear(tDir);
 			double[] vSingle = isSingleShotClearValue(tDir);
@@ -127,11 +128,6 @@ public strictfp class Soldier3 extends RobotBase
 				rc.fireSingleShot(tDir);
 			}
 			// alternate offset
-			if(offset==0f) {
-				offset=10f;
-			} else {
-				offset=0f;
-			}
 		}
 	}
 	
@@ -282,9 +278,6 @@ public strictfp class Soldier3 extends RobotBase
 		return true;
 	}
 
-	public void decideMove() throws GameActionException {
-		decideMove(false);
-	}
 
 	
     public BulletInfo[] getBullets() throws GameActionException {
