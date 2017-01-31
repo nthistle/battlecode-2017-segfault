@@ -39,12 +39,16 @@ public strictfp class Soldier3 extends RobotBase
                 else if(nearbyRobots.length>0) {
                     //TODO: Hunting case
                     MapLocation huntLoc = hunting(nearbyRobots, nearbyTrees, rc.getLocation());
-                    if(huntLoc==rc.getLocation()) {
-                    	if(rc.canFireSingleShot()) {
-                    		rc.fireSingleShot(huntDir);
-                    	}
+                    if(huntLoc!=null) {
+	                    if(huntLoc==rc.getLocation()) {
+	                    	if(rc.canFireSingleShot()) {
+	                    		rc.fireSingleShot(huntDir);
+	                    	}
+	                    } else {
+	                    	pathFind(huntLoc);
+	                    }
                     } else {
-                    	pathFind(huntLoc);
+                    	pathFind(enemyArchons[ctr]);
                     }
                 }
                 else { //default case
@@ -69,7 +73,7 @@ public strictfp class Soldier3 extends RobotBase
         }
     }
 
-    public MapLocation isClear(RobotInfo myRobot, TreeInfo[] trees, MapLocation thisLoc) {
+    public MapLocation isClear(RobotInfo myRobot, TreeInfo[] trees, RobotInfo[] team, MapLocation thisLoc) {
         // method returns null if robot can't be hit. returns maplocation of part of robot (middle, top, bottom) that can be hit if !null
         Direction backToMe = myRobot.location.directionTo(thisLoc);
         MapLocation middle = myRobot.location.add(backToMe, rc.getType().bodyRadius);
@@ -103,6 +107,27 @@ public strictfp class Soldier3 extends RobotBase
                 }
             }
         }
+        for(RobotInfo r : team) {
+            rc.setIndicatorDot(r.location, 255, 0, 0);
+            if(middleFlag) {
+                if(distance(r.location, thisLoc, middle) < r.getType().bodyRadius) {
+                    middleFlag = false;
+                    rc.setIndicatorDot(r.location, 255, 255, 255);
+                }
+            }
+            if(topFlag) {
+                if(distance(r.location, thisLoc, top) < r.getType().bodyRadius) {
+                    topFlag = false;
+                    rc.setIndicatorDot(r.location, 255, 255, 255);
+                }
+            }
+            if(bottomFlag) {
+                if(distance(r.location, thisLoc, bottom) < r.getType().bodyRadius) {
+                    bottomFlag = false;
+                    rc.setIndicatorDot(r.location, 255, 255, 255);
+                }
+            }
+        }
         if(middleFlag) {
             System.out.println("middle");
             return middle;
@@ -120,6 +145,7 @@ public strictfp class Soldier3 extends RobotBase
 
     public MapLocation hunting(RobotInfo[] robots, TreeInfo[] trees, MapLocation myLoc) throws GameActionException {
         // Figure out which robot to shoot at
+    	RobotInfo[] friendly = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
         RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SCOUT, RobotType.ARCHON}; //priority of shooting
         RobotInfo target = null;
         MapLocation shootMe = null; //
@@ -131,7 +157,7 @@ public strictfp class Soldier3 extends RobotBase
 	            for (int i = 0; i < robots.length; i++) {
 	                if (robots[i].getType() == priority[z]) {
 	                	bestLocation = robots[i].location;
-	                    shootMe = isClear(robots[i], trees, myLoc);
+	                    shootMe = isClear(robots[i], trees, friendly, myLoc);
 	                    if(shootMe!=null) {
 	                        target=robots[i];
 	                        break;
@@ -149,15 +175,18 @@ public strictfp class Soldier3 extends RobotBase
 	        } else {
 	        	if(bestLocation!=null) {
 	        		Direction dir = bestLocation.directionTo(myLoc);
-	        		if(j==1) {
+	        		if(j==0) {
 	        			dir = dir.rotateLeftDegrees(20f);
 	        			myLoc = bestLocation.add(dir, bestLocation.distanceTo(myLoc));
 	        			rc.setIndicatorLine(myLoc, bestLocation, 255, 255, 255);
 	        		}
-	        		if(j==2) {
+	        		if(j==1) {
 	        			dir = dir.rotateRightDegrees(40f);
 	        			myLoc = bestLocation.add(dir, bestLocation.distanceTo(myLoc));
 	        			rc.setIndicatorLine(myLoc, bestLocation, 255, 255, 255);
+	        		}
+	        		if(j==2) {
+	        			return null;
 	        		}
 	        	}
 	        }
