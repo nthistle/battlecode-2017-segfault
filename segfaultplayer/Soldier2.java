@@ -10,6 +10,7 @@ public strictfp class Soldier2 extends RobotBase
     public float curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
     public float curdirection = (float) Math.random() * 2 * (float) Math.PI;
     public int ctr = 0;
+    public Direction huntDir;
 
     public Soldier2(RobotController rc, int id) throws GameActionException {
         super(rc, id);
@@ -22,7 +23,8 @@ public strictfp class Soldier2 extends RobotBase
         boolean altShot = false;
         try {
             while(true) {
-                dailyTasks(); //checks VP win and shaking and if archon needs to be progressed
+                TreeInfo[] nearbyTrees = rc.senseNearbyTrees(); //shake nearby bullet trees
+                dailyTasks(nearbyTrees); //checks VP win and shaking and if archon needs to be progressed
                 BulletInfo[] nearbyBullets = getBullets();
                 RobotInfo[] nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
                 if(nearbyBullets.length>0 || combatCounter>0) { //COMBAT CASE. Combat counter maintains 5 turn fire
@@ -78,14 +80,43 @@ public strictfp class Soldier2 extends RobotBase
                 }
                 else if(nearbyRobots.length>0) { //TODO: account for sht theres a tank/soldier but it hasnt fired yet (Fire at soldier and it will fire back = good, for tank set target and combatcounter then back up)
                     //TODO: Hunting case
+                    MapLocation huntLoc = hunting(nearbyRobots, nearbyTrees, rc.getLocation());
+                    if(huntLoc!=null) {
+                        if(huntLoc==rc.getLocation()) {
+                            if(rc.canFireSingleShot()) {
+                                rc.fireSingleShot(huntDir);
+                            }
+                        } else {
+                            pathFind(huntLoc);
+                        }
+                    }
+                    else if(ctr<enemyArchons.length) //elif archons are alive, move towards them
+                        pathFind(enemyArchons[ctr]);
+                    else { //move randomly
+                        if (Math.random() < 0.05)
+                            curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
+                        curdirection += curdiff + 2 * (float) Math.PI;
+                        while (curdirection > 2 * (float) Math.PI)
+                            curdirection -= 2 * (float) Math.PI;
+                        pathFind(rc.getLocation().add(new Direction(curdirection),rc.getType().strideRadius));
+                    }
                 }
                 else { //default case
                     if(rc.readBroadcast(300)==1 && rc.readBroadcast(301)!=0) { //swarm is on
                         float[] maplocation = CommunicationsHandler.unpack(rc.readBroadcast(301));
                         pathFind(new MapLocation(maplocation[0], maplocation[1]));
                     }
-                    else //find archon
+                    else if(ctr<enemyArchons.length) //elif archons are alive, move towards them
                         pathFind(enemyArchons[ctr]);
+                    else { //move randomly
+                        if (Math.random() < 0.05)
+                            curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
+                        curdirection += curdiff + 2 * (float) Math.PI;
+                        while (curdirection > 2 * (float) Math.PI)
+                            curdirection -= 2 * (float) Math.PI;
+                        pathFind(rc.getLocation().add(new Direction(curdirection),rc.getType().strideRadius));
+                    }
+
                 }
                 if(target!=null)
                     rc.broadcast(301,CommunicationsHandler.pack(target.x,target.y));
@@ -239,9 +270,8 @@ public strictfp class Soldier2 extends RobotBase
     }
 
     //daily non-movement/shooting tasks
-    public void dailyTasks() throws  GameActionException {
+    public void dailyTasks(TreeInfo[] nearbyTrees) throws  GameActionException {
         checkVPWin(); //check if can win game on VPs
-        TreeInfo[] nearbyTrees = rc.senseNearbyTrees(); //shake nearby bullet trees
         for(int i=0; i<nearbyTrees.length; i++) {
             if(nearbyTrees[i].getContainedBullets() > 0 && rc.canShake(nearbyTrees[i].getID())) {
                 rc.shake(nearbyTrees[i].getID());
@@ -260,4 +290,158 @@ public strictfp class Soldier2 extends RobotBase
                 return false;
         return true;
     }
+
+    //=================INTEGRATE======================
+    //=================================================
+    //===============================================
+    public MapLocation isClear(RobotInfo myRobot, TreeInfo[] trees, RobotInfo[] team, MapLocation thisLoc) {
+        // method returns null if robot can't be hit. returns maplocation of part of robot (middle, top, bottom) that can be hit if !null
+        Direction backToMe = myRobot.location.directionTo(thisLoc);
+        MapLocation middle = myRobot.location.add(backToMe, rc.getType().bodyRadius);
+        MapLocation top = myRobot.location.add(backToMe.rotateLeftDegrees(90f), rc.getType().bodyRadius);
+        MapLocation bottom = myRobot.location.add(backToMe.rotateRightDegrees(90f), rc.getType().bodyRadius);
+        //rc.setIndicatorLine(rc.getLocation(), middle, 0, 0, 255);
+        //rc.setIndicatorLine(rc.getLocation(), top, 255, 0, 0);
+        //rc.setIndicatorLine(rc.getLocation(), bottom, 0, 0, 255);
+
+        boolean middleFlag = true; // i know boolean markers are bad but whatever
+        boolean topFlag = true;
+        boolean bottomFlag = true;
+        for(TreeInfo t : trees) {
+            rc.setIndicatorDot(t.location, 255, 0, 0);
+            if(middleFlag) {
+                if(distance(t.location, thisLoc, middle) < t.radius) {
+                    middleFlag = false;
+                    rc.setIndicatorDot(t.location, 255, 255, 255);
+                }
+            }
+            if(topFlag) {
+                if(distance(t.location, thisLoc, top) < t.radius) {
+                    topFlag = false;
+                    rc.setIndicatorDot(t.location, 255, 255, 255);
+                }
+            }
+            if(bottomFlag) {
+                if(distance(t.location, thisLoc, bottom) < t.radius) {
+                    bottomFlag = false;
+                    rc.setIndicatorDot(t.location, 255, 255, 255);
+                }
+            }
+        }
+        for(RobotInfo r : team) {
+            rc.setIndicatorDot(r.location, 255, 0, 0);
+            if(middleFlag) {
+                if(distance(r.location, thisLoc, middle) < r.getType().bodyRadius) {
+                    middleFlag = false;
+                    rc.setIndicatorDot(r.location, 255, 255, 255);
+                }
+            }
+            if(topFlag) {
+                if(distance(r.location, thisLoc, top) < r.getType().bodyRadius) {
+                    topFlag = false;
+                    rc.setIndicatorDot(r.location, 255, 255, 255);
+                }
+            }
+            if(bottomFlag) {
+                if(distance(r.location, thisLoc, bottom) < r.getType().bodyRadius) {
+                    bottomFlag = false;
+                    rc.setIndicatorDot(r.location, 255, 255, 255);
+                }
+            }
+        }
+        if(middleFlag) {
+            System.out.println("middle");
+            return middle;
+        }
+        if(topFlag) {
+            System.out.println("top");
+            return top;
+        }
+        if(bottomFlag) {
+            System.out.println("bottom");
+            return bottom;
+        }
+        return null;
+    }
+
+    public MapLocation hunting(RobotInfo[] robots, TreeInfo[] trees, MapLocation myLoc) throws GameActionException {
+        // Figure out which robot to shoot at
+        RobotInfo[] friendly = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
+        RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SCOUT, RobotType.ARCHON}; //priority of shooting
+        RobotInfo target = null;
+        MapLocation shootMe = null; //
+        MapLocation bestLocation = null;
+        int z = 0;
+        for(int j=0; j<3; j++) {
+            // TODO: Make more efficient Mihir
+            while (target == null && (z < priority.length && rc.getRoundNum() > 300 || z < priority.length - 1)) {
+                for (int i = 0; i < robots.length; i++) {
+                    if (robots[i].getType() == priority[z]) {
+                        bestLocation = robots[i].location;
+                        shootMe = isClear(robots[i], trees, friendly, myLoc);
+                        if(shootMe!=null) {
+                            target=robots[i];
+                            break;
+                        }
+                    }
+                }
+                z++;
+            }
+            //shooting
+            if (shootMe != null && target != null) {
+                rc.setIndicatorLine(myLoc, shootMe, 0, 255, 0);
+                Direction tDir = myLoc.directionTo(shootMe);
+                huntDir = tDir;
+                break;
+            } else {
+                if(bestLocation!=null) {
+                    Direction dir = bestLocation.directionTo(myLoc);
+                    if(j==0) {
+                        dir = dir.rotateLeftDegrees(20f);
+                        myLoc = bestLocation.add(dir, bestLocation.distanceTo(myLoc));
+                        rc.setIndicatorLine(myLoc, bestLocation, 255, 255, 255);
+                    }
+                    if(j==1) {
+                        dir = dir.rotateRightDegrees(40f);
+                        myLoc = bestLocation.add(dir, bestLocation.distanceTo(myLoc));
+                        rc.setIndicatorLine(myLoc, bestLocation, 255, 255, 255);
+                    }
+                    if(j==2) {
+                        return null;
+                    }
+                }
+            }
+        }
+        return myLoc;
+    }
+    //===========================================
+    //==========DISTANCE FROM POINT TO LINE======
+    //===========================================
+    private double sqr(double x) {
+        return x*x;
+    }
+    private double dist2(MapLocation v, MapLocation w) {
+        return (sqr(v.x - w.x) + sqr(v.y - w.y));
+    }
+    private double distToSegmentSquared(MapLocation p, MapLocation v, MapLocation w) {
+        double l2 = dist2(v, w);
+        if(l2==0) {
+            return dist2(p, v);
+        }
+        double t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+        t = Math.max(0, Math.min(1, t));
+        MapLocation newLoc = new MapLocation((float)(v.x + t * (w.x - v.x)), (float)(v.y + t * (w.y - v.y)));
+        return dist2(p, newLoc);
+    }
+    private double distance(MapLocation p, MapLocation v, MapLocation w) {
+        return Math.sqrt(distToSegmentSquared(p, v, w));
+    }
+    //===============================================
+    //==========END DISTANCE FROM POINT TO LINE======
+    //===============================================
+
+
+    //=================END INTEGRATION 3============================================================
+    //======================================================================================================
+    //============================================================================================
 }
