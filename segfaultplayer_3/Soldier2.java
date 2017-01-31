@@ -1,4 +1,4 @@
-package segfaultplayer;
+package segfaultplayer_3;
 import battlecode.common.*;
 
 import java.awt.*;
@@ -11,7 +11,6 @@ public strictfp class Soldier2 extends RobotBase
     public float curdirection = (float) Math.random() * 2 * (float) Math.PI;
     public int ctr = 0;
     public Direction huntDir;
-    public RobotInfo huntingTarget;
 
     public Soldier2(RobotController rc, int id) throws GameActionException {
         super(rc, id);
@@ -84,17 +83,9 @@ public strictfp class Soldier2 extends RobotBase
     				MapLocation huntLoc = hunting(nearbyRobots, nearbyTrees, rc.getLocation());
     				if(huntLoc!=null) {
     					if(huntLoc==rc.getLocation()) {
-    					    if(huntingTarget!=null && huntingTarget.getType()==RobotType.ARCHON) {
-    					        if(rc.canFireTriadShot())
-    					            rc.fireTriadShot(huntDir);
-                            }
     						if(rc.canFireSingleShot()) {
     							rc.fireSingleShot(huntDir);
     						}
-    						if(huntingTarget.getType()==RobotType.LUMBERJACK) {
-    					        if(!rc.hasMoved() && rc.getLocation().distanceTo(huntingTarget.getLocation())<4.0)
-    					            pathFind(rc.getLocation().subtract(rc.getLocation().directionTo(huntingTarget.getLocation())));
-                            }
     					} else {
     						pathFind(huntLoc);
     					}
@@ -199,38 +190,64 @@ public strictfp class Soldier2 extends RobotBase
     }
 
     public RobotInfo combatTarget(RobotInfo[] nearbyRobots) {
-        if (nearbyRobots.length == 0)
+        if(nearbyRobots.length==0)
             return null;
         int score = MAX_INT;
         int index = -1;
-        for (int i = 0; i < nearbyRobots.length; i++) {
+        for(int i=0; i<nearbyRobots.length; i++) {
             int myScore = i;
-            switch (nearbyRobots[i].getType()) {
+            switch (rc.getType()) {
                 case TANK:
-                    myScore += 0;
+                    myScore+=100;
                     break;
                 case SOLDIER:
-                    myScore += 20;
+                    score+=80;
                     break;
                 case GARDENER:
-                    myScore += 40;
+                    score+=60;
                     break;
                 case LUMBERJACK:
-                    myScore += 60;
+                    score+=40;
                     break;
                 case SCOUT:
-                    myScore += 80;
+                    score+=20;
                     break;
                 case ARCHON:
-                    myScore += 100;
                     break;
             }
-            if (myScore < score) {
+            if(myScore<score) {
                 score = myScore;
                 index = i;
             }
         }
         return nearbyRobots[index];
+    }
+
+    //returns smallest distance between point and line segment  from l1 to l2
+    private double willHitMe(MapLocation p, MapLocation l1, MapLocation l2) {
+        float x1 = p.x;
+        float y1 = p.y;
+        float x2 = l1.x;
+        float y2 = l1.y;
+        float x3 = l2.x;
+        float y3 = l2.y;
+        float px=x2-x1;
+        float py=y2-y1;
+        float temp=(px*px)+(py*py);
+        float u=((x3 - x1) * px + (y3 - y1) * py) / (temp);
+        if(u>1){
+            u=1;
+        }
+        else if(u<0){
+            u=0;
+        }
+        float x = x1 + u * px;
+        float y = y1 + u * py;
+
+        float dx = x - x3;
+        float dy = y - y3;
+        double dist = Math.sqrt(dx*dx + dy*dy);
+        return dist;
     }
 
     //gets bullets being fired towards me
@@ -276,6 +293,9 @@ public strictfp class Soldier2 extends RobotBase
         return true;
     }
 
+    //=================INTEGRATE======================
+    //=================================================
+    //===============================================
     public MapLocation isClear(RobotInfo myRobot, TreeInfo[] trees, RobotInfo[] team, MapLocation thisLoc) throws GameActionException {
         // method returns null if robot can't be hit. returns maplocation of part of robot (middle, top, bottom) that can be hit if !null
         Direction backToMe = myRobot.location.directionTo(thisLoc);
@@ -346,61 +366,17 @@ public strictfp class Soldier2 extends RobotBase
         return null;
     }
 
-    //too computationally intensive
-    public RobotInfo getHuntingTarget(RobotInfo[] nearbyRobots, TreeInfo[] trees, RobotInfo[] friendly, MapLocation myLoc) throws GameActionException {
-        if (nearbyRobots.length == 0)
-            return null;
-        int score = MAX_INT;
-        int index = -1;
-        for (int i = 0; i < nearbyRobots.length; i++) {
-            int myScore = i;
-            switch (nearbyRobots[i].getType()) {
-                case GARDENER:
-                    myScore += 0;
-                    break;
-                case LUMBERJACK:
-                    myScore += 20;
-                    break;
-                case TANK:
-                    myScore += 40;
-                    break;
-                case SOLDIER:
-                    myScore += 60;
-                    break;
-                case SCOUT:
-                    myScore += 80;
-                    break;
-                case ARCHON:
-                    myScore += 100;
-                    if(rc.getRoundNum()<300)
-                        myScore = MAX_INT;
-                    break;
-            }
-            MapLocation shootMe = isClear(nearbyRobots[i],trees,friendly,myLoc);
-            if(shootMe==null || myScore == MAX_INT)
-                myScore = MAX_INT;
-            else
-                return nearbyRobots[i];
-            if (myScore < score) {
-                score = myScore;
-                index = i;
-            }
-        }
-        if(score==MAX_INT)
-            return null;
-        return nearbyRobots[index];
-    }
-
     public MapLocation hunting(RobotInfo[] robots, TreeInfo[] trees, MapLocation myLoc) throws GameActionException {
         // Figure out which robot to shoot at
     	huntDir = rc.getLocation().directionTo(enemyArchons[0]);
-        RobotInfo[] friendly = rc.senseNearbyRobots(rc.getType().sensorRadius);
-        RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.LUMBERJACK,  RobotType.SCOUT, RobotType.GARDENER, RobotType.ARCHON}; //priority of shooting
+        RobotInfo[] friendly = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
+        RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SCOUT, RobotType.ARCHON}; //priority of shooting
         RobotInfo target = null;
         MapLocation shootMe = null; //
         MapLocation bestLocation = null;
         int z = 0;
         for(int j=0; j<3; j++) {
+            // TODO: Make more efficient Mihir
             while (target == null && (z < priority.length && rc.getRoundNum() > 300 || z < priority.length - 1)) {
                 for (int i = 0; i < robots.length; i++) {
                     if (robots[i].getType() == priority[z]) {
@@ -414,14 +390,6 @@ public strictfp class Soldier2 extends RobotBase
                 }
                 z++;
             }
-            //target = getHuntingTarget(robots,trees,friendly,myLoc);
-            if(target==null)
-                return null;
-            else
-                huntingTarget = target;
-//            shootMe = isClear(target,trees,friendly,myLoc);
-//            bestLocation = target.getLocation();
-
             //shooting
             if (shootMe != null && target != null) {
                 rc.setIndicatorLine(myLoc, shootMe, 0, 255, 0);
@@ -449,7 +417,6 @@ public strictfp class Soldier2 extends RobotBase
         }
         return myLoc;
     }
-
     //===========================================
     //==========DISTANCE FROM POINT TO LINE======
     //===========================================
@@ -475,4 +442,9 @@ public strictfp class Soldier2 extends RobotBase
     //===============================================
     //==========END DISTANCE FROM POINT TO LINE======
     //===============================================
+
+
+    //=================END INTEGRATION 3============================================================
+    //======================================================================================================
+    //============================================================================================
 }

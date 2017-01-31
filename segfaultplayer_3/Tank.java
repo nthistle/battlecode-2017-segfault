@@ -1,4 +1,4 @@
-package segfaultplayer;
+package segfaultplayer_3;
 import battlecode.common.*;
 
 public strictfp class Tank extends RobotBase
@@ -57,11 +57,8 @@ public strictfp class Tank extends RobotBase
 	public void decideMove(boolean debug) throws GameActionException {
 		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
 		MapLocation goal;
-		if(robots.length>0) {//if nearby units, move towards them
+		if(robots.length>0) //if nearby units, move towards them
 			goal = robots[0].getLocation();
-			if(robots[0].getType()==RobotType.LUMBERJACK && rc.getLocation().distanceTo(robots[0].getLocation())<5)
-				goal = rc.getLocation().subtract(rc.getLocation().directionTo(robots[0].getLocation()));
-		}
 		else if(ctr<enemyArchons.length) //elif archons are alive, move towards them
 			goal = enemyArchons[ctr];
 		else { //move randomly

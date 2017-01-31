@@ -1,0 +1,24 @@
+Communications Slots
+1   	-	alpha archon starting location
+2		- 	gardener plan (2 is far, 1 is close)
+11		-	ratio of soldiers to trees
+12		- 	Early (<round100) ratio of furthest soldier to total distance
+13		-	Lumberjack vs. Soldier ratio
+21      -   alpha archon gardener build (right now used by all)
+101 	-	total number of gardeners created (id of new gardener)
+102 	-	total number of scouts created (id of new scout)
+103 	-	total number of soldiers created (id of new soldier)
+104 	-	total number of lumberjacks created (id of new lumberjack)
+105 	-	total number of tanks created (id of new tank)
+150 	- 	total number of steps the pathscout has taken
+151 	-	total number of trees the pathscout has seen
+152 	-	scaled number of trees (rad^2) pathscout has seen
+200-203	-	alpha archon self-assignment
+210-213	-	also alpha archon self-assignment
+220-223	-	alpha archon self-assignment tiebreaking
+300     -   swarm: 0 to stay, 1 to swarm
+301     -   coordinates of swarm
+400 	-	current round number as reported by reporting frontier gardeners (every 50)
+401 	-	total number of friendly lumberjacks seen by frontier gardeners (every 50)
+402 	-	total number of neutral trees seen by frontier gardeners (every 50)
+600+	-	gardener orders (robots and trees)
