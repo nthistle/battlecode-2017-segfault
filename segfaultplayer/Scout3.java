@@ -30,7 +30,7 @@ public strictfp class Scout3 extends RobotBase
 		Direction dir = rc.getLocation().directionTo(el);
 		MapLocation target = el;
 		while (true) {
-			System.out.println("DANKDNAKNDAK");
+			//System.out.println("DANKDNAKNDAK");
 			counter++;
 			if(rc.senseNearbyBullets(5f).length>0) {
 				moveWithDodging(el);
