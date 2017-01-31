@@ -476,7 +476,8 @@ public strictfp abstract class RobotBase
 				ctr++;
 		}
 		if(ctr==0) {
-			pathFind(ml);
+			if(ml!=null)
+				pathFind(ml);
 			return;
 		}
 		BulletInfo[] bi = new BulletInfo[ctr];
