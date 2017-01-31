@@ -691,15 +691,15 @@ public strictfp abstract class RobotBase
 				//System.out.print(pathMatrix[i][1] + " ");
 				if(marker!=null) {
 					pathMatrix[i][1] -= newLoc.distanceTo(marker)*1.6;//(1.6+2*getLifespan()/rc.getRoundLimit()); //*1.6;
-					rc.setIndicatorLine(myLoc, marker, 255, 0, 0);
+					//rc.setIndicatorLine(myLoc, marker, 255, 0, 0);
 					//System.out.print(newLoc.distanceTo(marker) + " ");
 				}
 				if(marker2!=null) {
 					pathMatrix[i][1] -= newLoc.distanceTo(marker2)*.4;//(.4+2*getLifespan()/rc.getRoundLimit()); //*.4;
-					rc.setIndicatorLine(myLoc, marker, 255, 0, 0);
+					//rc.setIndicatorLine(myLoc, marker, 255, 0, 0);
 					//System.out.println(newLoc.distanceTo(marker2) + " ");
 				}
-				rc.setIndicatorLine(myLoc,newLoc, 0, (int)pathMatrix[i][1]*5, 0);
+				//rc.setIndicatorLine(myLoc,newLoc, 0, (int)pathMatrix[i][1]*5, 0);
 			} else {
 				// theres something in the way
 				pathMatrix[i][0] = i;
@@ -760,7 +760,9 @@ public strictfp abstract class RobotBase
 		}
 	}
 	public void updateRatio(MapLocation myLocation) throws GameActionException {
-		rawRatio(myLocation);
+		if(rc.getRoundNum()< 200) {
+			rawRatio(myLocation);
+		}
 		//large number = lots of trees, small number = lots of troops
 		//# of Archons * (Distance between Archons / 100f) * (1 / (P(x) + .1))
 		//P(x) is 1 when at enemy, 0 at friendly robot
