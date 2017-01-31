@@ -467,7 +467,6 @@ public strictfp abstract class RobotBase
 
 	//moves arbitrarily with dodging, if all bullets are non-threatening moves using without dodging
 	public void moveWithDodging(MapLocation ml, boolean debug) throws GameActionException {
-		Direction goal = rc.getLocation().directionTo(ml);
 		BulletInfo[] nearbyBullets = rc.senseNearbyBullets(5.0f);
 		int ctr=0;
 		for(int i=0; i<nearbyBullets.length; i++) {

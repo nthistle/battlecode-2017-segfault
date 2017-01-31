@@ -99,7 +99,7 @@ public strictfp class Soldier extends RobotBase
 			System.out.println("Decided Move: "+Clock.getBytecodesLeft());
 		if(nearbyBullets.length>0) //if there are bullets, dodge
 			moveWithDodging(goal);
-		else//  || pushWave<25 add swarm
+		else if(goal!=null)//  || pushWave<25 add swarm
 			pathFind(goal);
 		pushWave++;
 	}
