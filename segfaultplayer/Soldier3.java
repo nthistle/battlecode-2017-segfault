@@ -10,6 +10,7 @@ public strictfp class Soldier3 extends RobotBase
     public int ctr = 0;
     public int gardenerHarassCounter = 0;
     public float offset = 0f;
+    public Direction huntDir;
     public Soldier3(RobotController rc, int id) throws GameActionException {
         super(rc, id);
     }
@@ -37,8 +38,14 @@ public strictfp class Soldier3 extends RobotBase
                 }
                 else if(nearbyRobots.length>0) {
                     //TODO: Hunting case
-                    hunting(nearbyRobots, nearbyTrees);
-
+                    MapLocation huntLoc = hunting(nearbyRobots, nearbyTrees, rc.getLocation());
+                    if(huntLoc==rc.getLocation()) {
+                    	if(rc.canFireSingleShot()) {
+                    		rc.fireSingleShot(huntDir);
+                    	}
+                    } else {
+                    	pathFind(huntLoc);
+                    }
                 }
                 else { //default case
                     if(rc.readBroadcast(300)==1 && rc.readBroadcast(301)!=0) { //swarm is on
@@ -62,15 +69,15 @@ public strictfp class Soldier3 extends RobotBase
         }
     }
 
-    public MapLocation isClear(RobotInfo myRobot, TreeInfo[] trees) {
+    public MapLocation isClear(RobotInfo myRobot, TreeInfo[] trees, MapLocation thisLoc) {
         // method returns null if robot can't be hit. returns maplocation of part of robot (middle, top, bottom) that can be hit if !null
-        Direction backToMe = myRobot.location.directionTo(rc.getLocation());
+        Direction backToMe = myRobot.location.directionTo(thisLoc);
         MapLocation middle = myRobot.location.add(backToMe, rc.getType().bodyRadius);
         MapLocation top = myRobot.location.add(backToMe.rotateLeftDegrees(90f), rc.getType().bodyRadius);
         MapLocation bottom = myRobot.location.add(backToMe.rotateRightDegrees(90f), rc.getType().bodyRadius);
-        rc.setIndicatorLine(rc.getLocation(), middle, 0, 0, 255);
-        rc.setIndicatorLine(rc.getLocation(), top, 255, 0, 0);
-        rc.setIndicatorLine(rc.getLocation(), bottom, 0, 0, 255);
+        //rc.setIndicatorLine(rc.getLocation(), middle, 0, 0, 255);
+        //rc.setIndicatorLine(rc.getLocation(), top, 255, 0, 0);
+        //rc.setIndicatorLine(rc.getLocation(), bottom, 0, 0, 255);
 
         boolean middleFlag = true; // i know boolean markers are bad but whatever
         boolean topFlag = true;
@@ -78,19 +85,19 @@ public strictfp class Soldier3 extends RobotBase
         for(TreeInfo t : trees) {
             rc.setIndicatorDot(t.location, 255, 0, 0);
             if(middleFlag) {
-                if(distance(t.location, rc.getLocation(), middle) < t.radius) {
+                if(distance(t.location, thisLoc, middle) < t.radius) {
                     middleFlag = false;
                     rc.setIndicatorDot(t.location, 255, 255, 255);
                 }
             }
             if(topFlag) {
-                if(distance(t.location, rc.getLocation(), top) < t.radius) {
+                if(distance(t.location, thisLoc, top) < t.radius) {
                     topFlag = false;
                     rc.setIndicatorDot(t.location, 255, 255, 255);
                 }
             }
             if(bottomFlag) {
-                if(distance(t.location, rc.getLocation(), bottom) < t.radius) {
+                if(distance(t.location, thisLoc, bottom) < t.radius) {
                     bottomFlag = false;
                     rc.setIndicatorDot(t.location, 255, 255, 255);
                 }
@@ -111,39 +118,51 @@ public strictfp class Soldier3 extends RobotBase
         return null;
     }
 
-    public void hunting(RobotInfo[] robots, TreeInfo[] trees) throws GameActionException {
+    public MapLocation hunting(RobotInfo[] robots, TreeInfo[] trees, MapLocation myLoc) throws GameActionException {
         // Figure out which robot to shoot at
         RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SCOUT, RobotType.ARCHON}; //priority of shooting
         RobotInfo target = null;
         MapLocation shootMe = null; //
+        MapLocation bestLocation = null;
         int z = 0;
-        // TODO: Make more efficient Mihir
-        while (target == null && (z < priority.length && rc.getRoundNum() > 300 || z < priority.length - 1)) {
-            for (int i = 0; i < robots.length; i++) {
-                if (robots[i].getType() == priority[z]) {
-                    shootMe = isClear(robots[i], trees);
-                    if(shootMe!=null) {
-                        target=robots[i];
-                        break;
-                    }
-                }
-            }
-            z++;
+        for(int j=0; j<3; j++) {
+            // TODO: Make more efficient Mihir
+	        while (target == null && (z < priority.length && rc.getRoundNum() > 300 || z < priority.length - 1)) {
+	            for (int i = 0; i < robots.length; i++) {
+	                if (robots[i].getType() == priority[z]) {
+	                	bestLocation = robots[i].location;
+	                    shootMe = isClear(robots[i], trees, myLoc);
+	                    if(shootMe!=null) {
+	                        target=robots[i];
+	                        break;
+	                    }
+	                }
+	            }
+	            z++;
+	        }
+	        //shooting
+	        if (shootMe != null && target != null) {
+	            rc.setIndicatorLine(myLoc, shootMe, 0, 255, 0);
+	            Direction tDir = myLoc.directionTo(shootMe);
+	            huntDir = tDir;
+	            break;
+	        } else {
+	        	if(bestLocation!=null) {
+	        		Direction dir = bestLocation.directionTo(myLoc);
+	        		if(j==1) {
+	        			dir = dir.rotateLeftDegrees(20f);
+	        			myLoc = bestLocation.add(dir, bestLocation.distanceTo(myLoc));
+	        			rc.setIndicatorLine(myLoc, bestLocation, 255, 255, 255);
+	        		}
+	        		if(j==2) {
+	        			dir = dir.rotateRightDegrees(40f);
+	        			myLoc = bestLocation.add(dir, bestLocation.distanceTo(myLoc));
+	        			rc.setIndicatorLine(myLoc, bestLocation, 255, 255, 255);
+	        		}
+	        	}
+	        }
         }
-        //shooting
-        if (shootMe != null && target != null) {
-            rc.setIndicatorLine(rc.getLocation(), shootMe, 0, 255, 0);
-            Direction tDir = rc.getLocation().directionTo(shootMe);
-            double[] vTriad = isTriadShotClear(tDir);
-            double[] vSingle = isSingleShotClearValue(tDir);
-            //can fire triad,  triad does more damage than single, triad only at max hits 1 friendly non-gardener/archon unit
-            if (rc.canFireTriadShot() && vTriad[1] > vSingle[1] && vTriad[0] < 3) {
-                rc.fireTriadShot(tDir);
-            } else if (rc.canFireSingleShot() && isSingleShotClear(tDir)) {
-                rc.fireSingleShot(tDir);
-            }
-            // alternate offset
-        }
+        return myLoc;
     }
     //===========================================
     //==========DISTANCE FROM POINT TO LINE======
