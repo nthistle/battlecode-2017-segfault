@@ -27,7 +27,8 @@ public strictfp class Soldier2 extends RobotBase
                     if(nearbyBullets.length>0) {//normal case
                         //find target if applicable
                         RobotInfo targetRobot = combatTarget(nearbyRobots);
-                        target = targetRobot.getLocation();
+                        if(targetRobot!=null)
+                            target = targetRobot.getLocation();
 
                         Direction front = getFront(nearbyBullets);
                         if(isSafe(rc.getLocation().subtract(front, rc.getType().strideRadius),nearbyBullets)) //can I safely move backwards IF TARGET (length>0) TODO: Account for potentailly rapidly yielding ground (switch stay case)
