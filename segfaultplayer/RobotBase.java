@@ -762,7 +762,18 @@ public strictfp abstract class RobotBase
 	 * @param myLocation
 	 * @throws GameActionException
 	 */
+	public void rawRatio(MapLocation myLocation) throws GameActionException {
+		double distance = allyArchons[0].distanceTo(enemyArchons[0]);
+		double ratio = myLocation.distanceTo(allyArchons[0]) / distance;
+		int ratio1000 = (int)(ratio *1000);
+		if (ratio1000 > rc.readBroadcast(12)) {
+			rc.broadcast(12, ratio1000);
+		}
+	}
 	public void updateRatio(MapLocation myLocation) throws GameActionException {
+		if(rc.getRoundNum()<100) {
+			rawRatio(myLocation);
+		}
 		//large number = lots of trees, small number = lots of troops
 		//# of Archons * (Distance between Archons / 100f) * (1 / (P(x) + .1))
 		//P(x) is 1 when at enemy, 0 at friendly robot
