@@ -1,4 +1,4 @@
-package segfaultplayer;
+package segfaultplayer_oldformula;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -98,7 +98,7 @@ public strictfp class Scout3 extends RobotBase
 						float broadValue = 
 								(uniqueTrees.size() / (steps*(float)Math.PI)) 
 								* (allyArchons[0].distanceTo(el) / 100f)
-								* (1f / ((float)rc.readBroadcast(12)/500f))
+								* (1f / ((float)rc.readBroadcast(12)/1000f))
 								* (100f / (float)rc.getRoundNum());
 						int val = (int)(broadValue*1000f);
 						System.out.println(broadValue);
