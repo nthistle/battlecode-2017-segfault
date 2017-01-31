@@ -22,7 +22,7 @@ public strictfp class HexGardener extends RobotBase
 			new Direction(5.0f*(float)Math.PI/3.0f)
 	};
 	
-	public static final float halfDirection = (float)Math.PI/6.0f;
+	public static final float miniDirection = (float)Math.PI/24.0f;
 
 	// tree blocked is considered more "permanently" blocked than unit blocked,
 	// and so takes precedence
@@ -129,11 +129,7 @@ public strictfp class HexGardener extends RobotBase
 		int numTurnsNoTree = 0;
 		boolean hasBroadcastedGardenerNecessity = false;
 		
-		
-		if(numPodTrees < PHASE_2_MAX_TREES) {
-			
-		}
-		
+		boolean buildTankNext = false;
 		
 		while(true) {
 			try {
@@ -149,16 +145,36 @@ public strictfp class HexGardener extends RobotBase
 					// build a unit to make up for it
 					if(numPodTrees >= PHASE_2_MAX_TREES || treesPlanted > getFloatRatio() * (1+unitsBuilt)) {
 						//System.out.println("Trying for a unit, T:" + treesPlanted + ",U:" + unitsBuilt);
-						RobotType nextType = getNextRobotBuildType();
-
-						Direction buildDir = getBuildDirection(nextType);
-						if(buildDir == null) {
-							// can't build this, ohwell
+						if(!buildTankNext) {
+							RobotType nextType = getNextRobotBuildType();
+	
+							Direction buildDir = getBuildDirection(nextType);
+							if(buildDir == null) {
+								if(!buildTankNext && nextType == RobotType.TANK) {
+									buildCooldown = 15; //give some time for stuff to clear out
+									buildTankNext = true;
+								}
+								// can't build this, ohwell
+							} else {
+								rc.buildRobot(nextType, buildDir);
+								buildTankNext = false;
+								hasBuiltType(nextType);
+								buildCooldown = 15; //replace with actual constant
+								unitsBuilt ++;
+							}
 						} else {
-							rc.buildRobot(nextType, buildDir);
-							hasBuiltType(nextType);
-							buildCooldown = 15; //replace with actual constant
-							unitsBuilt ++;
+							buildTankNext = false;
+							// try to build us a tank
+							RobotType nextType = RobotType.TANK;
+							Direction buildDir = getBuildDirection(nextType);
+							if(buildDir == null) {
+								// STILL can't build one? ohwell
+							} else {
+								rc.buildRobot(nextType, buildDir);
+								hasBuiltType(nextType);
+								buildCooldown = 15; //replace with actual constant
+								unitsBuilt ++;
+							}
 						}
 					} else {
 						//System.out.println("Trying for a tree");
@@ -267,12 +283,12 @@ public strictfp class HexGardener extends RobotBase
 			return idealDirection;
 
 		Direction poss;
-		for(int i = 1; i < 5; i ++) {
-			poss = idealDirection.rotateRightRads(halfDirection * i);
+		for(int i = 1; i < 11; i ++) {
+			poss = idealDirection.rotateRightRads(miniDirection * i);
 			if(rc.canBuildRobot(rt, poss)) {
 				return poss;
 			}
-			poss = idealDirection.rotateLeftRads(halfDirection * i);
+			poss = idealDirection.rotateLeftRads(miniDirection * i);
 			if(rc.canBuildRobot(rt, poss)) {
 				return poss;
 			}
@@ -395,8 +411,10 @@ public strictfp class HexGardener extends RobotBase
 				System.out.println("Pod open direction is " + openDirection);
 				if(myPodStatus[(openDirection+1)%6] == FREE_SPOT || myPodStatus[(openDirection+1)%6] == UNIT_BLOCKED_SPOT)
 					secondaryOpenDir = (openDirection+1)%6;
-				else if(myPodStatus[(openDirection+1)%6] == FREE_SPOT || myPodStatus[(openDirection+1)%6] == UNIT_BLOCKED_SPOT)
-					secondaryOpenDir = (openDirection+1)%6;
+				else if(myPodStatus[(openDirection+5)%6] == FREE_SPOT || myPodStatus[(openDirection+5)%6] == UNIT_BLOCKED_SPOT)
+					secondaryOpenDir = (openDirection+5)%6;
+				else
+					System.out.println("NO SECONDARY OPEN DIRECTION AVAILABLE");
 				
 				// open direction is the closest one towards direction pointing to enemy archon 
 				// that is free or blocked by a unit (no tree blocked)
