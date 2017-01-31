@@ -671,7 +671,7 @@ public strictfp abstract class RobotBase
 	// ==================== PATHFINDING ========================
 	// =========================================================
 	public void pathFind(MapLocation endLoc) throws GameActionException {
-		Direction[] myDirs = getDirections(Direction.getNorth(), 30f); // not pointed towards enemy archon so it can move straight up and down
+		Direction[] myDirs = getDirections(rc.getLocation().directionTo(endLoc), 30f); // not pointed towards enemy archon so it can move straight up and down
 		pathMatrix = new float[myDirs.length][2];
 		float stride = (float)(rc.getType().strideRadius);
 		MapLocation myLoc = rc.getLocation();
