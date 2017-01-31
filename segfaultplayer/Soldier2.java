@@ -17,121 +17,121 @@ public strictfp class Soldier2 extends RobotBase
     }
 
     public void run() throws GameActionException {
-        int combatCounter = 0;
-        int tankCounter = 0;
-        MapLocation target = null;
-        boolean altShot = false;
-            while(true) {
-                try {
-	                TreeInfo[] nearbyTrees = rc.senseNearbyTrees(); //shake nearby bullet trees
-	                dailyTasks(nearbyTrees); //checks VP win and shaking and if archon needs to be progressed
-	                BulletInfo[] nearbyBullets = getBullets();
-	                RobotInfo[] nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
-	                if(nearbyBullets.length>0 || combatCounter>0) { //COMBAT CASE. Combat counter maintains 5 turn fire
-	                    if(nearbyBullets.length>0 || tankCounter>0) {//normal case
-	                        RobotInfo targetRobot = combatTarget(nearbyRobots); //find target if applicable
-	                        if(targetRobot!=null)
-	                            target = targetRobot.getLocation();
-	                        //System.out.println(rc.getRoundNum()+" "+tankCounter);
-	                        Direction front = null;
-	                        if(nearbyBullets.length>0)
-	                            front = getFront(nearbyBullets);
-	                        if((targetRobot!=null && targetRobot.getType()==RobotType.TANK) || tankCounter>0) { // Run.
-	
-	                            if(rc.canMove(rc.getLocation().subtract(rc.getLocation().directionTo(target))))
-	                                rc.move(rc.getLocation().subtract(rc.getLocation().directionTo(target)));
-	                            if(tankCounter>0)
-	                                tankCounter--;
-	                            else
-	                                tankCounter = 3;
-	                        }
-	                        else if(isSafe(rc.getLocation().add(front, rc.getType().strideRadius),nearbyBullets)==0) { //can I safely move backwards IF TARGET (length>0)
-	                            rc.move(rc.getLocation().add(front, rc.getType().strideRadius));
-	                            System.out.println("Backwards");
-	                        }
-	                        else if(isSafe(rc.getLocation(),nearbyBullets)==0) {//can I safely stay
-	                            System.out.println("Stay");
-	                        }
-	                        else {   // can I safely dodge sideways
-	                            dodge(front, nearbyBullets,true);
-	                            System.out.println("Dodge");
-	                        }
-	
-	                        if(target!=null) {//shoot at target IF TARGET (port over nikhil's firing) TODO: Make sure u can hit it /  FRIENDLY FIRE (shouldnt occur)
-	                            if (rc.canFireTriadShot() && !altShot) {
-	                                rc.fireTriadShot(rc.getLocation().directionTo(target));
-	                                altShot = true;
-	                            }
-	                            else if(rc.canFireTriadShot() && altShot) {
-	                                rc.fireTriadShot(rc.getLocation().directionTo(target).rotateRightDegrees(10.0f));
-	                                altShot = false;
-	                            }
-	                        }
-	                        if(targetRobot!=null)
-	                            combatCounter = 5;
-	                    }
-	                    else {//fire at enemy's last location case //TODO ACCOUNT FOR FRIENDLY FIRE (shouldnt occur)
-	                        combatCounter--;
-	                        if(rc.canFireTriadShot() && combatCounter%2==1 && target!=null) //odd counter fire at enemy
-	                            rc.fireSingleShot(rc.getLocation().directionTo(target));
-	                        else if(rc.canFireTriadShot() && target!=null) //offset shot on even counters
-	                            rc.fireTriadShot(rc.getLocation().directionTo(target).rotateRightDegrees(10.0f));
-	                    }
-	                }
-	                else if(nearbyRobots.length>0) { //TODO: account for sht theres a tank/soldier but it hasnt fired yet (Fire at soldier and it will fire back = good, for tank set target and combatcounter then back up)
-	                    //TODO: Hunting case
-	                    MapLocation huntLoc = hunting(nearbyRobots, nearbyTrees, rc.getLocation());
-	                    if(huntLoc!=null) {
-	                        if(huntLoc==rc.getLocation()) {
-	                            if(rc.canFireSingleShot()) {
-	                                rc.fireSingleShot(huntDir);
-	                            }
-	                        } else {
-	                            pathFind(huntLoc);
-	                        }
-	                    }
-	                    else if(ctr<enemyArchons.length) //elif archons are alive, move towards them
-	                        pathFind(enemyArchons[ctr]);
-	                    else { //move randomly
-	                        if (Math.random() < 0.05)
-	                            curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
-	                        curdirection += curdiff + 2 * (float) Math.PI;
-	                        while (curdirection > 2 * (float) Math.PI)
-	                            curdirection -= 2 * (float) Math.PI;
-	                        pathFind(rc.getLocation().add(new Direction(curdirection),rc.getType().strideRadius));
-	                    }
-	                }
-	                else { //default case
-	                    if(rc.readBroadcast(300)==1 && rc.readBroadcast(301)!=0) { //swarm is on
-	                        float[] maplocation = CommunicationsHandler.unpack(rc.readBroadcast(301));
-	                        MapLocation goal = new MapLocation(maplocation[0], maplocation[1]);
-	                        pathFind(goal);
-	            			rc.setIndicatorLine(rc.getLocation(), goal, 115, 202, 226);
-	                    }
-	                    else if(ctr<enemyArchons.length) //elif archons are alive, move towards them
-	                        pathFind(enemyArchons[ctr]);
-	                    else { //move randomly
-	                        if (Math.random() < 0.05)
-	                            curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
-	                        curdirection += curdiff + 2 * (float) Math.PI;
-	                        while (curdirection > 2 * (float) Math.PI)
-	                            curdirection -= 2 * (float) Math.PI;
-	                        pathFind(rc.getLocation().add(new Direction(curdirection),rc.getType().strideRadius));
-	                    }
-	
-	                }
-	                if(target!=null)
-	                    rc.broadcast(301,CommunicationsHandler.pack(target.x,target.y));
-	                if(rc.getRoundNum() > SWARM_ROUND_NUM) { //turn on the swarm
-	                    if(rc.readBroadcast(300) == 0)
-	                        rc.broadcast(300, 1);
-	                }
-	                Clock.yield();
-	                } catch(Exception e) {
-	                    e.printStackTrace();
-	                    System.out.println("Soldier Error");
-	                }
-                }
+    	int combatCounter = 0;
+    	int tankCounter = 0;
+    	MapLocation target = null;
+    	boolean altShot = false;
+    	while(true) {
+    		try {
+    			TreeInfo[] nearbyTrees = rc.senseNearbyTrees(); //shake nearby bullet trees
+    			dailyTasks(nearbyTrees); //checks VP win and shaking and if archon needs to be progressed
+    			BulletInfo[] nearbyBullets = getBullets();
+    			RobotInfo[] nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
+    			if(nearbyBullets.length>0 || combatCounter>0) { //COMBAT CASE. Combat counter maintains 5 turn fire
+    				if(nearbyBullets.length>0 || tankCounter>0) {//normal case
+    					RobotInfo targetRobot = combatTarget(nearbyRobots); //find target if applicable
+    					if(targetRobot!=null)
+    						target = targetRobot.getLocation();
+    					//System.out.println(rc.getRoundNum()+" "+tankCounter);
+    					Direction front = null;
+    					if(nearbyBullets.length>0)
+    						front = getFront(nearbyBullets);
+    					if((targetRobot!=null && targetRobot.getType()==RobotType.TANK) || tankCounter>0) { // Run.
+
+    						if(rc.canMove(rc.getLocation().subtract(rc.getLocation().directionTo(target))))
+    							rc.move(rc.getLocation().subtract(rc.getLocation().directionTo(target)));
+    						if(tankCounter>0)
+    							tankCounter--;
+    						else
+    							tankCounter = 3;
+    					}
+    					else if(isSafe(rc.getLocation().add(front, rc.getType().strideRadius),nearbyBullets)==0) { //can I safely move backwards IF TARGET (length>0)
+    						rc.move(rc.getLocation().add(front, rc.getType().strideRadius));
+    						System.out.println("Backwards");
+    					}
+    					else if(isSafe(rc.getLocation(),nearbyBullets)==0) {//can I safely stay
+    						System.out.println("Stay");
+    					}
+    					else {   // can I safely dodge sideways
+    						dodge(front, nearbyBullets,true);
+    						System.out.println("Dodge");
+    					}
+
+    					if(target!=null) {//shoot at target IF TARGET (port over nikhil's firing) TODO: Make sure u can hit it /  FRIENDLY FIRE (shouldnt occur)
+    						if (rc.canFireTriadShot() && !altShot) {
+    							rc.fireTriadShot(rc.getLocation().directionTo(target));
+    							altShot = true;
+    						}
+    						else if(rc.canFireTriadShot() && altShot) {
+    							rc.fireTriadShot(rc.getLocation().directionTo(target).rotateRightDegrees(10.0f));
+    							altShot = false;
+    						}
+    					}
+    					if(targetRobot!=null)
+    						combatCounter = 5;
+    				}
+    				else {//fire at enemy's last location case //TODO ACCOUNT FOR FRIENDLY FIRE (shouldnt occur)
+    					combatCounter--;
+    					if(rc.canFireTriadShot() && combatCounter%2==1 && target!=null) //odd counter fire at enemy
+    						rc.fireSingleShot(rc.getLocation().directionTo(target));
+    					else if(rc.canFireTriadShot() && target!=null) //offset shot on even counters
+    						rc.fireTriadShot(rc.getLocation().directionTo(target).rotateRightDegrees(10.0f));
+    				}
+    			}
+    			else if(nearbyRobots.length>0) { //TODO: account for sht theres a tank/soldier but it hasnt fired yet (Fire at soldier and it will fire back = good, for tank set target and combatcounter then back up)
+    				//TODO: Hunting case
+    				MapLocation huntLoc = hunting(nearbyRobots, nearbyTrees, rc.getLocation());
+    				if(huntLoc!=null) {
+    					if(huntLoc==rc.getLocation()) {
+    						if(rc.canFireSingleShot()) {
+    							rc.fireSingleShot(huntDir);
+    						}
+    					} else {
+    						pathFind(huntLoc);
+    					}
+    				}
+    				else if(ctr<enemyArchons.length) //elif archons are alive, move towards them
+    					pathFind(enemyArchons[ctr]);
+    				else { //move randomly
+    					if (Math.random() < 0.05)
+    						curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
+    					curdirection += curdiff + 2 * (float) Math.PI;
+    					while (curdirection > 2 * (float) Math.PI)
+    						curdirection -= 2 * (float) Math.PI;
+    					pathFind(rc.getLocation().add(new Direction(curdirection),rc.getType().strideRadius));
+    				}
+    			}
+    			else { //default case
+    				if(rc.readBroadcast(300)==1 && rc.readBroadcast(301)!=0) { //swarm is on
+    					float[] maplocation = CommunicationsHandler.unpack(rc.readBroadcast(301));
+    					MapLocation goal = new MapLocation(maplocation[0], maplocation[1]);
+    					pathFind(goal);
+    					rc.setIndicatorLine(rc.getLocation(), goal, 115, 202, 226);
+    				}
+    				else if(ctr<enemyArchons.length) //elif archons are alive, move towards them
+    					pathFind(enemyArchons[ctr]);
+    				else { //move randomly
+    					if (Math.random() < 0.05)
+    						curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
+    					curdirection += curdiff + 2 * (float) Math.PI;
+    					while (curdirection > 2 * (float) Math.PI)
+    						curdirection -= 2 * (float) Math.PI;
+    					pathFind(rc.getLocation().add(new Direction(curdirection),rc.getType().strideRadius));
+    				}
+
+    			}
+    			if(target!=null)
+    				rc.broadcast(301,CommunicationsHandler.pack(target.x,target.y));
+    			if(rc.getRoundNum() > SWARM_ROUND_NUM) { //turn on the swarm
+    				if(rc.readBroadcast(300) == 0)
+    					rc.broadcast(300, 1);
+    			}
+    			Clock.yield();
+    		} catch(Exception e) {
+    			e.printStackTrace();
+    			System.out.println("Soldier Error");
+    		}
+    	}
     }
 
     public void dodge(Direction front, BulletInfo[] nearbyBullets) throws GameActionException {
