@@ -145,66 +145,65 @@ public strictfp class Soldier extends RobotBase
 
 	//Does fire action
 	public void shoot(Direction goal, boolean debug) throws GameActionException {
-		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
-		TreeInfo[] trees = rc.senseNearbyTrees(rc.getType().sensorRadius);
-		BulletInfo[] nearbyBullets = rc.senseNearbyBullets(5.0f);
-		if (robots.length > 0) { //there are nearby robots
-			RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SCOUT, RobotType.ARCHON}; //priority of shooting
-			RobotInfo target = null;
-			int z = 0;
-			while (target == null && (z<priority.length && rc.getRoundNum()>300 || z<priority.length-1)) {
-				for (int i = 0; i < robots.length; i++) {
-					if (robots[i].getType() == priority[z] && isSingleShotClear(rc.getLocation().directionTo(robots[i].getLocation()))) {
-						target = robots[i];
-						break;
+		try {
+			RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, enemy);
+			TreeInfo[] trees = rc.senseNearbyTrees(rc.getType().sensorRadius);
+			BulletInfo[] nearbyBullets = rc.senseNearbyBullets(5.0f);
+			if (robots.length > 0) { //there are nearby robots
+				RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SCOUT, RobotType.ARCHON}; //priority of shooting
+				RobotInfo target = null;
+				int z = 0;
+				while (target == null && (z < priority.length && rc.getRoundNum() > 300 || z < priority.length - 1)) {
+					for (int i = 0; i < robots.length; i++) {
+						if (robots[i].getType() == priority[z] && isSingleShotClear(rc.getLocation().directionTo(robots[i].getLocation()))) {
+							target = robots[i];
+							break;
+						}
+					}
+					z++;
+				}
+				if (target != null) { //shooting
+					Direction tDir = rc.getLocation().directionTo(target.getLocation());
+					double[] vPentad = isPentadShotClear(tDir);
+					double[] vTriad = isTriadShotClear(tDir);
+					double[] vSingle = isSingleShotClearValue(tDir);
+					if (debug) {
+						System.out.println("vPentad: " + vPentad[0] + " " + vPentad[1]);
+						System.out.println("vTriad: " + vTriad[0] + " " + vTriad[1]);
+						System.out.println("vSingle: " + vSingle[0] + " " + vSingle[1]);
+					}
+					if (debug) {
+						System.out.println(rc.canFirePentadShot() + " " + (vPentad[1] > vPentad[0]) + " " + (target.getType() == RobotType.SOLDIER));
+						System.out.println(rc.canFireTriadShot() + " " + (vTriad[1] > vSingle[1]));
+						System.out.println((rc.canFireSingleShot() + " " + isSingleShotClear(tDir)));
+					}
+
+					if (rc.canFirePentadShot() && (vPentad[1] > vTriad[1] || target.getType() == RobotType.SOLDIER)) {
+						rc.firePentadShot(tDir);
+						if (debug)
+							System.out.println("Fired Penta");
+					}
+					//can fire triad,  triad does more damage than single, triad only at max hits 1 friendly non-gardener/archon unit
+					else if (rc.canFireTriadShot() && vTriad[1] > vSingle[1] && vTriad[0] < 3) {
+						rc.fireTriadShot(tDir);
+						if (debug)
+							System.out.println("Fired triad");
+					} else if (rc.canFireSingleShot() && isSingleShotClear(tDir)) {
+						rc.fireSingleShot(tDir);
+						if (debug)
+							System.out.println("Fired single");
 					}
 				}
-				z++;
-			}
-			if (target != null) { //shooting
-				Direction tDir = rc.getLocation().directionTo(target.getLocation());
-				double[] vPentad = isPentadShotClear(tDir);
-				double[] vTriad = isTriadShotClear(tDir);
-				double[] vSingle = isSingleShotClearValue(tDir);
-				if(debug) {
-					System.out.println("vPentad: "+vPentad[0]+" "+vPentad[1]);
-					System.out.println("vTriad: "+vTriad[0]+" "+vTriad[1]);
-					System.out.println("vSingle: "+vSingle[0]+" "+vSingle[1]);
-				}
-				if(debug) {
-					System.out.println(rc.canFirePentadShot() + " " + (vPentad[1] > vPentad[0]) + " " + (target.getType() == RobotType.SOLDIER));
-					System.out.println(rc.canFireTriadShot() + " " + (vTriad[1] > vSingle[1]));
-					System.out.println((rc.canFireSingleShot() + " " + isSingleShotClear(tDir)));
-				}
-
-				if(rc.canFirePentadShot() && (vPentad[1] > vTriad[1] || target.getType()==RobotType.SOLDIER)) {
-					rc.firePentadShot(tDir);
-					if(debug)
-						System.out.println("Fired Penta");
-				}
-				//can fire triad,  triad does more damage than single, triad only at max hits 1 friendly non-gardener/archon unit
-				else if (rc.canFireTriadShot() && vTriad[1]>vSingle[1] && vTriad[0]<3) {
-					rc.fireTriadShot(tDir);
-					if(debug)
-						System.out.println("Fired triad");
-				}
-				else if (rc.canFireSingleShot() && isSingleShotClear(tDir)) {
-					rc.fireSingleShot(tDir);
-					if(debug)
-						System.out.println("Fired single");
+			} else if (rc.getRoundNum() > 600 && rc.getTeamBullets() > 350 && goal != null && trees.length > 0 && trees[0].getTeam() != ally) { //are there nearby non-ally trees
+				Direction tDir = rc.getLocation().directionTo(trees[0].getLocation());
+				if (tDir.equals(goal, (float) (Math.PI / 4.0)) && rc.getLocation().distanceTo(trees[0].getLocation()) < 3.0) { //are they in our way
+					if (rc.canFireTriadShot()) //shoot em down
+						rc.fireTriadShot(tDir);
+					else if (rc.canFireSingleShot())
+						rc.fireSingleShot(tDir);
 				}
 			}
-		}
-		else if(rc.getRoundNum()>600 && rc.getTeamBullets()>350 && goal!=null && trees.length>0 && trees[0].getTeam()!=ally) { //are there nearby non-ally trees
-			Direction tDir = rc.getLocation().directionTo(trees[0].getLocation());
-			if( tDir.equals(goal,(float)(Math.PI/4.0)) && rc.getLocation().distanceTo(trees[0].getLocation())<3.0) { //are they in our way
-				if (rc.canFireTriadShot()) //shoot em down
-					rc.fireTriadShot(tDir);
-				else if (rc.canFireSingleShot())
-					rc.fireSingleShot(tDir);
-			}
-		}
-		//TODO: Make soldiers not rape each other
+			//TODO: Make soldiers not rape each other
 //		else if(nearbyBullets.length>0 && rc.getTeamBullets()>50) {
 //			int ctr=0;
 //			for(int i=0; i<nearbyBullets.length; i++) {
@@ -227,5 +226,6 @@ public strictfp class Soldier extends RobotBase
 //				}
 //			}
 //		}
+		} catch(Exception e){}
 	}
 }

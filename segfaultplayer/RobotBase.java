@@ -465,18 +465,11 @@ public strictfp abstract class RobotBase
 		moveWithDodging(ml, false);
 	}
 
-	//moves arbitrarily with dodging, if all bullets are non-threatening moves using without dodging
 	public void moveWithDodging(MapLocation ml, boolean debug) throws GameActionException {
 		Direction goal = rc.getLocation().directionTo(ml);
-		BulletInfo[] nearbyBullets = rc.senseNearbyBullets(6.0f);
+		BulletInfo[] nearbyBullets = rc.senseNearbyBullets(5.0f);
 		int ctr=0;
 		for(int i=0; i<nearbyBullets.length; i++) {
-			if(debug) {
-				if(rc.getLocation().directionTo(nearbyBullets[i].getLocation()).equals(nearbyBullets[i].getDir(),(float)(Math.PI/2.0)))
-					System.out.println("Bullet "+i+": "+nearbyBullets[i].getLocation()+" null");
-				else
-					System.out.println("Bullet "+i+": "+nearbyBullets[i].getLocation());
-			}
 			if(rc.getLocation().directionTo(nearbyBullets[i].getLocation()).equals(nearbyBullets[i].getDir(),(float)(Math.PI/2.0)))
 				nearbyBullets[i] = null;
 			else
@@ -498,10 +491,10 @@ public strictfp abstract class RobotBase
 			MapLocation mapLocation = rc.getLocation().add(randomDirection(),(float)( (.5+(Math.random()*.5)) * rc.getType().strideRadius));
 			boolean clear = true;
 			for(BulletInfo bullet: bi) {
-				if (mapLocation.distanceTo(bullet.getLocation().add(bullet.getDir(), (float) (bullet.getSpeed() * .25 ))) < rc.getType().bodyRadius *1.1
-						|| mapLocation.distanceTo(bullet.getLocation().add(bullet.getDir(), (float) (bullet.getSpeed() * .75 ))) < rc.getType().bodyRadius *1.1) {
-						clear = false;
-						break;
+				if (mapLocation.distanceTo(bullet.getLocation().add(bullet.getDir(), (float) (bullet.getSpeed() * .5 ))) < rc.getType().bodyRadius +.05
+						&& mapLocation.distanceTo(bullet.getLocation().add(bullet.getDir(), (float) (bullet.getSpeed() * .1 ))) < rc.getType().bodyRadius +.05) {
+					clear = false;
+					break;
 				}
 			}
 			if(clear) {
@@ -509,13 +502,127 @@ public strictfp abstract class RobotBase
 					rc.move(mapLocation);
 					if(debug) {
 						System.out.println("i: " + i);
-						System.out.println(mapLocation);
-						rc.setIndicatorDot(mapLocation,255,0,255);
+						rc.setIndicatorDot(mapLocation,0,255,255);
 					}
 					break;
 				}
 			}
 		}
+	}
+
+	//moves arbitrarily with dodging, if all bullets are non-threatening moves using without dodging
+	public void moveWithDodgingMEME(MapLocation ml, boolean debug) throws GameActionException {
+		Direction goal = rc.getLocation().directionTo(ml);
+		BulletInfo[] nearbyBullets = rc.senseNearbyBullets(rc.getType().bodyRadius+rc.getType().strideRadius+2.2f);
+		int ctr=0;
+		for(int i=0; i<nearbyBullets.length; i++) {
+			if(rc.getLocation().directionTo(nearbyBullets[i].getLocation()).equals(nearbyBullets[i].getDir(),(float)(Math.PI/2.0)))
+				nearbyBullets[i] = null;
+			else
+				ctr++;
+		}
+		if(ctr==0) {
+			pathFind(ml);
+			return;
+		}
+		BulletInfo[] bi = new BulletInfo[ctr];
+		ctr=0;
+		for(int i=0; i<nearbyBullets.length; i++) {
+			if(nearbyBullets[i]!=null) {
+				bi[ctr] = nearbyBullets[i];
+				ctr++;
+			}
+		}
+//		for(BulletInfo bullet: bi) {
+//			System.out.println("New Bullet");
+//			System.out.println(bullet.getLocation()+" "+bullet.getLocation().add(bullet.getDir(),bullet.getSpeed()*.25f)+" "+bullet.getLocation().add(bullet.getDir(),bullet.getSpeed()*.75f));
+//		}
+		int bLength = 3;
+		if(bi.length<bLength)
+			bLength = bi.length;
+		float rads = 0.0f;
+		for(int i=0; i<bLength; i++)
+			rads+=bi[0].getDir().radians;
+		Direction front = new Direction( rads/((float)bLength) );
+		Direction[] myDirs = getSidewaysDirections(front);
+		for(int i=0; i<myDirs.length; i++) {
+			MapLocation mapLocation = rc.getLocation().add(myDirs[i],(float)( (.5+Math.random()*.5) * rc.getType().strideRadius)); //(.5+(Math.random()*.5))
+			rc.setIndicatorLine(rc.getLocation(),mapLocation,255,255,0);
+			boolean clear = true;
+			//System.out.println("New step");
+			for(BulletInfo bullet: bi) {
+				if(willHit(mapLocation, bullet.getLocation(), bullet.getLocation().add(bullet.getDir(), bullet.getSpeed()) )) {
+					clear = false;
+					break;
+				}
+//				for(int z=0; z<5; z++) {
+//					if (mapLocation.distanceTo(bullet.getLocation().add(bullet.getDir(), bullet.getSpeed() * z * .25f)) < rc.getType().bodyRadius * 1.1) {
+//						clear = false;
+//						break;
+//					}
+//				}
+			}
+			if(clear) {
+				if (rc.canMove(mapLocation)) {
+					rc.move(mapLocation);
+					if(debug) {
+						System.out.println("i: " + i);
+//						System.out.println(mapLocation);
+//						for(BulletInfo bullet: bi) {
+//							System.out.println("New Bullet");
+//							for(int z=0; z<5; z++) {
+//								System.out.print(bullet.getLocation().add(bullet.getDir(), bullet.getSpeed() * z *.25f).distanceTo(mapLocation)+" ");
+//							}
+//							System.out.println();
+//						}
+					}
+					break;
+				}
+			}
+			//System.out.println(Clock.getBytecodesLeft());
+		}
+		System.out.println("Done moving");
+	}
+
+	public Direction[] getSidewaysDirections(Direction front) {
+		Direction[] myDirs = new Direction[20];
+		for(int i=0; i<10; i++) {
+			myDirs[i*2] = front.rotateRightDegrees((float)(i*10+45));
+			myDirs[i*2+1] = front.rotateLeftDegrees((float)(i*10+45));
+		}
+		return myDirs;
+	}
+
+	public boolean willHit(MapLocation point, MapLocation line1, MapLocation line2) //float x1,float y1,float x2,float y2,float x3,float y3
+	{
+		float x1 = point.x;
+		float y1 = point.y;
+		float x2 = line1.x;
+		float y2 = line1.y;
+		float x3 = line2.x;
+		float y3 = line2.y;
+
+		float px=x2-x1;
+		float py=y2-y1;
+		float temp=(px*px)+(py*py);
+		float u=((x3 - x1) * px + (y3 - y1) * py) / (temp);
+		if(u>1){
+			u=1;
+		}
+		else if(u<0){
+			u=0;
+		}
+		float x = x1 + u * px;
+		float y = y1 + u * py;
+
+		float dx = x - x3;
+		float dy = y - y3;
+		double dist = Math.sqrt(dx*dx + dy*dy);
+		//System.out.println("  "+dist);
+		if(dist<rc.getType().bodyRadius)
+			return true;
+		else
+			return false;
 	}
 
 	public void moveWithDodgingScout(MapLocation ml) throws GameActionException{
