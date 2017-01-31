@@ -39,7 +39,7 @@ public strictfp class Soldier2 extends RobotBase
                             System.out.println("stay");
                         }
                         else {   // can I safely dodge sideways
-                            dodge(front, nearbyBullets);
+                            dodge(front, nearbyBullets,true);
                             System.out.println("Dodge");
                         }
                         //shoot at target IF TARGET (port over nikhil's firing)
@@ -84,36 +84,38 @@ public strictfp class Soldier2 extends RobotBase
 
     //tries dodging to the side, failing that attempts to move backwards regardless of price
     public void dodge(Direction front, BulletInfo[] nearbyBullets, boolean debug) throws GameActionException {
+        if(debug)
+            rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(front,rc.getType().strideRadius),255,0,0);
         Direction left = front.rotateLeftDegrees(90.0f);
-        Direction leftFar = front.rotateLeftDegrees(135.0f);
+        Direction leftFar = front.rotateLeftDegrees(45.0f);
         Direction right = front.rotateRightDegrees(90.0f);
-        Direction rightFar = front.rotateRightDegrees(135.0f);
+        Direction rightFar = front.rotateRightDegrees(45.0f);
         for(int i=0; i<10; i++) {
             if(debug && i==9) {
-                rc.setIndicatorDot(rc.getLocation().add(left,i/9.0f*rc.getType().strideRadius),255,0,0);
-                rc.setIndicatorDot(rc.getLocation().add(right,i/9.0f*rc.getType().strideRadius),255,0,0);
-                rc.setIndicatorDot(rc.getLocation().add(leftFar,i/9.0f*rc.getType().strideRadius),255,0,0);
-                rc.setIndicatorDot(rc.getLocation().add(rightFar,i/9.0f*rc.getType().strideRadius),255,0,0);
+                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(left,i/9.0f*rc.getType().strideRadius),255,0,0);
+                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(right,i/9.0f*rc.getType().strideRadius),255,0,0);
+                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(leftFar,i/9.0f*rc.getType().strideRadius),255,0,0);
+                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(rightFar,i/9.0f*rc.getType().strideRadius),255,0,0);
             }
             System.out.println(i);
             System.out.println(isSafe(rc.getLocation().add(left,i/9.0f*rc.getType().strideRadius),nearbyBullets));
             System.out.println(isSafe(rc.getLocation().add(right,i/9.0f*rc.getType().strideRadius),nearbyBullets));
             System.out.println(isSafe(rc.getLocation().add(leftFar,i/9.0f*rc.getType().strideRadius),nearbyBullets));
             System.out.println(isSafe(rc.getLocation().add(rightFar,i/9.0f*rc.getType().strideRadius),nearbyBullets));
-            if(isSafe(rc.getLocation().add(left,i/10.0f*rc.getType().strideRadius),nearbyBullets)) {
-                rc.move(rc.getLocation().add(left,i/10.0f*rc.getType().strideRadius));
+            if(isSafe(rc.getLocation().add(left,i/9.0f*rc.getType().strideRadius),nearbyBullets)) {
+                rc.move(rc.getLocation().add(left,i/9.0f*rc.getType().strideRadius));
                 return;
             }
-            if(isSafe(rc.getLocation().add(right,i/10.0f*rc.getType().strideRadius),nearbyBullets)) {
-                rc.move(rc.getLocation().add(left,i/10.0f*rc.getType().strideRadius));
-                return;
-            }
-            if(isSafe(rc.getLocation().add(leftFar,i/10.0f*rc.getType().strideRadius),nearbyBullets)) {
-                rc.move(rc.getLocation().add(leftFar,i/10.0f*rc.getType().strideRadius));
-                return;
-            }
-            if(isSafe(rc.getLocation().add(rightFar,i/10.0f*rc.getType().strideRadius),nearbyBullets)) {
-                rc.move(rc.getLocation().add(rightFar,i/10.0f*rc.getType().strideRadius));
+//            if(isSafe(rc.getLocation().add(right,i/9.0f*rc.getType().strideRadius),nearbyBullets)) {
+//                rc.move(rc.getLocation().add(left,i/9.0f*rc.getType().strideRadius));
+//                return;
+//            }
+//            if(isSafe(rc.getLocation().add(leftFar,i/9.0f*rc.getType().strideRadius),nearbyBullets)) {
+//                rc.move(rc.getLocation().add(leftFar,i/9.0f*rc.getType().strideRadius));
+//                return;
+//            }
+            if(isSafe(rc.getLocation().add(rightFar,i/9.0f*rc.getType().strideRadius),nearbyBullets)) {
+                rc.move(rc.getLocation().add(rightFar,i/9.0f*rc.getType().strideRadius));
                 return;
             }
         }
