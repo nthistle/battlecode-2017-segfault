@@ -68,32 +68,48 @@ public strictfp class Soldier3 extends RobotBase
 		MapLocation middle = myRobot.location.add(backToMe, rc.getType().bodyRadius);
 		MapLocation top = myRobot.location.add(backToMe.rotateLeftDegrees(90f), rc.getType().bodyRadius);
 		MapLocation bottom = myRobot.location.add(backToMe.rotateRightDegrees(90f), rc.getType().bodyRadius);
+		rc.setIndicatorLine(rc.getLocation(), middle, 0, 0, 255);
+		rc.setIndicatorLine(rc.getLocation(), top, 0, 0, 255);
+		rc.setIndicatorLine(rc.getLocation(), bottom, 0, 0, 255);
+
 		boolean middleFlag = true; // i know boolean markers are bad but whatever
 		boolean topFlag = true;
 		boolean bottomFlag = true;
 		for(TreeInfo t : trees) {
 			if(middleFlag) {
 				if(willHitMe(t.location, rc.getLocation(), middle) < t.radius) {
+					System.out.println("Fuck");
 					middleFlag = false;
+					rc.setIndicatorDot(t.location, 255, 0, 0);
 				}
 			}
 			if(topFlag) {
 				if(willHitMe(t.location, rc.getLocation(), top) < t.radius) {
+					System.out.println("Fuck");
 					topFlag = false;
+					rc.setIndicatorDot(t.location, 255, 0, 0);
 				}
 			}
 			if(bottomFlag) {
 				if(willHitMe(t.location, rc.getLocation(), bottom) < t.radius) {
+					System.out.println("Fuck");
 					bottomFlag = false;
+					rc.setIndicatorDot(t.location, 255, 0, 0);
 				}
 			}
 		}
-		if(middleFlag)
+		if(middleFlag) {
+			System.out.println("middle");
 			return middle;
-		if(topFlag)
+		}
+		if(topFlag) {
+			System.out.println("top");
 			return top;
-		if(bottomFlag)
+		}
+		if(bottomFlag) {
+			System.out.println("bottom");
 			return bottom;
+		}
 		return null;
 	}
 
