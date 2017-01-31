@@ -39,13 +39,13 @@ public strictfp class Soldier2 extends RobotBase
                             System.out.println("Stay");
                         }
                         else {   // can I safely dodge sideways
-                            dodge(front, nearbyBullets,true);
+                            dodge(front, nearbyBullets);
                             System.out.println("Dodge");
                         }
                         //shoot at target IF TARGET (port over nikhil's firing)
                         if(target!=null)
-                            if(rc.canFireSingleShot())
-                                rc.fireSingleShot(rc.getLocation().directionTo(target));
+                            if(rc.canFireTriadShot())
+                                rc.fireTriadShot(rc.getLocation().directionTo(target));
 
                         combatCounter = 5;
                     }
