@@ -548,6 +548,12 @@ public strictfp class HexGardener extends RobotBase
     				heuristic[i][1] += 3.0f * (targetDistAwayFromArchons - myDistance);
     			}
     		}
+    		for (MapLocation el : enemyArchons) {
+    			float myDistance = newLoc.distanceTo(el);
+    			if(myDistance < 10f) {
+    				heuristic[i][1] += 10.0f - (myDistance);
+    			}
+    		}
     		for(RobotInfo ri : nearbyRobots) {
     			if(ri.getType() == RobotType.GARDENER) {
     				float mdist = newLoc.distanceTo(ri.getLocation());
