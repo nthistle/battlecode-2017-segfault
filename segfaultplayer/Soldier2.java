@@ -50,11 +50,11 @@ public strictfp class Soldier2 extends RobotBase
 //    						System.out.println("Backwards");
 //    					}
     					else if(isSafe(rc.getLocation(),nearbyBullets)==0) {//can I safely stay
-    						System.out.println("Stay");
+    						//System.out.println("Stay");
     					}
     					else {   // can I safely dodge sideways
-    						dodge(front, nearbyBullets,true);
-    						System.out.println("Dodge");
+    						dodge(front, nearbyBullets);
+    						//System.out.println("Dodge");
     					}
 
     					if(targetRobot!=null) {//shoot at target IF TARGET (port over nikhil's firing) TODO: Make sure u can hit it /  FRIENDLY FIRE (shouldnt occur)

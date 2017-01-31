@@ -280,7 +280,7 @@ public strictfp class HexGardener extends RobotBase
 		}
 		float myRatio = rc.readBroadcast(13)/1000.0f;
 		System.out.println("Ratio I'm seeing is " + myRatio);
-		if(rand.nextFloat() < myRatio) {
+		if(rand.nextFloat() < myRatio*.9) {
 			return RobotType.LUMBERJACK;
 		} else {
 			if(rand.nextBoolean())
