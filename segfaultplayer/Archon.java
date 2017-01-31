@@ -13,6 +13,7 @@ public strictfp class Archon extends RobotBase
 	private float[] farTreeMassSmoothed;
 	private float[] farTreeMassByDirection;
 	private static final float TREE_BLOCKED_THRESHOLD = 10.0f;
+	private static final int GARDENER_SPAWN_TIMEOUT = 200;
 	private MapLocation enemyArch;
 	
 	int xoffset;		// x-offset of grid
@@ -483,6 +484,7 @@ public strictfp class Archon extends RobotBase
 		//	Clock.yield();
 		//}
 		boolean doge = false;
+		int turnsSinceGardenerSpawn = 0;
 		
 		if(alpha) {
 			int archonsClose = 2;
@@ -505,7 +507,7 @@ public strictfp class Archon extends RobotBase
 			while(true) {
 				buildDirections = getBestDirectionsMihir(rc.getLocation().directionTo(enemyArchons[0]),1.0f);
 				int minDir = rand.nextInt(50);
-				if(rc.readBroadcast(21)==1) {
+				if(rc.readBroadcast(21)==1 || turnsSinceGardenerSpawn > GARDENER_SPAWN_TIMEOUT) {
 					System.out.println("I'm trying to make another gardener, buildDirection is length " + buildDirections.length);
 					for(int i=0; i<buildDirections.length; i++) {
 						if(i<minDir)continue;
@@ -514,6 +516,7 @@ public strictfp class Archon extends RobotBase
 						if(rc.canBuildRobot(RobotType.GARDENER, buildDirections[i])) {
 							rc.buildRobot(RobotType.GARDENER, buildDirections[i]);
 							rc.broadcast(21,0);
+							turnsSinceGardenerSpawn = 0;
 							break;
 						}
 					}
@@ -530,6 +533,7 @@ public strictfp class Archon extends RobotBase
 				if(Clock.getBytecodesLeft()>20000 && doge==true)
 					drawDoge(rc.getLocation(),0.65f);
 				
+				turnsSinceGardenerSpawn++;
 				Clock.yield();
 			}
 

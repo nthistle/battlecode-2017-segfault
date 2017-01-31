@@ -56,6 +56,9 @@ public strictfp class HexGardener extends RobotBase
 		
 		// first thing we have to do is fine a location for our pod
 
+		
+		findPodPreLocation();
+		
 		findPodLocation();
 		setPodLocations();
 		updatePodStatus();
@@ -205,6 +208,35 @@ public strictfp class HexGardener extends RobotBase
 			}
 			Clock.yield();
 		}
+	}
+	
+	public void findPodPreLocation() throws GameActionException {
+		RobotInfo[] ri = rc.senseNearbyRobots(-1, ally);
+		MapLocation father = null;
+		for(RobotInfo r : ri) {
+			if(r.getType() == RobotType.ARCHON) {
+				father = r.getLocation();
+				break;
+			}
+		}
+		if(father == null) father = allyArchons[0];
+		
+		Direction dir = father.directionTo(rc.getLocation());
+		
+		int searchTurns = getID() * 15;
+		
+		while(moveInDir(dir) != null && searchTurns > 0) {
+			if(searchTurns < 255) 
+				rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dir, 4.0f),
+						0, searchTurns, searchTurns);
+			else
+				rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dir, 4.0f),
+						0, 255, 255);
+			Clock.yield();
+			searchTurns --;
+		}
+		Clock.yield();
+		// when we exit, will have failed to move in that direction
 	}
 	
 	public boolean anyBulletTreesInSight() {

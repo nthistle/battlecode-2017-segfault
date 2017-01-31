@@ -294,7 +294,7 @@ public strictfp class Soldier2 extends RobotBase
     //=================INTEGRATE======================
     //=================================================
     //===============================================
-    public MapLocation isClear(RobotInfo myRobot, TreeInfo[] trees, RobotInfo[] team, MapLocation thisLoc) {
+    public MapLocation isClear(RobotInfo myRobot, TreeInfo[] trees, RobotInfo[] team, MapLocation thisLoc) throws GameActionException {
         // method returns null if robot can't be hit. returns maplocation of part of robot (middle, top, bottom) that can be hit if !null
         Direction backToMe = myRobot.location.directionTo(thisLoc);
         MapLocation middle = myRobot.location.add(backToMe, rc.getType().bodyRadius);
