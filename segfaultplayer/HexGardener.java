@@ -226,8 +226,8 @@ public strictfp class HexGardener extends RobotBase
 		
 		Direction dir = father.directionTo(rc.getLocation());
 		
-		int searchTurns = getID() * 8;
-		if(searchTurns > 30) searchTurns = 30;
+		int searchTurns = getID() * 10;
+		if(searchTurns > 45) searchTurns = 45;
 		
 		while(moveInDir(dir) != null && searchTurns > 0) {
 			if(searchTurns < 255) 
