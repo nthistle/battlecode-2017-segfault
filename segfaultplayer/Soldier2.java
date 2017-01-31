@@ -31,11 +31,11 @@ public strictfp class Soldier2 extends RobotBase
                             target = targetRobot.getLocation();
 
                         Direction front = getFront(nearbyBullets);
-                        if(isSafe(rc.getLocation().add(front, rc.getType().strideRadius),nearbyBullets)) { //can I safely move backwards IF TARGET (length>0) TODO: Account for potentailly rapidly yielding ground (switch stay case)
+                        if(isSafe(rc.getLocation().add(front, rc.getType().strideRadius),nearbyBullets)==0) { //can I safely move backwards IF TARGET (length>0) TODO: Account for potentailly rapidly yielding ground (switch stay case)
                             rc.move(rc.getLocation().add(front, rc.getType().strideRadius));
                             System.out.println("Backwards");
                         }
-                        else if(isSafe(rc.getLocation(),nearbyBullets)) {//can I safely stay
+                        else if(isSafe(rc.getLocation(),nearbyBullets)==0) {//can I safely stay
                             System.out.println("Stay");
                         }
                         else {   // can I safely dodge sideways
@@ -94,22 +94,30 @@ public strictfp class Soldier2 extends RobotBase
         Direction leftFar = front.rotateLeftDegrees(45.0f);
         Direction right = front.rotateRightDegrees(90.0f);
         Direction rightFar = front.rotateRightDegrees(45.0f);
-        for(int i=0; i<10; i++) {
+        MapLocation[] moves = new MapLocation[2*5];
+        int[] damage = new int[2*5];
+        for(int i=0; i<5; i++) {
             if(debug && i==9) {
-                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(left,i/9.0f*rc.getType().strideRadius),255,0,0);
-                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(right,i/9.0f*rc.getType().strideRadius),255,0,0);
-                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(leftFar,i/9.0f*rc.getType().strideRadius),255,0,0);
-                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(rightFar,i/9.0f*rc.getType().strideRadius),255,0,0);
+                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(left,(5+i)/9.0f*rc.getType().strideRadius),255,0,0);
+                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(right,(5+i)/9.0f*rc.getType().strideRadius),255,0,0);
+                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(leftFar,(5+i)/9.0f*rc.getType().strideRadius),255,0,0);
+                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(rightFar,(5+i)/9.0f*rc.getType().strideRadius),255,0,0);
             }
-            System.out.println(i);
-            System.out.println(isSafe(rc.getLocation().add(left,i/9.0f*rc.getType().strideRadius),nearbyBullets));
-            System.out.println(isSafe(rc.getLocation().add(right,i/9.0f*rc.getType().strideRadius),nearbyBullets));
-            System.out.println(isSafe(rc.getLocation().add(leftFar,i/9.0f*rc.getType().strideRadius),nearbyBullets));
-            System.out.println(isSafe(rc.getLocation().add(rightFar,i/9.0f*rc.getType().strideRadius),nearbyBullets));
-            if(isSafe(rc.getLocation().add(left,i/9.0f*rc.getType().strideRadius),nearbyBullets)) {
-                rc.move(rc.getLocation().add(left,i/9.0f*rc.getType().strideRadius));
-                return;
+            if(debug) {
+                System.out.println(i);
+                System.out.println(isSafe(rc.getLocation().add(left, (5+i) / 9.0f * rc.getType().strideRadius), nearbyBullets));
+                System.out.println(isSafe(rc.getLocation().add(right, (5+i) / 9.0f * rc.getType().strideRadius), nearbyBullets));
+                System.out.println(isSafe(rc.getLocation().add(leftFar, (5+i) / 9.0f * rc.getType().strideRadius), nearbyBullets));
+                System.out.println(isSafe(rc.getLocation().add(rightFar, (5+i) / 9.0f * rc.getType().strideRadius), nearbyBullets));
             }
+            moves[i*2] = rc.getLocation().add(left,(5+i)/9.0f*rc.getType().strideRadius);
+            moves[i*2+1] = rc.getLocation().add(leftFar,(5+i)/9.0f*rc.getType().strideRadius);
+            damage[i*2] = isSafe(moves[i*2],nearbyBullets);
+            damage[i*2+1] = isSafe(moves[i*2+1],nearbyBullets);
+//            if(isSafe(rc.getLocation().add(left,i/9.0f*rc.getType().strideRadius),nearbyBullets)) {
+//                rc.move(rc.getLocation().add(left,i/9.0f*rc.getType().strideRadius));
+//                return;
+//            }
 //            if(isSafe(rc.getLocation().add(right,i/9.0f*rc.getType().strideRadius),nearbyBullets)) {
 //                rc.move(rc.getLocation().add(left,i/9.0f*rc.getType().strideRadius));
 //                return;
@@ -118,13 +126,17 @@ public strictfp class Soldier2 extends RobotBase
 //                rc.move(rc.getLocation().add(leftFar,i/9.0f*rc.getType().strideRadius));
 //                return;
 //            }
-            if(isSafe(rc.getLocation().add(rightFar,i/9.0f*rc.getType().strideRadius),nearbyBullets)) {
-                rc.move(rc.getLocation().add(rightFar,i/9.0f*rc.getType().strideRadius));
-                return;
-            }
+//            if(isSafe(rc.getLocation().add(rightFar,i/9.0f*rc.getType().strideRadius),nearbyBullets)) {
+//                rc.move(rc.getLocation().add(rightFar,i/9.0f*rc.getType().strideRadius));
+//                return;
+//            }
         }
-        if(rc.canMove(rc.getLocation().add(front, rc.getType().strideRadius)))
-            rc.move(rc.getLocation().add(front, rc.getType().strideRadius));
+        int index =0;
+        for(int i=0; i<damage.length; i++)
+            if(damage[i]<damage[index])
+                index =i;
+        if(rc.canMove(moves[index]))
+            rc.move(moves[index]);
     }
 
     //returns avg bullet direction
@@ -136,14 +148,18 @@ public strictfp class Soldier2 extends RobotBase
     }
 
     //checks if space is safe from bullets and movable
-    public boolean isSafe(MapLocation ml, BulletInfo[] nearbyBullets) {
+    public int isSafe(MapLocation ml, BulletInfo[] nearbyBullets) {
+        int score = 0;
         if(!rc.canMove(ml))
-            return false;
+            return 99999999;
         for(BulletInfo bullet: nearbyBullets) {
-            if(rc.getType().bodyRadius>willHitMe(ml,bullet.getLocation(),bullet.getLocation().add(bullet.getDir(),bullet.getSpeed())))
-                return false;
+            if(rc.getType().bodyRadius>willHitMe(ml,bullet.getLocation(),bullet.getLocation().add(bullet.getDir(),bullet.getSpeed()))) {
+                score += bullet.getDamage();
+                if(score>=6)
+                    return 99999999;
+            }
         }
-        return true;
+        return score;
     }
 
     public RobotInfo combatTarget(RobotInfo[] nearbyRobots) {
