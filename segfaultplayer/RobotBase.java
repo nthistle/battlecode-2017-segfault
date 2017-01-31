@@ -305,7 +305,9 @@ public strictfp abstract class RobotBase
 				double score = 2.0;
 				if(robots[i].getType()==RobotType.GARDENER)
 					score+=1.0;
-				if(robots[i].getType()==RobotType.ARCHON)
+				if(robots[i].getType()==RobotType.ARCHON && robots[i].getTeam()==enemy && rc.getRoundNum()<300)
+					score-=2.0;
+				else if(robots[i].getType()==RobotType.ARCHON)
 					score+=4.0;
 				if(robots[i].getTeam()==rc.getTeam())
 					ret[0]+=score;
@@ -359,7 +361,9 @@ public strictfp abstract class RobotBase
 					double score = 2.0;
 					if(robots[i].getType()==RobotType.GARDENER)
 						score+=1.0;
-					if(robots[i].getType()==RobotType.ARCHON)
+					if(robots[i].getType()==RobotType.ARCHON && robots[i].getTeam()==enemy && rc.getRoundNum()<300)
+						score-=2.0;
+					else if(robots[i].getType()==RobotType.ARCHON)
 						score+=4.0;
 					if(robots[i].getTeam()==rc.getTeam())
 						ret[0]+=score;
@@ -414,11 +418,13 @@ public strictfp abstract class RobotBase
 					double score = 2.0;
 					if(robots[i].getType()==RobotType.GARDENER)
 						score+=1.0;
-					if(robots[i].getType()==RobotType.ARCHON)
+					if(robots[i].getType()==RobotType.ARCHON && robots[i].getTeam()==enemy && rc.getRoundNum()<300)
+						score-=2.0;
+					else if(robots[i].getType()==RobotType.ARCHON)
 						score+=4.0;
 					if(robots[i].getTeam()==rc.getTeam())
 						ret[0]+=score;
-					else
+					else if()
 						ret[1]+=score;
 				}
 			}
