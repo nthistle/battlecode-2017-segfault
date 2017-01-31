@@ -8,7 +8,7 @@ public strictfp class Soldier extends RobotBase
 	public float curdiff = (float) ((float) (Math.random() - 0.5) * 0.1 * (float) Math.PI);
 	public float curdirection = (float) Math.random() * 2 * (float) Math.PI;
 	public int ctr = 0;
-	public int pushWave = 0;
+	public int gardenerHarassCounter = 0;
 
 	public Soldier(RobotController rc, int id) throws GameActionException {
 		super(rc, id);
@@ -77,8 +77,15 @@ public strictfp class Soldier extends RobotBase
 			goal = robots[targetIndex].getLocation();
 			if(robots[0].getType()==RobotType.LUMBERJACK && rc.getLocation().distanceTo(robots[0].getLocation())<2.0)
 				goal = rc.getLocation().subtract(rc.getLocation().directionTo(robots[0].getLocation()));
-			if(robots[0].getType()==RobotType.GARDENER && rc.getLocation().distanceTo(robots[0].getLocation())<2.0)
-				System.out.println("XD");
+			if(robots[0].getType()==RobotType.GARDENER) {
+				gardenerHarassCounter++;
+				if(gardenerHarassCounter>20)
+					goal = null;
+				else if(rc.getLocation().distanceTo(robots[0].getLocation())<2.3)
+					goal = null;
+			}
+			else
+				gardenerHarassCounter=0;
 			MapLocation myLocation = robots[0].getLocation();
 			rc.broadcast(301, CommunicationsHandler.pack(myLocation.x,myLocation.y));
 		}
@@ -103,7 +110,6 @@ public strictfp class Soldier extends RobotBase
 			moveWithDodging(goal);
 		else if(goal!=null)//  || pushWave<25 add swarm
 			pathFind(goal);
-		pushWave++;
 	}
 
 	public int scoreRobot(RobotInfo robot, int index) {

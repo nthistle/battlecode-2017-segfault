@@ -424,7 +424,7 @@ public strictfp abstract class RobotBase
 						score+=4.0;
 					if(robots[i].getTeam()==rc.getTeam())
 						ret[0]+=score;
-					else if()
+					else
 						ret[1]+=score;
 				}
 			}
