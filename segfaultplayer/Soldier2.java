@@ -110,9 +110,10 @@ public strictfp class Soldier2 extends RobotBase
     }
 
     public RobotInfo combatTarget(RobotInfo[] nearbyRobots) {
-        if(nearbyRobots.length>0)
+        System.out.println(nearbyRobots.length);
+        if(nearbyRobots.length==0)
             return null;
-        int score = Integer.MAX_VALUE;
+        int score = 999999999;
         int index = -1;
         for(int i=0; i<nearbyRobots.length; i++) {
             int myScore = i;
@@ -135,6 +136,7 @@ public strictfp class Soldier2 extends RobotBase
                 case ARCHON:
                     break;
             }
+            System.out.println(myScore+" "+score);
             if(myScore<score) {
                 score = myScore;
                 index = i;
