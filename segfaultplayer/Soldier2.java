@@ -366,6 +366,7 @@ public strictfp class Soldier2 extends RobotBase
 
     public MapLocation hunting(RobotInfo[] robots, TreeInfo[] trees, MapLocation myLoc) throws GameActionException {
         // Figure out which robot to shoot at
+    	huntDir = rc.getLocation().directionTo(enemyArchons[0]);
         RobotInfo[] friendly = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
         RobotType[] priority = {RobotType.SOLDIER, RobotType.TANK, RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SCOUT, RobotType.ARCHON}; //priority of shooting
         RobotInfo target = null;
