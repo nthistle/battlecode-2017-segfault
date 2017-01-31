@@ -489,6 +489,9 @@ public strictfp class Archon extends RobotBase
 			for(int i=0; i<enemyArchons.length; i++)
 				if(rc.getLocation().distanceTo(enemyArchons[i])<40.0)
 					archonsClose=1;
+			if(enemyArchons.length < 3 &&  (rc.getLocation().distanceTo(enemyArchons[0])<20.0 ||
+					(enemyArchons.length == 2 && rc.getLocation().distanceTo(enemyArchons[1])<20.0)))
+				rc.broadcast(2, 3);
 			rc.broadcast(2,archonsClose);
 			Direction[] buildDirections = getBestDirections(rc.getLocation().directionTo(enemyArchons[0]),1.0f);
 			for(int i=0; i<buildDirections.length; i++) {

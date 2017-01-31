@@ -32,7 +32,23 @@ public strictfp class FirstGardener extends HexGardener
 		drawPodOpenDir();
 		Clock.yield();
 		
-		if(rc.senseNearbyTrees(3.5f, Team.NEUTRAL).length > 0) {
+		int broadcastRead = rc.readBroadcast(2);
+		
+		// when this is 3 it means that there's only one/two other enemy archon and
+		// it's within 20 units (VERY CLOSE)
+		if(broadcastRead == 3) {
+			int numTB = 0;
+			for(int i = 0; i < 6; i ++) {
+				if(myPodStatus[i] == TREE_BLOCKED_SPOT)
+					numTB ++;
+			}
+			if(numTB >= 4) {
+				caseClosed();
+			} else {
+				caseNear();
+			}
+		}
+		else if(rc.senseNearbyTrees(3.5f, Team.NEUTRAL).length > 0) {
 			caseClosed();
 		} else if(rc.readBroadcast(2) == 2) {
 			caseFar();
@@ -144,9 +160,9 @@ public strictfp class FirstGardener extends HexGardener
 		System.out.println("CASE: NEAR");
 		LinkedList<Order> myOrders = new LinkedList<Order>();
 		boolean scoutFirst = anyBulletTreesInSight();
+		myOrders.addLast(new Order(OrderType.ROBOT, RobotType.SOLDIER));
 		if(scoutFirst) 
 			myOrders.addLast(new Order(OrderType.ROBOT, RobotType.SCOUT));
-		myOrders.addLast(new Order(OrderType.ROBOT, RobotType.SOLDIER));
 		myOrders.addLast(new Order(OrderType.ROBOT, RobotType.SOLDIER));
 		myOrders.addLast(new Order(OrderType.TREE));
 		if(!scoutFirst)
