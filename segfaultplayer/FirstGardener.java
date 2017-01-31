@@ -44,10 +44,14 @@ public strictfp class FirstGardener extends HexGardener
 	public void caseClosed() throws GameActionException {
 		System.out.println("CASE: CLOSED");
 		LinkedList<Order> myOrders = new LinkedList<Order>();
+		boolean scoutFirst = anyBulletTreesInSight();
+		if(scoutFirst) 
+			myOrders.addLast(new Order(OrderType.ROBOT, RobotType.SCOUT));
 		myOrders.addLast(new Order(OrderType.ROBOT, RobotType.LUMBERJACK));
 		myOrders.addLast(new Order(OrderType.ROBOT, RobotType.SOLDIER));
 		myOrders.addLast(new Order(OrderType.TREE));
-		myOrders.addLast(new Order(OrderType.ROBOT, RobotType.SCOUT));
+		if(!scoutFirst)
+			myOrders.addLast(new Order(OrderType.ROBOT, RobotType.SCOUT));
 		myOrders.addLast(new Order(OrderType.TREE));
 		while(myOrders.size() > 0) {
 			checkVPWin();
@@ -139,9 +143,14 @@ public strictfp class FirstGardener extends HexGardener
 	public void caseNear() throws GameActionException {
 		System.out.println("CASE: NEAR");
 		LinkedList<Order> myOrders = new LinkedList<Order>();
+		boolean scoutFirst = anyBulletTreesInSight();
+		if(scoutFirst) 
+			myOrders.addLast(new Order(OrderType.ROBOT, RobotType.SCOUT));
 		myOrders.addLast(new Order(OrderType.ROBOT, RobotType.SOLDIER));
 		myOrders.addLast(new Order(OrderType.ROBOT, RobotType.SOLDIER));
 		myOrders.addLast(new Order(OrderType.TREE));
+		if(!scoutFirst)
+			myOrders.addLast(new Order(OrderType.ROBOT, RobotType.SCOUT));
 		myOrders.addLast(new Order(OrderType.TREE));
 		while(myOrders.size() > 0) {
 			checkVPWin();

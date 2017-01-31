@@ -207,6 +207,14 @@ public strictfp class HexGardener extends RobotBase
 		}
 	}
 	
+	public boolean anyBulletTreesInSight() {
+		TreeInfo[] ti = rc.senseNearbyTrees(-1, Team.NEUTRAL);
+		for(TreeInfo t : ti) {
+			if(t.getContainedBullets() > 0) return true;
+		}
+		return false;
+	}
+	
 	public boolean isAbleToBuildTree() {
 		if(buildCooldown > 0)
 			return false;
