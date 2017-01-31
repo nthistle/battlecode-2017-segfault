@@ -168,8 +168,8 @@ public strictfp class FirstGardener extends HexGardener
 		LinkedList<Order> myOrders = new LinkedList<Order>();
 		boolean scoutFirst = anyBulletTreesInSight();
 		myOrders.addLast(new Order(OrderType.ROBOT, RobotType.SOLDIER));
-		if(scoutFirst) 
-			myOrders.addLast(new Order(OrderType.ROBOT, RobotType.SCOUT));
+		//if(scoutFirst) 
+		//	myOrders.addLast(new Order(OrderType.ROBOT, RobotType.SCOUT));
 		myOrders.addLast(new Order(OrderType.ROBOT, RobotType.SOLDIER));
 		myOrders.addLast(new Order(OrderType.TREE));
 		if(!scoutFirst)
