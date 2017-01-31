@@ -69,32 +69,30 @@ public strictfp class Soldier3 extends RobotBase
 		MapLocation top = myRobot.location.add(backToMe.rotateLeftDegrees(90f), rc.getType().bodyRadius);
 		MapLocation bottom = myRobot.location.add(backToMe.rotateRightDegrees(90f), rc.getType().bodyRadius);
 		rc.setIndicatorLine(rc.getLocation(), middle, 0, 0, 255);
-		rc.setIndicatorLine(rc.getLocation(), top, 0, 0, 255);
+		rc.setIndicatorLine(rc.getLocation(), top, 255, 0, 0);
 		rc.setIndicatorLine(rc.getLocation(), bottom, 0, 0, 255);
 
 		boolean middleFlag = true; // i know boolean markers are bad but whatever
 		boolean topFlag = true;
 		boolean bottomFlag = true;
 		for(TreeInfo t : trees) {
+			rc.setIndicatorDot(t.location, 255, 0, 0);
 			if(middleFlag) {
-				if(willHitMe(t.location, rc.getLocation(), middle) < t.radius) {
-					System.out.println("Fuck");
+				if(distance(t.location, rc.getLocation(), middle) < t.radius) {
 					middleFlag = false;
-					rc.setIndicatorDot(t.location, 255, 0, 0);
+					rc.setIndicatorDot(t.location, 255, 255, 255);
 				}
 			}
 			if(topFlag) {
-				if(willHitMe(t.location, rc.getLocation(), top) < t.radius) {
-					System.out.println("Fuck");
+				if(distance(t.location, rc.getLocation(), top) < t.radius) {
 					topFlag = false;
-					rc.setIndicatorDot(t.location, 255, 0, 0);
+					rc.setIndicatorDot(t.location, 255, 255, 255);
 				}
 			}
 			if(bottomFlag) {
-				if(willHitMe(t.location, rc.getLocation(), bottom) < t.radius) {
-					System.out.println("Fuck");
+				if(distance(t.location, rc.getLocation(), bottom) < t.radius) {
 					bottomFlag = false;
-					rc.setIndicatorDot(t.location, 255, 0, 0);
+					rc.setIndicatorDot(t.location, 255, 255, 255);
 				}
 			}
 		}
@@ -119,6 +117,7 @@ public strictfp class Soldier3 extends RobotBase
 		RobotInfo target = null;
 		MapLocation shootMe = null; // 
 		int z = 0;
+		// TODO: Make more efficient Mihir
 		while (target == null && (z < priority.length && rc.getRoundNum() > 300 || z < priority.length - 1)) {
 			for (int i = 0; i < robots.length; i++) {
 				if (robots[i].getType() == priority[z]) {
@@ -139,42 +138,38 @@ public strictfp class Soldier3 extends RobotBase
 			double[] vSingle = isSingleShotClearValue(tDir);
 			//can fire triad,  triad does more damage than single, triad only at max hits 1 friendly non-gardener/archon unit
 			if (rc.canFireTriadShot() && vTriad[1] > vSingle[1] && vTriad[0] < 3) {
-				rc.fireTriadShot(tDir.rotateLeftDegrees(offset));
+				rc.fireTriadShot(tDir);
 			} else if (rc.canFireSingleShot() && isSingleShotClear(tDir)) {
 				rc.fireSingleShot(tDir);
 			}
 			// alternate offset
 		}
 	}
-	
-	
-    private double willHitMe(MapLocation p, MapLocation l1, MapLocation l2)
-    {
-        float x1 = p.x;
-        float y1 = p.y;
-        float x2 = l1.x;
-        float y2 = l1.y;
-        float x3 = l2.x;
-        float y3 = l2.y;
-        float px=x2-x1;
-        float py=y2-y1;
-        float temp=(px*px)+(py*py);
-        float u=((x3 - x1) * px + (y3 - y1) * py) / (temp);
-        if(u>1){
-            u=1;
-        }
-        else if(u<0){
-            u=0;
-        }
-        float x = x1 + u * px;
-        float y = y1 + u * py;
-
-        float dx = x - x3;
-        float dy = y - y3;
-        double dist = Math.sqrt(dx*dx + dy*dy);
-        return dist;
-    }
-	
+	//===========================================
+	//==========DISTANCE FROM POINT TO LINE======
+	//===========================================
+	private double sqr(double x) {
+		return x*x;
+	}
+	private double dist2(MapLocation v, MapLocation w) {
+		return (sqr(v.x - w.x) + sqr(v.y - w.y));
+	}
+	private double distToSegmentSquared(MapLocation p, MapLocation v, MapLocation w) {
+		double l2 = dist2(v, w);
+		if(l2==0) {
+			return dist2(p, v);
+		}
+		double t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+		t = Math.max(0, Math.min(1, t));
+		MapLocation newLoc = new MapLocation((float)(v.x + t * (w.x - v.x)), (float)(v.y + t * (w.y - v.y)));
+		return dist2(p, newLoc);
+	}
+	private double distance(MapLocation p, MapLocation v, MapLocation w) {
+		return Math.sqrt(distToSegmentSquared(p, v, w));
+	}
+	//===============================================
+	//==========END DISTANCE FROM POINT TO LINE======
+	//===============================================
 	
 	
 	//Does fire action
