@@ -31,11 +31,17 @@ public strictfp class Soldier2 extends RobotBase
                             target = targetRobot.getLocation();
 
                         Direction front = getFront(nearbyBullets);
-                        if(isSafe(rc.getLocation().subtract(front, rc.getType().strideRadius),nearbyBullets)) //can I safely move backwards IF TARGET (length>0) TODO: Account for potentailly rapidly yielding ground (switch stay case)
-                            rc.move(rc.getLocation().subtract(front, rc.getType().strideRadius));
-                        else if(isSafe(rc.getLocation(),nearbyBullets)) {} //can I safely stay
-                        else     // can I safely dodge sideways
+                        if(isSafe(rc.getLocation().add(front, rc.getType().strideRadius),nearbyBullets)) { //can I safely move backwards IF TARGET (length>0) TODO: Account for potentailly rapidly yielding ground (switch stay case)
+                            rc.move(rc.getLocation().add(front, rc.getType().strideRadius));
+                            System.out.println("Backwards");
+                        }
+                        else if(isSafe(rc.getLocation(),nearbyBullets)) {//can I safely stay
+                            System.out.println("stay");
+                        }
+                        else {   // can I safely dodge sideways
                             dodge(front, nearbyBullets);
+                            System.out.println("Dodge");
+                        }
                         //shoot at target IF TARGET (port over nikhil's firing)
                         combatCounter = 5;
                     }
@@ -75,7 +81,9 @@ public strictfp class Soldier2 extends RobotBase
     //tries dodging to the side, failing that attempts to move backwards regardless of price
     public void dodge(Direction front, BulletInfo[] nearbyBullets) throws GameActionException {
         Direction left = front.rotateLeftDegrees(90.0f);
+        Direction leftFar = front.rotateLeftDegrees(135.0f);
         Direction right = front.rotateRightDegrees(90.0f);
+        Direction rightFar = front.rotateRightDegrees(135.0f);
         for(int i=0; i<10; i++) {
             if(isSafe(rc.getLocation().add(left,i/10.0f*rc.getType().strideRadius),nearbyBullets)) {
                 rc.move(rc.getLocation().add(left,i/10.0f*rc.getType().strideRadius));
@@ -85,9 +93,17 @@ public strictfp class Soldier2 extends RobotBase
                 rc.move(rc.getLocation().add(left,i/10.0f*rc.getType().strideRadius));
                 return;
             }
+            if(isSafe(rc.getLocation().add(leftFar,i/10.0f*rc.getType().strideRadius),nearbyBullets)) {
+                rc.move(rc.getLocation().add(leftFar,i/10.0f*rc.getType().strideRadius));
+                return;
+            }
+            if(isSafe(rc.getLocation().add(rightFar,i/10.0f*rc.getType().strideRadius),nearbyBullets)) {
+                rc.move(rc.getLocation().add(rightFar,i/10.0f*rc.getType().strideRadius));
+                return;
+            }
         }
-        if(rc.canMove(rc.getLocation().subtract(front, rc.getType().strideRadius)))
-            rc.move(rc.getLocation().subtract(front, rc.getType().strideRadius));
+        if(rc.canMove(rc.getLocation().add(front, rc.getType().strideRadius)))
+            rc.move(rc.getLocation().add(front, rc.getType().strideRadius));
     }
 
     //returns avg bullet direction
@@ -110,7 +126,6 @@ public strictfp class Soldier2 extends RobotBase
     }
 
     public RobotInfo combatTarget(RobotInfo[] nearbyRobots) {
-        System.out.println(nearbyRobots.length);
         if(nearbyRobots.length==0)
             return null;
         int score = 999999999;
@@ -136,7 +151,6 @@ public strictfp class Soldier2 extends RobotBase
                 case ARCHON:
                     break;
             }
-            System.out.println(myScore+" "+score);
             if(myScore<score) {
                 score = myScore;
                 index = i;
@@ -175,7 +189,7 @@ public strictfp class Soldier2 extends RobotBase
 
     //gets bullets being fired towards me
     public BulletInfo[] getBullets() throws GameActionException {
-        BulletInfo[] nearbyBullets = rc.senseNearbyBullets(6.0f); //TODO: Change with bytecode limit
+        BulletInfo[] nearbyBullets = rc.senseNearbyBullets(8.0f); //TODO: Change with bytecode limit
         int ctr=0;
         for(int i=0; i<nearbyBullets.length; i++) {
             if(rc.getLocation().directionTo(nearbyBullets[i].getLocation()).equals(nearbyBullets[i].getDir(),(float)(Math.PI/2.0)))
