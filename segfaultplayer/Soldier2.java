@@ -59,7 +59,15 @@ public strictfp class Soldier2 extends RobotBase
 
     					if(targetRobot!=null) {//shoot at target IF TARGET (port over nikhil's firing) TODO: Make sure u can hit it /  FRIENDLY FIRE (shouldnt occur)
                             MapLocation fireLocation = isClear(targetRobot,nearbyTrees,rc.senseNearbyRobots(rc.getType().sensorRadius,ally),rc.getLocation());
-    						if (rc.canFireTriadShot() && !altShot && fireLocation!=null) {
+                            if (rc.canFirePentadShot() && !altShot && fireLocation!=null && rc.getTeamBullets()>1000) {
+                                rc.firePentadShot(rc.getLocation().directionTo(fireLocation));
+                                altShot = true;
+                            }
+                            else if(rc.canFirePentadShot() && altShot && fireLocation!=null && rc.getTeamBullets()>1000) {
+                                rc.firePentadShot(rc.getLocation().directionTo(fireLocation).rotateRightDegrees(10.0f));
+                                altShot = false;
+                            }
+    						else if (rc.canFireTriadShot() && !altShot && fireLocation!=null) {
     							rc.fireTriadShot(rc.getLocation().directionTo(fireLocation));
     							altShot = true;
     						}
@@ -73,8 +81,12 @@ public strictfp class Soldier2 extends RobotBase
     				}
     				else {//fire at enemy's last location case //TODO ACCOUNT FOR FRIENDLY FIRE (shouldnt occur)
     					combatCounter--;
-    					if(rc.canFireTriadShot() && combatCounter%2==1 && target!=null) //odd counter fire at enemy
-    						rc.fireSingleShot(rc.getLocation().directionTo(target));
+                        if(rc.canFirePentadShot() && combatCounter%2==1 && target!=null && rc.getTeamBullets()>1000) //odd counter fire at enemy
+                            rc.firePentadShot(rc.getLocation().directionTo(target));
+                        else if(rc.canFirePentadShot() && target!=null && rc.getTeamBullets()>1000) //offset shot on even counters
+                            rc.firePentadShot(rc.getLocation().directionTo(target).rotateRightDegrees(10.0f));
+    					else if(rc.canFireTriadShot() && combatCounter%2==1 && target!=null) //odd counter fire at enemy
+    						rc.fireTriadShot(rc.getLocation().directionTo(target));
     					else if(rc.canFireTriadShot() && target!=null) //offset shot on even counters
     						rc.fireTriadShot(rc.getLocation().directionTo(target).rotateRightDegrees(10.0f));
     				}
@@ -84,15 +96,19 @@ public strictfp class Soldier2 extends RobotBase
     				MapLocation huntLoc = hunting(nearbyRobots, nearbyTrees, rc.getLocation());
     				if(huntLoc!=null) {
     					if(huntLoc==rc.getLocation()) {
-    					    if(huntingTarget!=null && huntingTarget.getType()==RobotType.ARCHON) {
+    					    if(huntingTarget!=null && rc.getLocation().distanceTo(huntingTarget.getLocation())<3) {
+    					        if(rc.canFirePentadShot())
+    					            rc.firePentadShot(huntDir);
+                            }
+    					    else if(huntingTarget!=null && huntingTarget.getType()==RobotType.ARCHON) {
     					        if(rc.canFireTriadShot())
     					            rc.fireTriadShot(huntDir);
                             }
-    						if(rc.canFireSingleShot()) {
+    						else if(rc.canFireSingleShot()) {
     							rc.fireSingleShot(huntDir);
     						}
     						if(huntingTarget.getType()==RobotType.LUMBERJACK) {
-    					        if(!rc.hasMoved() && rc.getLocation().distanceTo(huntingTarget.getLocation())<4.0)
+    					        if(!rc.hasMoved() && rc.getLocation().distanceTo(huntingTarget.getLocation())<5.0)
     					            pathFind(rc.getLocation().subtract(rc.getLocation().directionTo(huntingTarget.getLocation())));
                             }
     					} else {

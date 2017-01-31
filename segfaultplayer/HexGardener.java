@@ -275,7 +275,7 @@ public strictfp class HexGardener extends RobotBase
 		if(rc.senseNearbyRobots(5.0f, enemy).length > 0) {
 			return RobotType.SOLDIER;
 		}
-		if(rc.senseNearbyTrees(4.5f, Team.NEUTRAL).length > 0) {
+		if(rc.senseNearbyTrees(3.0f, Team.NEUTRAL).length > 0 && getLifespan()<100) {
 			return RobotType.LUMBERJACK;
 		}
 		float myRatio = rc.readBroadcast(13)/1000.0f;
