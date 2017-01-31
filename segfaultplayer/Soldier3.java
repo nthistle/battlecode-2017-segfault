@@ -20,8 +20,10 @@ public strictfp class Soldier3 extends RobotBase
         MapLocation target = null;
         try {
             while(true) {
+            	// INTEGRATE ================================
                 TreeInfo[] nearbyTrees = rc.senseNearbyTrees(); //shake nearby bullet trees
                 dailyTasks(nearbyTrees); //checks VP win and shaking and if archon needs to be progressed
+                // END INTEGRATION 1====================================
                 BulletInfo[] nearbyBullets = getBullets();
                 RobotInfo[] nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy); //TODO: Log coordinates into swarm
                 if(nearbyBullets.length>0 || combatCounter>0) { //combat counter maintains 5 turn fire
@@ -38,6 +40,7 @@ public strictfp class Soldier3 extends RobotBase
                 }
                 else if(nearbyRobots.length>0) {
                     //TODO: Hunting case
+                	// INTEGRATE ============================
                     MapLocation huntLoc = hunting(nearbyRobots, nearbyTrees, rc.getLocation());
                     if(huntLoc!=null) {
 	                    if(huntLoc==rc.getLocation()) {
@@ -48,8 +51,9 @@ public strictfp class Soldier3 extends RobotBase
 	                    	pathFind(huntLoc);
 	                    }
                     } else {
-                    	pathFind(enemyArchons[ctr]);
+                    	pathFind(enemyArchons[ctr]); //TODO: MAKE SURE THEY DONT RETUNR
                     }
+                    // END INTEGRATION 2 =====================================
                 }
                 else { //default case
                     if(rc.readBroadcast(300)==1 && rc.readBroadcast(301)!=0) { //swarm is on
@@ -57,7 +61,7 @@ public strictfp class Soldier3 extends RobotBase
                         pathFind(new MapLocation(maplocation[0], maplocation[1]));
                     }
                     else //find archon
-                        pathFind(enemyArchons[ctr]);
+                        pathFind(enemyArchons[ctr]); // TODO: MAKE SURE THEY DONT RETURN
                 }
                 if(target!=null)
                     rc.broadcast(301,CommunicationsHandler.pack(target.x,target.y));
@@ -73,6 +77,9 @@ public strictfp class Soldier3 extends RobotBase
         }
     }
 
+    //=================INTEGRATE======================
+    //=================================================
+    //===============================================
     public MapLocation isClear(RobotInfo myRobot, TreeInfo[] trees, RobotInfo[] team, MapLocation thisLoc) {
         // method returns null if robot can't be hit. returns maplocation of part of robot (middle, top, bottom) that can be hit if !null
         Direction backToMe = myRobot.location.directionTo(thisLoc);
@@ -219,6 +226,10 @@ public strictfp class Soldier3 extends RobotBase
     //==========END DISTANCE FROM POINT TO LINE======
     //===============================================
 
+    
+    //=================END INTEGRATION 3============================================================
+    //======================================================================================================
+    //============================================================================================
 
     //Does fire action
     // =================================================================
