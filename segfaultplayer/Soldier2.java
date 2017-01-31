@@ -20,6 +20,7 @@ public strictfp class Soldier2 extends RobotBase
     public void run() throws GameActionException {
     	int combatCounter = 0;
     	int tankCounter = 0;
+    	int pathCounter = 0;
     	MapLocation target = null;
     	boolean altShot = false;
     	while(true) {
@@ -28,6 +29,8 @@ public strictfp class Soldier2 extends RobotBase
     			dailyTasks(nearbyTrees); //checks VP win and shaking and if archon needs to be progressed
     			BulletInfo[] nearbyBullets = getBullets();
     			RobotInfo[] nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy);
+    			if(nearbyRobots.length>0)
+    			    pathCounter = 5;
     			if(nearbyBullets.length>0 || combatCounter>0 && rc.getTeamBullets()>30) { //COMBAT CASE. Combat counter maintains 5 turn fire TODO: Tune minimum bullets needed
     				if(nearbyBullets.length>0 || tankCounter>0) {//normal case
     					RobotInfo targetRobot = combatTarget(nearbyRobots); //find target if applicable
@@ -96,6 +99,8 @@ public strictfp class Soldier2 extends RobotBase
     				MapLocation huntLoc = hunting(nearbyRobots, nearbyTrees, rc.getLocation());
     				if(huntLoc!=null) {
     					if(huntLoc==rc.getLocation()) {
+    					    if(huntingTarget!=null)
+    					        target = huntingTarget.getLocation();
     					    if(huntingTarget!=null && rc.getLocation().distanceTo(huntingTarget.getLocation())<3) {
     					        if(rc.canFirePentadShot())
     					            rc.firePentadShot(huntDir);
@@ -115,6 +120,10 @@ public strictfp class Soldier2 extends RobotBase
     						pathFind(huntLoc);
     					}
     				}
+                    else if(pathCounter>0 && target!=null) {
+                        pathFind(target);
+                        pathCounter--;
+                    }
     				else if(ctr<enemyArchons.length) //elif archons are alive, move towards them
     					pathFind(enemyArchons[ctr]);
     				else { //move randomly
@@ -133,6 +142,10 @@ public strictfp class Soldier2 extends RobotBase
     					pathFind(goal);
     					rc.setIndicatorLine(rc.getLocation(), goal, 115, 202, 226);
     				}
+    				else if(pathCounter>0 && target!=null) {
+                        pathFind(target);
+                        pathCounter--;
+                    }
     				else if(ctr<enemyArchons.length) //elif archons are alive, move towards them
     					pathFind(enemyArchons[ctr]);
     				else { //move randomly
@@ -427,6 +440,7 @@ public strictfp class Soldier2 extends RobotBase
                             break;
                         }
                     }
+                    System.out.println(robots[i].getType());
                 }
                 z++;
             }
