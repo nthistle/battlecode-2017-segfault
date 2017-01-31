@@ -42,17 +42,24 @@ public strictfp class FirstGardener extends HexGardener
 				if(myPodStatus[i] == TREE_BLOCKED_SPOT)
 					numTB ++;
 			}
-			if(numTB >= 4) {
+			if(numTB > 4) {
+				System.out.println("case close3");
 				caseClosed();
 			} else {
+				System.out.println("case near3");
 				caseNear();
 			}
 		}
 		else if(rc.senseNearbyTrees(3.5f, Team.NEUTRAL).length > 0) {
+			System.out.println("case close");
 			caseClosed();
+
 		} else if(rc.readBroadcast(2) == 2) {
+			System.out.println("case far");
 			caseFar();
+
 		} else {
+			System.out.println("case near");
 			caseNear();
 		}
 	}
