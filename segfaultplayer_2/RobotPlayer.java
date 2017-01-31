@@ -51,7 +51,7 @@ public strictfp class RobotPlayer {
     }
 
     public static void handleSoldier(RobotController rc, int id) throws GameActionException {
-        Soldier so = new Soldier(rc, id);
+        Soldier2 so = new Soldier2(rc, id);
         so.run();
         //so.runAlt();
     }
