@@ -133,11 +133,13 @@ public strictfp class HexGardener extends RobotBase
 		int unitsBuilt = 0;
 		int treesPlanted = 0;
 		int numTurnsNoTree = 0;
+		int mt = 0;
 		boolean hasBroadcastedGardenerNecessity = false;
 		
 		boolean buildTankNext = false;
 		
 		while(true) {
+			mt ++;
 			try {
 				// standard stuff
 				checkVPWin();
@@ -149,7 +151,7 @@ public strictfp class HexGardener extends RobotBase
 					// build stuff for phase 2 is done based on ratio
 					//System.out.println("Ratio: "+getFloatRatio());
 					// build a unit to make up for it
-					if(numPodTrees >= PHASE_2_MAX_TREES || treesPlanted > getFloatRatio() * (1+unitsBuilt)) {
+					if(mt > 200 || numPodTrees >= PHASE_2_MAX_TREES || treesPlanted > getFloatRatio() * (1+unitsBuilt)) {
 						//System.out.println("Trying for a unit, T:" + treesPlanted + ",U:" + unitsBuilt);
 						if(!buildTankNext) {
 							RobotType nextType = getNextRobotBuildType();
@@ -189,6 +191,24 @@ public strictfp class HexGardener extends RobotBase
 							if(addTreeToPod()) {
 								treesPlanted ++;
 								numTurnsNoTree = 0;
+							}
+						}
+						else {
+							RobotType nextType = getNextRobotBuildType();
+	
+							Direction buildDir = getBuildDirection(nextType);
+							if(buildDir == null) {
+								if(!buildTankNext && nextType == RobotType.TANK) {
+									buildCooldown = 15; //give some time for stuff to clear out
+									buildTankNext = true;
+								}
+								// can't build this, ohwell
+							} else {
+								rc.buildRobot(nextType, buildDir);
+								buildTankNext = false;
+								hasBuiltType(nextType);
+								buildCooldown = 15; //replace with actual constant
+								unitsBuilt ++;
 							}
 						}
 					}

@@ -1,4 +1,4 @@
-package segfaultplayer;
+package segfaultplayer_3;
 import battlecode.common.*;
 
 public strictfp class Soldier extends RobotBase
