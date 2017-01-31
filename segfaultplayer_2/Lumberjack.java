@@ -1,4 +1,4 @@
-package segfaultplayer;
+package segfaultplayer_2;
 import battlecode.common.*;
 
 public strictfp class Lumberjack extends RobotBase

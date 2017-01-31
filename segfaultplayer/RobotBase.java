@@ -468,9 +468,15 @@ public strictfp abstract class RobotBase
 	//moves arbitrarily with dodging, if all bullets are non-threatening moves using without dodging
 	public void moveWithDodging(MapLocation ml, boolean debug) throws GameActionException {
 		Direction goal = rc.getLocation().directionTo(ml);
-		BulletInfo[] nearbyBullets = rc.senseNearbyBullets(5.0f);
+		BulletInfo[] nearbyBullets = rc.senseNearbyBullets(6.0f);
 		int ctr=0;
 		for(int i=0; i<nearbyBullets.length; i++) {
+			if(debug) {
+				if(rc.getLocation().directionTo(nearbyBullets[i].getLocation()).equals(nearbyBullets[i].getDir(),(float)(Math.PI/2.0)))
+					System.out.println("Bullet "+i+": "+nearbyBullets[i].getLocation()+" null");
+				else
+					System.out.println("Bullet "+i+": "+nearbyBullets[i].getLocation());
+			}
 			if(rc.getLocation().directionTo(nearbyBullets[i].getLocation()).equals(nearbyBullets[i].getDir(),(float)(Math.PI/2.0)))
 				nearbyBullets[i] = null;
 			else
@@ -489,19 +495,23 @@ public strictfp abstract class RobotBase
 			}
 		}
 		for(int i=0; i<25; i++) {
-			MapLocation mapLocation = rc.getLocation().add(randomDirection(),(float)(.5+(Math.random()*.5)*rc.getType().strideRadius));
+			MapLocation mapLocation = rc.getLocation().add(randomDirection(),(float)( (.5+(Math.random()*.5)) * rc.getType().strideRadius));
 			boolean clear = true;
 			for(BulletInfo bullet: bi) {
-				if(mapLocation.distanceTo(bullet.getLocation().add(bullet.getDir(),bullet.getSpeed()))<rc.getType().bodyRadius+.05
-						&& mapLocation.distanceTo(bullet.getLocation().add(bullet.getDir(),(float)(bullet.getSpeed()*.5)))<rc.getType().bodyRadius+.05) {
-					clear = false;
-					break;
+				if (mapLocation.distanceTo(bullet.getLocation().add(bullet.getDir(), (float) (bullet.getSpeed() * .25 ))) < rc.getType().bodyRadius *1.1
+						|| mapLocation.distanceTo(bullet.getLocation().add(bullet.getDir(), (float) (bullet.getSpeed() * .75 ))) < rc.getType().bodyRadius *1.1) {
+						clear = false;
+						break;
 				}
 			}
 			if(clear) {
 				if (rc.canMove(mapLocation)) {
 					rc.move(mapLocation);
-					//System.out.println("i: "+i);
+					if(debug) {
+						System.out.println("i: " + i);
+						System.out.println(mapLocation);
+						rc.setIndicatorDot(mapLocation,255,0,255);
+					}
 					break;
 				}
 			}
@@ -613,7 +623,7 @@ public strictfp abstract class RobotBase
 		
 		//actually move
 		for (int j=0; j<myDirs.length; j++) {
-			if(rc.canMove(myDirs[(int)pathMatrix[j][0]])) {
+			if(rc.canMove(myDirs[(int)pathMatrix[j][0]]) && canTankMove(rc.getLocation().add(myDirs[(int)pathMatrix[j][0]],rc.getType().strideRadius) )) {
 				rc.move(myDirs[(int)pathMatrix[j][0]]);
 				break;
 			}

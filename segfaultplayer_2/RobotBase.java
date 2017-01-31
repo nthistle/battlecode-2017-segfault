@@ -10,7 +10,10 @@ import battlecode.common.*;
 public strictfp abstract class RobotBase
 {
 	private static final int randSeed = 10385;
-	public static Random rand = new Random(randSeed);
+	
+	public Random rand;
+	
+	public static Random staticRand = new Random(randSeed);
 	
 	protected final RobotController rc;
 	
@@ -23,6 +26,8 @@ public strictfp abstract class RobotBase
 	public MapLocation marker  = null;
 	public MapLocation marker2 = null; // what are these?
 	
+	public float[][] pathMatrix;
+	
 	public int firstTurn;
 	
 	private int myID;
@@ -34,6 +39,7 @@ public strictfp abstract class RobotBase
 		ally = rc.getTeam();
 		firstTurn = rc.getRoundNum();
 		setAndSortArchons();
+		rand = new Random(randSeed + rc.getID());
 	}
 	
 	public RobotBase(RobotController rc, int id) throws GameActionException {
@@ -43,6 +49,7 @@ public strictfp abstract class RobotBase
 		ally = rc.getTeam();
 		firstTurn = rc.getRoundNum();
 		setAndSortArchons();
+		rand = new Random(randSeed + rc.getID());
 	}
 	
 	/**
@@ -91,7 +98,7 @@ public strictfp abstract class RobotBase
 		if(vpNeeded*rc.getVictoryPointCost() < rc.getTeamBullets()) {
 			rc.donate(rc.getTeamBullets());
 		}
-		if(rc.getRoundNum()>rc.getRoundLimit()-3)
+		if(rc.getRoundNum()>rc.getRoundLimit()-5)
 			rc.donate(rc.getTeamBullets());
 	}
 	
@@ -278,6 +285,53 @@ public strictfp abstract class RobotBase
 		return true;
 	}
 
+	public double[] isSingleShotClearValue(Direction tDir) throws GameActionException {
+		return isSingleShotClearValue(tDir, false);
+	}
+
+	public double[] isSingleShotClearValue(Direction tDir, boolean drawIndicators) throws GameActionException {
+		double[] ret = {0.0,0.0};
+		RobotInfo[] robots = rc.senseNearbyRobots(rc.getType().sensorRadius, ally);
+		TreeInfo[] trees = rc.senseNearbyTrees();
+
+		if(drawIndicators)
+			rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(tDir,Float.valueOf(100.0+"")),0,255,255);
+
+		for(int i=0; i<robots.length; i++) {
+			Direction fDir = rc.getLocation().directionTo(robots[i].getLocation());
+			double length = (double)rc.getLocation().distanceTo(robots[i].getLocation());
+			double dist = Math.sqrt(2*length*length - 2*length*length*Math.cos(tDir.radiansBetween(fDir)));
+			if (dist < robots[i].getRadius()+.1) {
+				double score = 2.0;
+				if(robots[i].getType()==RobotType.GARDENER)
+					score+=1.0;
+				if(robots[i].getType()==RobotType.ARCHON)
+					score+=4.0;
+				if(robots[i].getTeam()==rc.getTeam())
+					ret[0]+=score;
+				else
+					ret[1]+=score;
+			}
+		}
+		for(int i=0; i<trees.length; i++) {
+			if(trees[i].getTeam()==ally) {
+				if (drawIndicators)
+					rc.setIndicatorDot(trees[i].getLocation(), 0, 0, 255);
+				Direction fDir = rc.getLocation().directionTo(trees[i].getLocation());
+				double length = (double) rc.getLocation().distanceTo(trees[i].getLocation());
+				double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
+				if (dist < trees[i].getRadius() + .1) {
+					double score = 1.0;
+					if (trees[i].getTeam() == rc.getTeam())
+						ret[0] += score;
+					else
+						ret[1] += score;
+				}
+			}
+		}
+		return ret;
+	}
+
 	public double[] isTriadShotClear(Direction tDir) throws GameActionException {
 		return isTriadShotClear(tDir, false);
 	}
@@ -303,6 +357,8 @@ public strictfp abstract class RobotBase
 				double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
 				if (dist < robots[i].getRadius()+.1) {
 					double score = 2.0;
+					if(robots[i].getType()==RobotType.GARDENER)
+						score+=1.0;
 					if(robots[i].getType()==RobotType.ARCHON)
 						score+=4.0;
 					if(robots[i].getTeam()==rc.getTeam())
@@ -356,6 +412,8 @@ public strictfp abstract class RobotBase
 				double dist = Math.sqrt(2 * length * length - 2 * length * length * Math.cos(tDir.radiansBetween(fDir)));
 				if (dist < robots[i].getRadius()+.1) {
 					double score = 2.0;
+					if(robots[i].getType()==RobotType.GARDENER)
+						score+=1.0;
 					if(robots[i].getType()==RobotType.ARCHON)
 						score+=4.0;
 					if(robots[i].getTeam()==rc.getTeam())
@@ -431,6 +489,58 @@ public strictfp abstract class RobotBase
 			}
 		}
 		for(int i=0; i<25; i++) {
+			MapLocation mapLocation = rc.getLocation().add(randomDirection(),(float)( (.5+(Math.random()*.5)) * rc.getType().strideRadius));
+			boolean clear = true;
+			for(BulletInfo bullet: bi) {
+				if (mapLocation.distanceTo(bullet.getLocation().add(bullet.getDir(), (float) (bullet.getSpeed() * .5 ))) < rc.getType().bodyRadius +.05
+						&& mapLocation.distanceTo(bullet.getLocation().add(bullet.getDir(), (float) (bullet.getSpeed() * .1 ))) < rc.getType().bodyRadius +.05) {
+						clear = false;
+						break;
+				}
+			}
+			if(clear) {
+				if (rc.canMove(mapLocation)) {
+					rc.move(mapLocation);
+					if(debug) {
+						System.out.println("i: " + i);
+						rc.setIndicatorDot(mapLocation,0,255,255);
+					}
+					break;
+				}
+			}
+		}
+	}
+
+	public void moveWithDodgingScout(MapLocation ml) throws GameActionException{
+		moveWithDodging(ml, false);
+	}
+
+	//moves arbitrarily with dodging, if all bullets are non-threatening moves using without dodging
+	public void moveWithDodgingScout(MapLocation ml, boolean debug) throws GameActionException {
+		Direction goal = rc.getLocation().directionTo(ml);
+		BulletInfo[] nearbyBullets = rc.senseNearbyBullets(5.0f);
+		int ctr=0;
+		for(int i=0; i<nearbyBullets.length; i++) {
+			if(rc.getLocation().directionTo(nearbyBullets[i].getLocation()).equals(nearbyBullets[i].getDir(),(float)(Math.PI/2.0)))
+				nearbyBullets[i] = null;
+			else
+				ctr++;
+		}
+		if(ctr==0) {
+			pathFind(ml);
+			return;
+		}
+		BulletInfo[] bi = new BulletInfo[ctr];
+		ctr=0;
+		for(int i=0; i<nearbyBullets.length; i++) {
+			if(nearbyBullets[i]!=null) {
+				bi[ctr] = nearbyBullets[i];
+				ctr++;
+			}
+		}
+		MapLocation[] moves = new MapLocation[25];
+		float dir = 0.0f;
+		for(int i=0; i<25; i++) {
 			MapLocation mapLocation = rc.getLocation().add(randomDirection(),(float)(.5+(Math.random()*.5)*rc.getType().strideRadius));
 			boolean clear = true;
 			for(BulletInfo bullet: bi) {
@@ -440,14 +550,23 @@ public strictfp abstract class RobotBase
 					break;
 				}
 			}
-			if(clear) {
-				if (rc.canMove(mapLocation)) {
-					rc.move(mapLocation);
-					System.out.println("i: "+i);
-					break;
-				}
-			}
+			if(clear)
+				moves[i] = mapLocation;
+			else
+				moves[i] = null;
 		}
+		for(BulletInfo bullet: bi) {
+			dir+=bullet.getDir().radians;
+		}
+		dir = dir / bi.length*1.0f;
+		Direction dodgeDir = new Direction(dir);
+		MapLocation move = moves[0];
+		for(int i=1; i<25; i++) {
+			if(move.distanceTo(rc.getLocation().add(dodgeDir,rc.getType().strideRadius)) > move.distanceTo(rc.getLocation().add(dodgeDir,rc.getType().strideRadius)))
+				move = moves[i];
+		}
+		if(rc.canMove(move))
+			rc.move(move);
 	}
 	
 
@@ -455,39 +574,38 @@ public strictfp abstract class RobotBase
 	// ==================== PATHFINDING ========================
 	// =========================================================
 	public void pathFind(MapLocation endLoc) throws GameActionException {
+		Direction[] myDirs = getDirections(Direction.getNorth(), 30f); // not pointed towards enemy archon so it can move straight up and down
+		pathMatrix = new float[myDirs.length][2];
 		float stride = (float)(rc.getType().strideRadius);
 		MapLocation myLoc = rc.getLocation();
-		updateRatio(myLoc);
+		updateRatio(myLoc);;
 		Direction toEnd = myLoc.directionTo(endLoc);
-		Direction[] myDirs = getDirections(Direction.getNorth(), 30f); // not pointed towards enemy archon so it can move straight up and down
-		float[][] hyperMeme = new float[myDirs.length][2];
-		
 		for(int i=0; i<myDirs.length; i++) {
 			if(rc.canMove(myDirs[i], stride)) {
-				hyperMeme[i][0] = i;
+				pathMatrix[i][0] = i;
 				MapLocation newLoc = myLoc.add(myDirs[i], stride);
-				hyperMeme[i][1] = newLoc.distanceTo(endLoc);
-				//System.out.print(hyperMeme[i][1] + " ");
+				pathMatrix[i][1] = newLoc.distanceTo(endLoc);
+				//System.out.print(pathMatrix[i][1] + " ");
 				if(marker!=null) {
-					hyperMeme[i][1] -= newLoc.distanceTo(marker)*1.6;//(1.6+2*getLifespan()/rc.getRoundLimit()); //*1.6;
+					pathMatrix[i][1] -= newLoc.distanceTo(marker)*1.6;//(1.6+2*getLifespan()/rc.getRoundLimit()); //*1.6;
 					rc.setIndicatorLine(myLoc, marker, 255, 0, 0);
 					//System.out.print(newLoc.distanceTo(marker) + " ");
 				}
 				if(marker2!=null) {
-					hyperMeme[i][1] -= newLoc.distanceTo(marker2)*.4;//(.4+2*getLifespan()/rc.getRoundLimit()); //*.4;
+					pathMatrix[i][1] -= newLoc.distanceTo(marker2)*.4;//(.4+2*getLifespan()/rc.getRoundLimit()); //*.4;
 					rc.setIndicatorLine(myLoc, marker, 255, 0, 0);
 					//System.out.println(newLoc.distanceTo(marker2) + " ");
 				}
-				rc.setIndicatorLine(myLoc,newLoc, 0, (int)hyperMeme[i][1]*5, 0);
+				rc.setIndicatorLine(myLoc,newLoc, 0, (int)pathMatrix[i][1]*5, 0);
 			} else {
 				// theres something in the way
-				hyperMeme[i][0] = i;
-				hyperMeme[i][1] = Float.MAX_VALUE;
+				pathMatrix[i][0] = i;
+				pathMatrix[i][1] = Float.MAX_VALUE;
 			}
 		}
-		System.out.println("Boost: "+6*getLifespan()/(1.0*rc.getRoundLimit()));
+		//System.out.println("Boost: "+6*getLifespan()/(1.0*rc.getRoundLimit()));
 		// sort the array
-		java.util.Arrays.sort(hyperMeme, new java.util.Comparator<float[]>() {
+		java.util.Arrays.sort(pathMatrix, new java.util.Comparator<float[]>() {
 			public int compare(float[] a, float[] b) {
 				return Float.compare(a[1], b[1]); // sort by heuristic if damage is equal (lower = closer to goal)
 			}
@@ -498,8 +616,8 @@ public strictfp abstract class RobotBase
 		
 		//actually move
 		for (int j=0; j<myDirs.length; j++) {
-			if(rc.canMove(myDirs[(int)hyperMeme[j][0]])) {
-				rc.move(myDirs[(int)hyperMeme[j][0]]);
+			if(rc.canMove(myDirs[(int)pathMatrix[j][0]]) && canTankMove(rc.getLocation().add(myDirs[(int)pathMatrix[j][0]],rc.getType().strideRadius) )) {
+				rc.move(myDirs[(int)pathMatrix[j][0]]);
 				break;
 			}
 		}
@@ -514,8 +632,12 @@ public strictfp abstract class RobotBase
 	 * @throws GameActionException
 	 */
 	public float getFloatRatio() throws GameActionException {
-		int realRatio = rc.readBroadcast(11);
-		return (float)realRatio / 1000.0f;
+		return 2.1f; // some weird stuff was happening, so for debugging
+		// and because I'm not sure how well this method works, I just made
+		// this return 2.1
+		
+		/*int realRatio = rc.readBroadcast(11);
+		return (float)realRatio / 1000.0f;*/
 	}
 	
 	/**
@@ -527,18 +649,18 @@ public strictfp abstract class RobotBase
 	 * @throws GameActionException
 	 */
 	public void updateRatio(MapLocation myLocation) throws GameActionException {
-		//bad
-		int myRatio = (int)(3.0 / (1.0 + Math.pow(Math.E,3.0-2.0*(myLocation.distanceTo(allyArchons[0])/myLocation.distanceTo(enemyArchons[0]))) )*1000.0 );
+		//large number = lots of trees, small number = lots of troops
+		//# of Archons * (Distance between Archons / 100f) * (1 / (P(x) + .1))
+		//P(x) is 1 when at enemy, 0 at friendly robot
+		//Big x means P(x) is 1, Small X is means P(x) is 0
+		double distance = allyArchons[0].distanceTo(enemyArchons[0]);
+		double myScore = allyArchons.length * distance / 100.0 * ( 1.0 / ( 1 + Math.exp( -rc.getLocation().distanceTo(allyArchons[0]) + distance/2.0) ) + .1 );
 
-		//should be right but isnt
-		//int myRatio = (int)(1/3.0 + (8.0 / 3.0) * 1.0 / (1.0 + Math.pow(Math.E,-(myLocation.distanceTo(enemyArchons[0]) - (myLocation.distanceTo(allyArchons[0])+myLocation.distanceTo(enemyArchons[0]))/2.0 ) ) )*1000.0 );
-
-
-		//old
-		//int myRatio = (int)(1.0 / (1.0 + Math.pow(Math.E,(myLocation.distanceTo(enemyArchons[0])/myLocation.distanceTo(allyArchons[0]))) )*1000.0 );
+		int myRatio = (int)(myScore*1000);
 		int realRatio = rc.readBroadcast(11);
+
 		if(myRatio>realRatio) {
-			rc.broadcast(11, 1);
+			rc.broadcast(11,myRatio ); //myRatio
 		}
 	}
 	// =====================================================================================
@@ -601,6 +723,33 @@ public strictfp abstract class RobotBase
     	}
     	return dirs;
 	}
+    
+
+    public static Direction[] getBestDirections2(Direction bestDir, float theta) throws GameActionException {
+    	float initialtheta = theta;
+    	Direction[] dirs = new Direction [(int)(360.0f/theta)];
+    	dirs[0] = bestDir;
+    	for (int j=1; j<dirs.length; j++) {
+    		bestDir = bestDir.rotateLeftDegrees(theta);
+    		dirs[j] = bestDir;
+    	}
+    	return dirs;
+	}
+
+	public static Direction[] getBestDirectionsMihir(Direction bestDir, float theta) throws GameActionException {
+		float initialtheta = theta;
+		Direction[] dirs = new Direction [(int)(360.0f/theta)];
+		dirs[0] = bestDir;
+		for (int j=1; j<dirs.length; j++) {
+			dirs[j] = bestDir.rotateLeftDegrees(theta);
+			if(j!=dirs.length-1) {
+				dirs[j] = bestDir.rotateRightDegrees(theta);
+				theta += initialtheta;
+			}
+		}
+		return dirs;
+	}
+    
 	
 	public static Direction averageDirection(Direction a, Direction b) {
 		float adeg = a.radians;
@@ -643,7 +792,7 @@ public strictfp abstract class RobotBase
 		return closest;
 	}
 	
-	public static Direction randomDirection() {
+	public Direction randomDirection() {
 		return new Direction(rand.nextFloat() * 2 * (float)Math.PI);
 	}
     

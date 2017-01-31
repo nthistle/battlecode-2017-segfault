@@ -1,6 +1,5 @@
 package segfaultplayer_2;
 import battlecode.common.*;
-import segfaultplayer.*;
 
 public strictfp class RobotPlayer {
     
@@ -39,9 +38,13 @@ public strictfp class RobotPlayer {
     }
 
     public static void handleGardener(RobotController rc, int id) throws GameActionException {
-    	HexGardener hg = new HexGardener(rc, id);
-    	hg.run();
-
+    	if(id == 0) {
+    		FirstGardener fg = new FirstGardener(rc, id);
+    		fg.run();
+    	} else {
+    		HexGardener hg = new HexGardener(rc, id);
+    		hg.run();
+    	}
         //Gardener g = new Gardener(rc, id);
         //g.run();
         //g.runAlternate(RobotType.SCOUT);
@@ -59,7 +62,7 @@ public strictfp class RobotPlayer {
     }
 
     public static void handleScout(RobotController rc, int id) throws GameActionException {
-        Scout2 sc = new Scout2(rc, id);
+        Scout3 sc = new Scout3(rc, id);
         sc.run();
     }
 
