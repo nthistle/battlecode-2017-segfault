@@ -14,12 +14,23 @@ public strictfp class Soldier2 extends RobotBase
     }
 
     public void run() throws GameActionException {
+        int combatCounter = 0;
+        MapLocation target = null;
         try {
             while(true) {
                 dailyTasks(); //checks VP win and shaking and if archon needs to be progressed
                 BulletInfo[] nearbyBullets = getBullets();
                 RobotInfo[] nearbyRobots = rc.senseNearbyRobots(rc.getType().sensorRadius,enemy); //TODO: Log coordinates into swarm
-                if(nearbyBullets.length>0) {
+                if(nearbyBullets.length>0 || combatCounter>0) { //combat counter maintains 5 turn fire
+                    if(nearbyBullets.length>0) //normal case
+                        combatCounter=5;
+                    else {//fire at enemy's last location case
+                        combatCounter--;
+                        if(rc.canFireTriadShot() && combatCounter%2==1) //odd counter fire at enemy
+                            rc.fireSingleShot(rc.getLocation().directionTo(target));
+                        else if(rc.canFireTriadShot()) //offset shot on even counters
+                            rc.fireTriadShot(rc.getLocation().directionTo(target).rotateRightDegrees(10.0f));
+                    }
                     //TODO: Combat case
                 }
                 else if(nearbyRobots.length>0) {
@@ -33,7 +44,8 @@ public strictfp class Soldier2 extends RobotBase
                     else //find archon
                         pathFind(enemyArchons[ctr]);
                 }
-
+                if(target!=null)
+                    rc.broadcast(301,CommunicationsHandler.pack(target.x,target.y));
                 if(rc.getRoundNum() > SWARM_ROUND_NUM) { //turn on the swarm
                     if(rc.readBroadcast(300) == 0)
                         rc.broadcast(300, 1);
@@ -46,6 +58,7 @@ public strictfp class Soldier2 extends RobotBase
         }
     }
 
+    //gets bullets being fired towards me
     public BulletInfo[] getBullets() throws GameActionException {
         BulletInfo[] nearbyBullets = rc.senseNearbyBullets(6.0f); //TODO: Change with bytecode limit
         int ctr=0;
