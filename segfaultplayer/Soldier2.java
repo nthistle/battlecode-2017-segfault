@@ -104,7 +104,9 @@ public strictfp class Soldier2 extends RobotBase
                 else { //default case
                     if(rc.readBroadcast(300)==1 && rc.readBroadcast(301)!=0) { //swarm is on
                         float[] maplocation = CommunicationsHandler.unpack(rc.readBroadcast(301));
-                        pathFind(new MapLocation(maplocation[0], maplocation[1]));
+                        MapLocation goal = new MapLocation(maplocation[0], maplocation[1]);
+                        pathFind(goal);
+            			rc.setIndicatorLine(rc.getLocation(), goal, 115, 202, 226);
                     }
                     else if(ctr<enemyArchons.length) //elif archons are alive, move towards them
                         pathFind(enemyArchons[ctr]);
