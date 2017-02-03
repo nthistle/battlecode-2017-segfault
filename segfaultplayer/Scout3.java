@@ -43,8 +43,9 @@ public strictfp class Scout3 extends RobotBase
 				MapLocation myLoc = rc.getLocation();
 				boolean hasShaken = false;
 				TreeInfo[] myTrees = rc.senseNearbyTrees(sR);
-				// going towards enemy archon when it doesn't have any bullets
-				
+				// going towards enemy archon when it doesn't have any bullets AND it is less than
+				// halfway to the enemy. This gets a more accurate representation of tree density
+				// rather than moving randomly initially.
 				if (!isAtEnemy) {
 					isAtEnemy = rc.getLocation().distanceTo(el) < rc.getLocation().distanceTo(allyArchons[0]);
 					dir = myLoc.directionTo(el);
