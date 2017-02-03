@@ -579,7 +579,11 @@ public strictfp abstract class RobotBase
 		}
 		return myDirs;
 	}
-
+	
+	// =============================================================
+	// finds shortest distance between line segment and circle
+	// Note: Does not work. Do not use. Here for legacy purposes.
+	// =============================================================
 	private boolean willHitMe(MapLocation p, MapLocation l1, MapLocation l2)
 	{
 		float x1 = p.x;
@@ -615,6 +619,7 @@ public strictfp abstract class RobotBase
 	}
 
 	//moves arbitrarily with dodging, if all bullets are non-threatening moves using without dodging
+	// Note: Not used in final version of scout (Scout3.java)
 	public void moveWithDodgingScout(MapLocation ml, boolean debug) throws GameActionException {
 		Direction goal = rc.getLocation().directionTo(ml);
 		BulletInfo[] nearbyBullets = rc.senseNearbyBullets(5.0f);
