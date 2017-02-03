@@ -499,6 +499,7 @@ public strictfp class Soldier2 extends RobotBase
     //===========================================
     //==========DISTANCE FROM POINT TO LINE======
     //===========================================
+    // this method actually works, as opposed to the one in RobotBase
     private double sqr(double x) {
         return x*x;
     }
