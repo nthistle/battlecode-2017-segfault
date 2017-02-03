@@ -1,3 +1,12 @@
+/* This soldier is our competition soldier.
+ * It includes a special dodging technique 2x better than the old one in RobotBase
+ * 
+ *
+ *
+ *
+ *
+ */   
+
 package segfaultplayer;
 import battlecode.common.*;
 
