@@ -35,6 +35,7 @@ public strictfp class Scout3 extends RobotBase
 		while (true) {
 			//System.out.println("DANKDNAKNDAK");
 			counter++;
+			// If there are bullets, dodging (so that it stays alive) takes priority
 			if(rc.senseNearbyBullets(5f).length>0) {
 				moveWithDodging(el);
 				Clock.yield();
