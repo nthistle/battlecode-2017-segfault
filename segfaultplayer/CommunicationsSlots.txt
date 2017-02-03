@@ -1,4 +1,7 @@
 Communications Slots
+________________________
+Broadcast Channel - Purpose
+
 1   	-	alpha archon starting location
 2		- 	gardener plan (2 is far, 1 is close)
 11		-	ratio of soldiers to trees
