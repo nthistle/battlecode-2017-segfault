@@ -695,7 +695,7 @@ public strictfp abstract class RobotBase
 		}
 		float stride = (float)(rc.getType().strideRadius);
 		MapLocation myLoc = rc.getLocation();
-		updateRatio(myLoc);
+		updateRatio(myLoc); // to see if this soldier is the furthest one
 		Direction toEnd = myLoc.directionTo(endLoc);
 		for(int i=0; i<myDirs.length; i++) {
 			if(rc.canMove(myDirs[i], stride)) {
