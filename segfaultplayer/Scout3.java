@@ -17,7 +17,10 @@ public strictfp class Scout3 extends RobotBase
 		System.out.println(dank);
 		bulletPath(dank);
 	}
-
+	// The Scout's main purpose is to collect bullets
+	// Secondary Purpose: Find data for Lumberjack vs. Soldier Production
+	// Tertiary Purpose: Waste Enemy fire
+	// Only one scout is ever produced in the game.
 	public void bulletPath(MapLocation el) throws GameActionException {
 		Set<Integer> uniqueTrees = new HashSet<Integer>();
 		float scaledNumTrees = 0;
