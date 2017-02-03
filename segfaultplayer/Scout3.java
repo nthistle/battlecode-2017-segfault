@@ -108,6 +108,7 @@ public strictfp class Scout3 extends RobotBase
 						System.out.println(broadValue);
 						rc.broadcast(13, val);
 					// Tends to soldiers after turn 100
+					// Note: Doesn't work well. One reason for early losses on big maps
 					} else {
 						float broadValue = 
 								(uniqueTrees.size() / (steps*(float)Math.PI)) 
