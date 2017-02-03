@@ -679,6 +679,13 @@ public strictfp abstract class RobotBase
 	// =========================================================
 	// ==================== PATHFINDING ========================
 	// =========================================================
+	/*  How Pathfinding Works:
+	 *	The robot moves to the direction with the lowest heuristic value.
+	 *	The Heuristic is based on distance to enemy archon, distance from current location, and distance from previous location
+	 *	Larger weights on distances from previous positions work better for larger maps,
+	 *	but make smaller map navigation inefficient.
+	 *	The soldiers do not fit in narrow horizontal or vertical gaps because they always move one stride length
+	 */
 	public void pathFind(MapLocation endLoc) throws GameActionException {
 		Direction[] myDirs = getDirections(rc.getLocation().directionTo(endLoc), 30f); // not pointed towards enemy archon so it can move straight up and down
 		//pathMatrix = new float[myDirs.length][2];
