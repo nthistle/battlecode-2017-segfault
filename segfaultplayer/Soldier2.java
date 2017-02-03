@@ -4,7 +4,7 @@
  * The hunting mode not only considers objects blocking the enemy, but also looks at the top, middle, and bottom of the enemy for precision shooting
  * The hunting mode also checks these enemy locations 20 degrees away from its current location to see if it can move to kill the enemy
  * This vastly improved the effectiveness of our soldiers while reducing bullet use (Hunting soldiers fire single shots)
- *
+ * Both methods written in 6 hours, total.
  */   
 
 package segfaultplayer;
