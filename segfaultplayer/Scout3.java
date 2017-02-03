@@ -62,9 +62,9 @@ public strictfp class Scout3 extends RobotBase
 				
 				for (TreeInfo k : myTrees) {
 					float q = k.radius;
-					if(uniqueTrees.add(k.ID)) {
+					if(uniqueTrees.add(k.ID)) { // while the sensor senses mainly the same trees each turn, add only unique ones
 						if(!isAtEnemy) {
-							scaledNumTrees += (q*q);
+							scaledNumTrees += (q*q); // scaling trees by radius to get better estimation of density
 						}
 					}
 					if(k.containedBullets!=0) {
