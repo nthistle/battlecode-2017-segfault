@@ -758,12 +758,9 @@ public strictfp abstract class RobotBase
 	}
 
 	/**
-	 * Updates the ratio for gardener unit vs. tree production as a function of how close
-	 * to enemy archon we've made it.
-	 * If the furthest we've reached is mid-way between enemy archon and our archon, there's
-	 * most likely a path due to symmetry, and we want more soldiers to rush down that path.
-	 * @param myLocation
-	 * @throws GameActionException
+	 * A Last-minute solution with mixed results
+	 * Raw ratio is used to determine lumberjack vs. soldier production
+	 * Note: It is a bad metric, and does not work well
 	 */
 	public void rawRatio(MapLocation myLocation) throws GameActionException {
 		double distance = allyArchons[0].distanceTo(enemyArchons[0]);
@@ -773,6 +770,14 @@ public strictfp abstract class RobotBase
 			rc.broadcast(12, ratio1000);
 		}
 	}
+	/**
+	 * Updates the ratio for gardener unit vs. tree production as a function of how close
+	 * to enemy archon we've made it.
+	 * If the furthest we've reached is mid-way between enemy archon and our archon, there's
+	 * most likely a path due to symmetry, and we want more soldiers to rush down that path.
+	 * @param myLocation
+	 * @throws GameActionException
+	 */
 	public void updateRatio(MapLocation myLocation) throws GameActionException {
 		rawRatio(myLocation);
 		//large number = lots of trees, small number = lots of troops
@@ -834,6 +839,7 @@ public strictfp abstract class RobotBase
 
 	//fans out directions from initial direction by delta theta
 	// returns array of directions best arr[0] to worst arr[arr.len-1]
+	// Note: May not actually work
 	public static Direction[] getBestDirections(Direction bestDir, float theta) throws GameActionException {
 		float initialtheta = theta;
 		Direction[] dirs = new Direction [(int)(360.0f/theta)];
@@ -894,7 +900,8 @@ public strictfp abstract class RobotBase
 			avg -= 2.0f*(float)Math.PI;
 		return new Direction(avg);
 	}
-
+	// Returns array of Direction starting from given direction, rotating by float theta (in degrees) leftwards
+	// Note: Please make theta divisible by 360 when using
 	public static Direction[] getDirections(Direction startDir, float theta) throws GameActionException {
 		float initialtheta = theta;
 		Direction[] dirs = new Direction [(int)(360.0f/theta)];
