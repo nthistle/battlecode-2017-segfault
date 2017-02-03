@@ -99,7 +99,6 @@ public strictfp class Scout3 extends RobotBase
 						rc.broadcast(150, steps);
 					}
 					// For the Calculation of Lumberjacks vs. Soldiers
-					
 					if(rc.getRoundNum() < 100) {
 						float broadValue = 
 							(uniqueTrees.size() / (steps*(float)Math.PI)) 
@@ -108,6 +107,7 @@ public strictfp class Scout3 extends RobotBase
 						int val = (int)(broadValue*1000f);
 						System.out.println(broadValue);
 						rc.broadcast(13, val);
+					// Tends to soldiers after turn 100
 					} else {
 						float broadValue = 
 								(uniqueTrees.size() / (steps*(float)Math.PI)) 
