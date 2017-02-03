@@ -1,3 +1,9 @@
+/* This is the scout used in competition
+ * Scout's role was simplified greatly because the Scout was nerfed after the Sprint tournament
+ * (Scout health 50 -> 10, Scout speed 2.5 -> 1.25, Scout bullet power 1.0 -> 0.5)
+ * Pathfinding and combat entirely moved over to soldiers which now posses similar or better specifications in every category
+*/
+
 package segfaultplayer;
 import java.util.HashSet;
 import java.util.Set;
