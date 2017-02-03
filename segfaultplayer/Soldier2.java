@@ -1,7 +1,7 @@
 /* This soldier is our competition soldier.
  * It includes a special dodging technique 2x better than the old one in RobotBase
- * 
- *
+ * It has a hunting mode initiated when no bullets are around.
+ * The hunting mode not only considers objects blocking the enemy, but also looks at the top, middle, and bottom of the enemy for precision shooting
  *
  *
  *
